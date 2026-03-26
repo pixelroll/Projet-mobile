@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Traveling</string>
+    <string name="cloudinary_cloud_name">PLACEHOLDER_CLOUD_NAME</string>
+    <string name="cloudinary_api_key">PLACEHOLDER_API_KEY</string>
+    <string name="cloudinary_api_secret">PLACEHOLDER_API_SECRET</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_path">Parcours</string>
+    <string name="nav_search">Recherche</string>
+    <string name="nav_profile">Profil</string>
+</resources>

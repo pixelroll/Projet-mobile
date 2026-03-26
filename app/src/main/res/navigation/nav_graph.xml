@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.paullouis.travel.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/travelPathPreferencesFragment"
+        android:name="com.paullouis.travel.TravelPathPreferencesFragment"
+        android:label="TravelPath" />
+
+    <fragment
+        android:id="@+id/advancedSearchFragment"
+        android:name="com.paullouis.travel.AdvancedSearchFragment"
+        android:label="Search" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.paullouis.travel.ProfileFragment"
+        android:label="Profile" />
+        
+    <fragment
+        android:id="@+id/photoDetailFragment"
+        android:name="com.paullouis.travel.PhotoDetailFragment"
+        android:label="PhotoDetail" />
+
+    <fragment
+        android:id="@+id/publishPhotoFragment"
+        android:name="com.paullouis.travel.PublishPhotoFragment"
+        android:label="PublishPhoto" />
+        
+</navigation>

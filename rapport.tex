@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{tikz}
+
+\title{Rapport Technique : Application Traveling}
+\author{Antigravity AI}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction et description du projet}
+L'application \textbf{Traveling} est une application mobile Android de voyage composée de deux entités majeures connectées par une passerelle :
+\begin{itemize}
+    \item \textbf{TravelShare} : Un espace de partage et de découverte de photos de voyages (mode public/anonyme ou connecté).
+    \item \textbf{TravelPath} : Un générateur intelligent de parcours de visite basé sur les préférences de l'utilisateur.
+\end{itemize}
+
+\section{Architecture globale de l'application}
+
+\begin{tikzpicture}[node distance=2cm, align=center]
+  \node[draw, rounded corners, minimum width=3cm, minimum height=1cm] (app) {Application Android (UI)};
+  \node[draw, below left of=app, node distance=4cm, fill=blue!10] (firebase) {Firebase (Auth, Firestore, FCM)};
+  \node[draw, below right of=app, node distance=4cm, fill=cyan!10] (cloudinary) {Cloudinary (Médias)};
+
+  \draw[<->] (app) -- node[left] {Données \& Sync} (firebase);
+  \draw[<->] (app) -- node[right] {Upload \& CDN URL} (cloudinary);
+\end{tikzpicture}
+
+\section{Description détaillée des fonctionnalités}
+
+\subsection{Phase 3 : Sous-système TravelShare}
+Le module \textbf{TravelShare} a été développé avec une interface utilisateur immersive de type "flux photographique" (similaire à Instagram). Au cœur de cette vue se trouve le \texttt{HomeFragment}, qui implémente un \texttt{RecyclerView} optimisé.
+Les cartes présentent l'avatar du posteur, la localisation, la photo (servie avec une mise en cache via la librairie Glide), le titre, la description ainsi que le nombre de "\textit{likes}". Le routing entre les écrans passe par le composant racine \texttt{NavGraph}.
+En attendant les endpoints finaux, les données sont fournies par une classe locale \texttt{MockDataProvider}. On peut retrouver les fonctionnalités suivantes à implémenter : un moteur de recherche multicritère (\texttt{AdvancedSearchFragment}) et un fragment de publication riche (\texttt{PublishPhotoFragment}).
+
+\section{Détails techniques}
+\subsection{Stack et Intégrations}
+\begin{itemize}
+    \item \textbf{Langage} : Java / XML
+    \item \textbf{Bases de données} : Cloud Firestore
+    \item \textbf{Authentification} : Firebase Authentication
+    \item \textbf{Stockage Média} : SDK Cloudinary Android 
+    \item \textbf{Interface Utilisateur} : ConstraintLayout, Material Design 3.
+\end{itemize}
+
+\section{Diagramme de navigation entre les écrans}
+(À générer avec TikZ une fois le NavGraph finalisé).
+
+\section{Difficultés rencontrées et solutions apportées}
+(Cette section sera mise à jour progressivement au fil des implémentations et du débogage).
+
+\end{document}
