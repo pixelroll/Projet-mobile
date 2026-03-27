@@ -13,3 +13,20 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+.agents/
+.agent/
+_agents/
+_agent/
+.gemini/
+brain/
+*.md
+implementation_plan.md
+walkthrough.md
+task.md
+
+# Build logs
+build_output.txt
+install_output.txt
+install_log.txt
+compile_error.txt

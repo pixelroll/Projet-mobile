@@ -36,20 +36,8 @@ public class MockDataProvider {
         p2.setTags(Arrays.asList("ville", "japon", "nuit"));
         p2.setVisibility("PUBLIC");
 
-        Photo p3 = new Photo();
-        p3.setId("p3");
-        p3.setUserId("u1");
-        p3.setTitle("Montagnes Suisses");
-        p3.setDescription("Randonnée de 4h pour atteindre ce point de vue, mais ça valait le coup !");
-        p3.setLocationName("Zermatt, Suisse");
-        p3.setImageUrl("https://images.unsplash.com/photo-1527668752968-14ce70a316e2?auto=format&fit=crop&q=80&w=800");
-        p3.setLikesCount(256);
-        p3.setTags(Arrays.asList("nature", "randonnée", "montagne"));
-        p3.setVisibility("PUBLIC");
-
         photos.add(p1);
         photos.add(p2);
-        photos.add(p3);
         
         return photos;
     }

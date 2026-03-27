@@ -12,6 +12,12 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.paullouis.travel.MapFragment"
+        android:label="Map"
+        tools:layout="@layout/fragment_map" />
+
+    <fragment
         android:id="@+id/travelPathPreferencesFragment"
         android:name="com.paullouis.travel.TravelPathPreferencesFragment"
         android:label="TravelPath" />

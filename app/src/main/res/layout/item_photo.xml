@@ -61,6 +61,7 @@
             app:drawableStartCompat="@drawable/ic_location_on"
             app:drawableTint="#718096"
             android:drawablePadding="4dp"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toStartOf="@id/tvUserName"
             app:layout_constraintTop_toBottomOf="@id/tvUserName"
             app:layout_constraintBottom_toBottomOf="@id/flUserAvatar"
@@ -173,6 +174,7 @@
             app:drawableStartCompat="@drawable/ic_location_on"
             app:drawableTint="#0891b2"
             android:drawablePadding="6dp"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/ivLike"
             tools:text="Tour Eiffel" />

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="60dp"
+    android:layout_height="72dp">
+
+    <!-- Fake shadow / Frame -->
+    <View
+        android:id="@+id/markerCard"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/bg_rounded_white" />
+
+    <ImageView
+        android:id="@+id/markerImage"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="3dp"
+        android:scaleType="centerCrop"
+        android:src="#1A202C" />
+
+    <View
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_below="@id/markerCard"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-7dp"
+        android:background="#FFFFFF"
+        android:rotation="45" />
+
+</RelativeLayout>

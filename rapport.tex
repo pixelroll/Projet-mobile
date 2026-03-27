@@ -41,6 +41,10 @@ Le module \textbf{TravelShare} a été développé avec une interface utilisateu
 Les cartes présentent l'avatar du posteur, la localisation, la photo (servie avec une mise en cache via la librairie Glide), le titre, la description ainsi que le nombre de "\textit{likes}". Le routing entre les écrans passe par le composant racine \texttt{NavGraph}.
 En attendant les endpoints finaux, les données sont fournies par une classe locale \texttt{MockDataProvider}. On peut retrouver les fonctionnalités suivantes à implémenter : un moteur de recherche multicritère (\texttt{AdvancedSearchFragment}) et un fragment de publication riche (\texttt{PublishPhotoFragment}).
 
+\subsection{Phase 4 : Affichage Cartographique (\texttt{MapFragment})}
+Afin de visualiser géographiquement les photos partagées, un espace cartographique a été intégré via l'onglet "Carte". Ce module repose sur la bibliothèque open-source \textbf{OSMDroid} au lieu du SDK Google Maps, permettant un rendu fidèle à la maquette de style pastel (OpenStreetMap) sans nécessité immédiate de clé API facturable.
+Les marqueurs sur la carte sont générés de manière asynchrone en convertissant des layouts XML complexes (contenant les miniatures des photos, un contour blanc et un pointeur de géolocalisation) en objets \texttt{Bitmap} que le moteur de la carte utilise nativement comme icônes d'épingles.
+
 \section{Détails techniques}
 \subsection{Stack et Intégrations}
 \begin{itemize}
@@ -48,6 +52,7 @@ En attendant les endpoints finaux, les données sont fournies par une classe loc
     \item \textbf{Bases de données} : Cloud Firestore
     \item \textbf{Authentification} : Firebase Authentication
     \item \textbf{Stockage Média} : SDK Cloudinary Android 
+    \item \textbf{Cartographie} : OSMDroid (OpenStreetMap)
     \item \textbf{Interface Utilisateur} : ConstraintLayout, Material Design 3.
 \end{itemize}
 
@@ -63,5 +68,40 @@ Lors de l'implémentation de la charte graphique moderne (icônes "Lucide"), les
     \item \textbf{Pistes explorées} : Nous avons intégré les versions \texttt{VectorDrawable} pré-converties issues du projet open-source \textit{0xJihan} (dédié à Android), configuré nos propres teintes via l'attribut \texttt{strokeColor}, et tenté de forcer la recompilation pour invalider le cache d'Android Studio (\texttt{gradle clean}). Les fichiers écrasés par erreur lors de ces tests ont également été restaurés automatiquement ($ic\_launcher$, $chip\_bg$, etc.).
     \item \textbf{État actuel} : Malgré l'utilisation de fichiers \texttt{XML} natifs conformes, les bogues visuels de rognage et de remplissage persistent encore sur l'émulateur. Des tests sur téléphones réels ainsi qu'une investigation plus profonde sur les limites liées au système de \textit{scaling} de ces assets sont prévus ultérieurement.
 \end{itemize}
+
+\subsection{Suppression du thème sombre et verrouillage en mode clair}
+Lors des premiers tests sur téléphone physique, l'application héritait automatiquement du mode sombre du système Android, inversant certaines couleurs de la maquette. Pour garantir un rendu fidèle à la charte graphique :
+\begin{itemize}
+    \item \textbf{Manifest} : Ajout de \texttt{android:forceDarkAllowed="false"} dans la balise \texttt{<application>} du fichier \texttt{AndroidManifest.xml} afin de bloquer la conversion automatique en mode sombre par le système.
+    \item \textbf{Thème} : Remplacement du parent \texttt{Theme.Material3.Light.NoActionBar} par \texttt{Theme.MaterialComponents.Light.NoActionBar} pour un comportement plus prévisible sur tous les appareils.
+    \item \textbf{Suppression de \texttt{values-night}} : Le dossier \texttt{res/values-night/} a été intégralement supprimé pour éliminer toute surcharge de style nocturne.
+    \item \textbf{Attributs dynamiques} : Toutes les références telles que \texttt{?attr/colorSurface} dans les layouts ont été remplacées par des couleurs fixes (\texttt{@android:color/white}) pour éviter toute ambiguïté entre thèmes.
+\end{itemize}
+
+\subsection{Gestion de l'encoche (caméra frontale) et des barres système}
+Sur les téléphones modernes dotés d'une encoche (``notch'') ou d'un poinçon caméra (``punch-hole''), le contenu de l'application se retrouvait partiellement caché sous la barre d'état système.
+\begin{itemize}
+    \item \textbf{Cutout Mode} : Ajout de l'attribut \texttt{android:windowLayoutInDisplayCutoutMode="shortEdges"} dans l'activité principale du Manifest pour autoriser le dessin de l'interface jusque sous les bords courts de l'écran.
+    \item \textbf{WindowInsetsCompat} : Implémentation d'un listener \texttt{ViewCompat.setOnApplyWindowInsetsListener} dans \texttt{MainActivity.java} qui applique dynamiquement un \texttt{paddingTop} égal à la hauteur de la barre d'état. Le contenu est ainsi décalé juste en-dessous de la caméra frontale sans jamais être masqué.
+\end{itemize}
+
+\subsection{Rendu des marqueurs personnalisés sur la carte}
+Les marqueurs de la carte (``épingles photo'') s'affichaient comme des carrés bleus unis au lieu du design attendu (vignette photo encadrée de blanc). Ce problème était lié à la conversion hors-écran du composant \texttt{MaterialCardView} en \texttt{Bitmap} : l'élévation et les ombres portées ne sont pas rendues correctement par le moteur \texttt{Canvas} d'Android lorsque la vue n'est pas attachée à une fenêtre.
+\begin{itemize}
+    \item \textbf{Solution} : Remplacement du layout \texttt{MaterialCardView} par un \texttt{RelativeLayout} utilisant un \texttt{ShapeDrawable} plat (\texttt{bg\_rounded\_white.xml}) et des dimensions de mesure explicites via \texttt{MeasureSpec.EXACTLY}, garantissant un rendu bitmap fidèle même en hors-écran.
+\end{itemize}
+
+\subsection{Phase 5 : Interface de Préférences TravelPath}
+L'écran ``Créer un parcours'' (\texttt{TravelPathPreferencesFragment}) a été intégré, accessible via l'onglet \textit{Parcours} de la barre de navigation. Il s'agit d'un formulaire défilable (\texttt{ScrollView}) composé de 7 cartes thématiques permettant de configurer un itinéraire :
+\begin{itemize}
+    \item \textbf{Bannière ``Générer depuis vos photos''} : Un encart à fond dégradé turquoise invitant à créer un parcours automatiquement à partir des photos favorites.
+    \item \textbf{Type d'activités} : 4 cases à cocher (Restauration, Loisirs, Découverte, Culture) avec icônes Lucide personnalisées.
+    \item \textbf{Lieux favoris} : Chips turquoise pré-remplies (Tour Eiffel, Musée du Louvre, Notre-Dame) avec possibilité d'en ajouter.
+    \item \textbf{Budget maximum} : Un \texttt{SeekBar} de 0\euro{} à 500\euro{} avec affichage dynamique de la valeur sélectionnée.
+    \item \textbf{Durée} : Sélection exclusive parmi ``½ journée'', ``1 jour'', ``2 jours+''.
+    \item \textbf{Profil / Effort} : Sélection exclusive parmi Famille, Seniors, Sportif, Aventurier.
+    \item \textbf{Préférences météo} : Chips à bascule (multi-sélection) pour Froid, Chaleur, Humidité, Ensoleillé.
+\end{itemize}
+Le bouton ``Générer les parcours'' en bas de page servira de point d'entrée vers l'algorithme de génération d'itinéraires.
 
 \end{document}

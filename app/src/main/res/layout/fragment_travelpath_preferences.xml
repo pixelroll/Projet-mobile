@@ -1,0 +1,672 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F6F8">
+
+    <!-- Top Bar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:background="@android:color/white"
+        android:elevation="2dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            android:layout_marginStart="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Créer un parcours"
+            android:textColor="#0F172A"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- ======== CARD 1: Generate from photos ======== -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_gradient_turquoise"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp">
+
+                <ImageView
+                    android:id="@+id/ivSparkles"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_sparkles"
+                    app:tint="#0891b2"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvGenTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Générer depuis vos photos"
+                    android:textColor="#002137"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toEndOf="@id/ivSparkles"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/ivSparkles" />
+
+                <TextView
+                    android:id="@+id/tvGenSubtitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Créez un parcours basé sur vos photos favorites"
+                    android:textColor="#718096"
+                    android:textSize="13sp"
+                    app:layout_constraintStart_toStartOf="@id/tvGenTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvGenTitle" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/btn_outline_white"
+                    android:paddingHorizontal="24dp"
+                    android:paddingVertical="8dp"
+                    android:text="Essayer maintenant"
+                    android:textColor="#0891b2"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvGenSubtitle" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- ======== CARD 2: Type d'activités ======== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E2E8F0"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Type d'activités"
+                        android:textColor="#002137"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Restauration -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+                        <CheckBox
+                            android:id="@+id/cbRestauration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:buttonTint="#0891b2" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_utensils"
+                            android:layout_marginEnd="8dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Restauration"
+                            android:textColor="#1A202C"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <!-- Loisirs -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+                        <CheckBox
+                            android:id="@+id/cbLoisirs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false"
+                            android:buttonTint="#CBD5E0" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_gamepad"
+                            android:layout_marginEnd="8dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Loisirs"
+                            android:textColor="#1A202C"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <!-- Découverte -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+                        <CheckBox
+                            android:id="@+id/cbDecouverte"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:buttonTint="#0891b2" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_compass"
+                            android:layout_marginEnd="8dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Découverte"
+                            android:textColor="#1A202C"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <!-- Culture -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <CheckBox
+                            android:id="@+id/cbCulture"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:buttonTint="#0891b2" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_landmark"
+                            android:layout_marginEnd="8dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Culture"
+                            android:textColor="#1A202C"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ======== CARD 3: Lieux favoris / obligatoires ======== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E2E8F0"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lieux favoris / obligatoires"
+                        android:textColor="#002137"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:chipSpacingHorizontal="8dp"
+                        app:chipSpacingVertical="8dp"
+                        android:layout_marginBottom="8dp">
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tour Eiffel"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            app:chipBackgroundColor="#0891b2"
+                            app:chipStrokeWidth="0dp"
+                            app:chipCornerRadius="20dp"
+                            app:closeIconVisible="false"
+                            app:checkedIconVisible="false" />
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Musée du Louvre"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            app:chipBackgroundColor="#0891b2"
+                            app:chipStrokeWidth="0dp"
+                            app:chipCornerRadius="20dp"
+                            app:closeIconVisible="false"
+                            app:checkedIconVisible="false" />
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notre-Dame"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            app:chipBackgroundColor="#0891b2"
+                            app:chipStrokeWidth="0dp"
+                            app:chipCornerRadius="20dp"
+                            app:closeIconVisible="false"
+                            app:checkedIconVisible="false" />
+
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+ Ajouter"
+                        android:textColor="#718096"
+                        android:textSize="14sp"
+                        android:background="@drawable/chip_outline"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="8dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ======== CARD 4: Budget maximum ======== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E2E8F0"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Budget maximum"
+                            android:textColor="#002137"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:layout_alignParentStart="true" />
+
+                        <TextView
+                            android:id="@+id/tvBudgetValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="100€"
+                            android:textColor="#0891b2"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:layout_alignParentEnd="true" />
+
+                    </RelativeLayout>
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/sliderBudget"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:valueFrom="0"
+                        android:valueTo="500"
+                        android:value="100"
+                        android:stepSize="10"
+                        app:trackColorActive="#0891b2"
+                        app:trackColorInactive="#E5F4F7"
+                        app:thumbColor="@android:color/white"
+                        app:thumbStrokeColor="#0891b2"
+                        app:thumbStrokeWidth="2dp"
+                        app:haloColor="#1A0891b2"
+                        app:trackHeight="12dp"
+                        app:labelBehavior="gone" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0€"
+                            android:textColor="#A0AEC0"
+                            android:textSize="12sp"
+                            android:layout_alignParentStart="true" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="500€"
+                            android:textColor="#A0AEC0"
+                            android:textSize="12sp"
+                            android:layout_alignParentEnd="true" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ======== CARD 5: Durée ======== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E2E8F0"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Durée"
+                        android:textColor="#002137"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipHalfDay"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:text="½ journée"
+                            android:textColor="#4A5568"
+                            android:textSize="14sp"
+                            android:background="@drawable/chip_outline"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipOneDay"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:text="1 jour"
+                            android:textColor="#0891b2"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/chip_outline_selected"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipMultiDay"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="40dp"
+                            android:gravity="center"
+                            android:text="2 jours+"
+                            android:textColor="#4A5568"
+                            android:textSize="14sp"
+                            android:background="@drawable/chip_outline" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ======== CARD 6: Profil / Effort ======== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E2E8F0"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Profil / Effort"
+                        android:textColor="#002137"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipFamille"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Famille"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_filled_turquoise"
+                            android:paddingHorizontal="16dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipSeniors"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Seniors"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipSportif"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Sportif"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipAventurier"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Aventurier"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ======== CARD 7: Préférences météo ======== -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E2E8F0"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Préférences météo"
+                        android:textColor="#002137"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipFroid"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Froid"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipChaleur"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Chaleur"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipHumidite"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Humidité"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/chipEnsoleille"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:gravity="center"
+                            android:text="Ensoleillé"
+                            android:textColor="#4A5568"
+                            android:textSize="13sp"
+                            android:background="@drawable/chip_outline"
+                            android:paddingHorizontal="16dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ======== GENERATE BUTTON ======== -->
+            <TextView
+                android:id="@+id/btnGenerate"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center"
+                android:text="Générer les parcours"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_turquoise_rounded"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
