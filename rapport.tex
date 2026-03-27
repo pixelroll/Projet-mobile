@@ -104,4 +104,21 @@ L'écran ``Créer un parcours'' (\texttt{TravelPathPreferencesFragment}) a été
 \end{itemize}
 Le bouton ``Générer les parcours'' en bas de page servira de point d'entrée vers l'algorithme de génération d'itinéraires.
 
+\subsection{Phase 6 : Vue Recherche Avancée (\texttt{AdvancedSearchFragment})}
+L'écran de ``Recherche avancée'' (accessible via l'onglet \textit{Recherche}) a été fidèlement intégré d'après les maquettes. Cette vue complexe est divisée entre des éléments fixes (barre de recherche, sélecteurs d'onglets, et le bouton de validation principal) et un contenu central défilant.
+\begin{itemize}
+    \item \textbf{En-tête et barre de recherche} : Une barre de recherche au style \textit{pill} (bordures très arrondies, sans contour apparent) flanquée d'un bouton ``Micro'' en carré arrondi.
+    \item \textbf{Menu de navigation (Tabs)} : Deux onglets statiques ``Filtres'' (actif, souligné en cyan) et ``Navigation''.
+    \item \textbf{Filtres par Type de lieu} : Une grille dynamique affichant les catégories principales (Nature, Musée, Rue, Magasin, Restaurant, Monument). Les pictogrammes de la maquette ont été respectés en utilisant directement les versions vectorielles (SVG converties en \texttt{VectorDrawable}) des icônes \textbf{Lucide}.
+    \item \textbf{Filtres complémentaires} : 
+    \begin{itemize}
+        \item Des blocs sélectionnables en forme de \textit{chips} stylisées pour le "Moment de la journée".
+        \item Un menu déroulant masqué pour la "Période".
+        \item Des champs textes de saisie avec arrière-plan gris clair pour filtrer par Lieu, Auteur, ou Tags additionnels.
+        \item Un bouton spécifique pour rechercher "Autour de ma position" utilisant un \texttt{TextView} stylisé en bouton.
+    \end{itemize}
+    \item \textbf{Bouton de validation fixe} : Le grand bouton cyan "Rechercher", comportant l'icône loupe, est positionné de façon statique en bas d'écran, restant toujours accessible sans défilement de la page.
+\end{itemize}
+Le bouton retour de la top-bar a également été interconnecté au \texttt{NavController} sous-jacent via un appel à \texttt{onBackPressed()} de l'activité parente.
+
 \end{document}
