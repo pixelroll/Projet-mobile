@@ -66,7 +66,7 @@ Lors de l'implémentation de la charte graphique moderne (icônes "Lucide"), les
 \begin{itemize}
     \item \textbf{Problème identifié} : Le parseur graphique d'Android (Skia) gère de manière stricte les coordonnées des \textit{paths} SVG et le remplissage implicite (absence de \texttt{fillColor}).
     \item \textbf{Pistes explorées} : Nous avons intégré les versions \texttt{VectorDrawable} pré-converties issues du projet open-source \textit{0xJihan} (dédié à Android), configuré nos propres teintes via l'attribut \texttt{strokeColor}, et tenté de forcer la recompilation pour invalider le cache d'Android Studio (\texttt{gradle clean}). Les fichiers écrasés par erreur lors de ces tests ont également été restaurés automatiquement ($ic\_launcher$, $chip\_bg$, etc.).
-    \item \textbf{État actuel} : Malgré l'utilisation de fichiers \texttt{XML} natifs conformes, les bogues visuels de rognage et de remplissage persistent encore sur l'émulateur. Des tests sur téléphones réels ainsi qu'une investigation plus profonde sur les limites liées au système de \textit{scaling} de ces assets sont prévus ultérieurement.
+    \item \textbf{État actuel et résolution} : Il s'est avéré que ce problème d'affichage était exclusif au moteur de rendu graphique de l'émulateur Android Studio (artefacts et clipping). Les tests de déploiement réalisés physiquement sur un véritable smartphone Android ont confirmé que les icônes \texttt{VectorDrawable} s'affichent de façon parfaite et sans aucun bug de remplissage, validant ainsi notre intégration native.
 \end{itemize}
 
 \subsection{Suppression du thème sombre et verrouillage en mode clair}
