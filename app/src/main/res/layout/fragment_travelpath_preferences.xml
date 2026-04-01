@@ -101,6 +101,7 @@
                     app:layout_constraintTop_toBottomOf="@id/tvGenTitle" />
 
                 <TextView
+                    android:id="@+id/btnTryNow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"

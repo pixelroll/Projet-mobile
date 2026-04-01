@@ -26,6 +26,38 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".NotificationSettingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".GroupsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".PhotoDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".TravelPathActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".GatewayActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel"
+            android:windowLayoutInDisplayCutoutMode="shortEdges" />
+
+        <activity
+            android:name=".PublishPhotoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowLayoutInDisplayCutoutMode="shortEdges"
+            android:windowSoftInputMode="adjustPan" />
+            
     </application>
 
 </manifest>

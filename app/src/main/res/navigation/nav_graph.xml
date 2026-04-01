@@ -42,4 +42,9 @@
         android:name="com.paullouis.travel.PublishPhotoFragment"
         android:label="PublishPhoto" />
         
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.paullouis.travel.NotificationsFragment"
+        android:label="Notifications" />
+        
 </navigation>

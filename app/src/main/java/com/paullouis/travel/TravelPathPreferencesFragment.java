@@ -59,6 +59,12 @@ public class TravelPathPreferencesFragment extends Fragment {
         view.findViewById(R.id.btnGenerate).setOnClickListener(v -> {
             // TODO: Collect preferences and navigate to results
         });
+
+        // Try Now button
+        view.findViewById(R.id.btnTryNow).setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(getActivity(), GatewayActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void setupDurationChips(TextView... chips) {

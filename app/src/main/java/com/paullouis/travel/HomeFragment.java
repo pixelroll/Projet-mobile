@@ -30,7 +30,17 @@ public class HomeFragment extends Fragment {
         
         // Navigation from top bar
         view.findViewById(R.id.ivAdd).setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.publishPhotoFragment);
+            android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
+            startActivity(intent);
+        });
+
+        view.findViewById(R.id.flNotification).setOnClickListener(v -> {
+            androidx.navigation.Navigation.findNavController(v).navigate(R.id.notificationsFragment);
+        });
+
+        view.findViewById(R.id.ivGroup).setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(getActivity(), GroupsActivity.class);
+            startActivity(intent);
         });
         
         return view;

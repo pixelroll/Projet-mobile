@@ -39,7 +39,45 @@ L'application \textbf{Traveling} est une application mobile Android de voyage co
 \subsection{Phase 3 : Sous-système TravelShare}
 Le module \textbf{TravelShare} a été développé avec une interface utilisateur immersive de type "flux photographique" (similaire à Instagram). Au cœur de cette vue se trouve le \texttt{HomeFragment}, qui implémente un \texttt{RecyclerView} optimisé.
 Les cartes présentent l'avatar du posteur, la localisation, la photo (servie avec une mise en cache via la librairie Glide), le titre, la description ainsi que le nombre de "\textit{likes}". Le routing entre les écrans passe par le composant racine \texttt{NavGraph}.
-En attendant les endpoints finaux, les données sont fournies par une classe locale \texttt{MockDataProvider}. On peut retrouver les fonctionnalités suivantes à implémenter : un moteur de recherche multicritère (\texttt{AdvancedSearchFragment}) et un fragment de publication riche (\texttt{PublishPhotoFragment}).
+
+\subsubsection{Composant : \texttt{PhotoDetailActivity} (Détail Dynamique)}
+Une page de détail complète, \texttt{PhotoDetailActivity}, a été conçue pour offrir une immersion totale dans chaque cliché partagé.
+\begin{itemize}
+    \item \textbf{Dynamisme et Parcelable} : Contrairement à une vue statique, cet écran est 100\% piloté par les données. La classe \texttt{Photo} implémente l'interface \texttt{Parcelable} pour permettre le transfert d'objets complexes (incluant les coordonnées GPS, les métadonnées d'auteur et les listes de tags) via les \texttt{Intents} Android.
+    \item \textbf{Structure du Layout} : Le fichier \texttt{activity\_photo\_detail.xml} repose sur un \texttt{NestedScrollView}. Il intègre une bannière de 250dp, une section auteur riche, un encart call-to-action (CTA) raffiné (fond blanc, bordure \textit{teal} \#009688, icône en bulle), et des sections sociales étendues.
+    \item \textbf{Système de Commentaires} : Une section interactive permet de visualiser les avis de la communauté via le \texttt{CommentAdapter}. L'utilisateur peut saisir un nouveau commentaire, déclenchant un ajout asynchrone en haut de liste et une mise à jour dynamique du compteur d'engagement (\textit{feedback} immédiat).
+    \item \textbf{Recommandations Intelligentes} : Sous les commentaires, un carrousel horizontal affiche des "Photos similaires" (ex: Arc de Triomphe, Louvre) géré par \texttt{SimilarPhotoAdapter}. Ce module favorise la rétention utilisateur en permettant une navigation fluide entre lieux connexes de la capitale.
+    \item \textbf{Harmonisation Chromatique} : Toutes les couleurs ont été alignées sur les \textit{Design Tokens} officiels (\texttt{@color/primary}, \texttt{@color/secondary}, \texttt{@color/muted}). L'encart CTA bénéficie d'un arrière-plan en dégradé subtil (5\% d'opacité) avec une bordure à 20\%, offrant un rendu moderne et premium conforme aux spécifications Tailwind.
+    \item \textbf{Interactions et Connectivité} :
+    \begin{itemize}
+        \item \textbf{Navigation \& GPS} : Intégration de liens profonds vers Google Maps via des \texttt{Intent.ACTION\_VIEW} utilisant les coordonnées \texttt{lat/lng} stockées dans l'objet.
+        \item \textbf{Engagement} : Système de \textit{toggles} interactifs pour le "Like" et le "Bookmark" avec retour visuel immédiat (changement de couleur et d'icône Lucide).
+        \item \textbf{Passerelle TravelPath} : Un bouton "Créer un parcours" permet de basculer vers le module de planification en injectant automatiquement la localisation de la photo comme point d'intérêt.
+        \item \textbf{Gestion de l'Encoche} : Utilisation de \texttt{ViewCompat.setOnApplyWindowInsetsListener} pour appliquer dynamiquement un \textit{padding} supérieur, évitant que la barre de titre ne soit masquée par la caméra frontale.
+    \end{itemize}
+    \item \textbf{Difficultés \& Solutions} : Le rendu dynamique des "Tags" sous forme de \textit{Chips} Material a nécessité l'utilisation d'un \texttt{ChipGroup} peuplé programmatiquement en Java, afin de garantir une adaptation parfaite à la longueur variable des thématiques (ex: "Monument", "Coucher de soleil"). 
+\end{itemize}
+
+\subsection{Publication de Contenu}
+L'activité \texttt{PublishPhotoActivity} a été conçue pour offrir un flux de création intuitif et riche :
+\begin{itemize}
+    \item \textbf{Sélection de Photo} : Zone d'upload dynamique avec bordure en pointillés (\textit{dotted border}). Gestion de la galerie via \texttt{ActivityResultLauncher}.
+    \item \textbf{Métadonnées Enrichies} : Saisie du titre, de la description, de la date (via \texttt{DatePickerDialog}) et du moment de la journée (Menu Popup).
+    \item \textbf{Note Audio (Stub)} : Emplacement prévu pour l'ajout de commentaires vocaux, renforçant l'aspect narratif du voyage.
+    \item \textbf{Indexation par Tags} : Système de \texttt{ChipGroup} permettant l'ajout manuel et la suggestion assistée par "IA" (basée sur des mots-clés du titre).
+    \item \textbf{Harmonisation Chromatique} : Comme pour le reste de l'application, l'activité de publication utilise désormais exclusivement les \textit{Design Tokens} (\texttt{@color/primary}, \texttt{@color/secondary}, \texttt{@color/muted\_foreground}) pour les boutons, icônes et bordures, garantissant une cohérence visuelle totale.
+    \item \textbf{Simulation de Persistance} : Les photos publiées sont injectées dans le \texttt{MockDataProvider} pour une mise à jour immédiate du profil utilisateur.
+\end{itemize}
+
+\subsection{Stabilisation Technique}
+Une phase de refactorisation profonde du \texttt{MockDataProvider} a été menée pour assurer la cohérence de l'application :
+\begin{itemize}
+    \item \textbf{Résolution des Conflits de Modèles} : Alignement des constructeurs (notamment pour \texttt{Comment}) et des accesseurs (\texttt{getCode} au lieu de \texttt{getInviteCode}) sur les classes POJO réelles.
+    \item \textbf{Support Multi-Écrans} : Implémentation des méthodes nécessaires aux activités de notifications, réglages et gestion des membres de groupes.
+    \item \textbf{Flexibilité des Données} : Ajout de surcharges de méthodes pour supporter différents types d'appels (par objet ou par identifiant) sans duplication de code.
+\end{itemize}
+
+En attendant les endpoints finaux, les données sont fournies par cette architecture locale évolutive.
 
 \subsection{Phase 4 : Affichage Cartographique (\texttt{MapFragment})}
 Afin de visualiser géographiquement les photos partagées, un espace cartographique a été intégré via l'onglet "Carte". Ce module repose sur la bibliothèque open-source \textbf{OSMDroid} au lieu du SDK Google Maps, permettant un rendu fidèle à la maquette de style pastel (OpenStreetMap) sans nécessité immédiate de clé API facturable.
@@ -120,5 +158,102 @@ L'écran de ``Recherche avancée'' (accessible via l'onglet \textit{Recherche}) 
     \item \textbf{Bouton de validation fixe} : Le grand bouton cyan "Rechercher", comportant l'icône loupe, est positionné de façon statique en bas d'écran, restant toujours accessible sans défilement de la page.
 \end{itemize}
 Le bouton retour de la top-bar a également été interconnecté au \texttt{NavController} sous-jacent via un appel à \texttt{onBackPressed()} de l'activité parente.
+
+\subsection{Phase 7 : Profil Utilisateur (\texttt{ProfileFragment})}
+L'écran de profil (Sophie Martin) a été implémenté pour refléter fidèlement la maquette, en incluant les fonctionnalités suivantes :
+\begin{itemize}
+    \item \textbf{En-tête et statistiques} : Affichage du nom d'utilisateur avec un menu déroulant simulé, et une barre d'actions comprenant l'ajout de contenu (+) et les paramètres (menu hamburger). Les statistiques (publications, abonnés, abonnements) sont présentées en colonnes sous l'avatar.
+    \item \textbf{Avatar dynamique} : L'image de profil est affichée de manière circulaire avec un badge flottant "Caméra" (icône Lucide blanche sur fond cyan) permettant de simuler la modification de la photo.
+    \item \textbf{Bio et informations} : Affichage du nombre de pays visités avec une icône globe, et d'une courte biographie textuelle.
+    \item \textbf{Boutons d'action} : Deux boutons principaux "Modifier le profil" et "Partager le profil" ont été stylisés avec des coins arrondis et un fond gris clair neutre.
+    \item \textbf{Onglets et Grille de photos} : Un système d'onglets (Photos / Parcours) permet de basculer l'affichage. L'onglet Photos affiche une grille de 3 colonnes (\texttt{RecyclerView} avec \texttt{GridLayoutManager}) présentant les miniatures des publications de l'utilisateur.
+\end{itemize}
+Techniquement, les données sont fournies par le \texttt{MockDataProvider} via des méthodes dédiées (\texttt{getCurrentUser} et \texttt{getUserPhotos}). L'interface a été conçue pour forcer visuellement le "mode connecté" afin de présenter l'ensemble des options de gestion de profil, en attendant l'intégration du système d'authentification réel.
+
+\subsection{Phase 11 : Passerelle Inteligente (\texttt{GatewayActivity})}
+L'activité \texttt{GatewayActivity} a fait l'objet d'un polissage final pour garantir une fidélité absolue aux maquettes de référence et une expérience utilisateur sans couture.
+\begin{itemize}
+    \item \textbf{Cohérence Visuelle} : Le titre de la Toolbar a été étendu à "Créer un parcours depuis vos photos" et l'ensemble de l'iconographie IA a été uniformisée avec l'icône Lucide \texttt{sparkles}.
+    \item \textbf{Grille de Photos Dynamique} : Les images de la grille sont désormais sourcées directement depuis les ressources locales (\texttt{louvre}, \texttt{notre\_dame}, \texttt{arc\_de\_triomphe}) pour garantir un affichage instantané et fiable sans dépendance réseau.
+    \item \textbf{Architecture de Défilement} : Suite aux tests utilisateurs, le bouton de génération a été intégré directement dans le flux de défilement (entre la grille et les suggestions), simplifiant la structure visuelle globale.
+    \item \textbf{Logique d'État Avancée} : Le bouton principal gère désormais un état binair visuel : gris (\#BDBDBD) et texte au singulier par défaut, passant au Teal (\#009688) avec gestion dynamique du pluriel dès la première sélection de lieu.
+    \item \textbf{Suggestions Pré-chargées} : La section "Idées de parcours" est désormais visible dès l'ouverture, présentant immédiatement des itinéraires types basés sur les préférences déjà connues de l'utilisateur.
+\end{itemize}
+Cette phase de finition a permis de valider l'intégration des composants Material Design 3 dans des flux de navigation complexes, tout en assurant une réactivité graphique optimale grâce à la logique de mise à jour granulaire des adaptateurs (\texttt{notifyItemChanged}).
+
+\subsection{Phase 8 : Panneau de Notifications (\texttt{NotificationsFragment})}
+L'écran de notifications a été implémenté en tant que fragment complet, accessible via l'icône cloche de l'accueil. Cette vue permet de centraliser les interactions sociales et les alertes système :
+\begin{itemize}
+    \item \textbf{En-tête et actions} : Une barre supérieure fixe affichant le nombre de notifications non lues, un bouton d'accès aux paramètres et une option "Tout marquer" pour valider l'ensemble des notifications d'un seul clic.
+    \item \textbf{Système d'onglets} : Deux onglets dynamiques ("Toutes" et "Non lues") permettent de filtrer les notifications par état. Chaque onglet affiche un badge numérique synchronisé avec les données.
+    \item \textbf{Liste de notifications riche} : Le \texttt{RecyclerView} utilise l'adaptateur \texttt{NotificationAdapter} pour gérer différents types des contenus :
+    \begin{itemize}
+        \item Interactions sociales (Likes, Commentaires, Abonnements) avec l'avatar de l'auteur et, si applicable, une miniature de la photo concernée.
+        \item Alertes système (Itinéraires prêts, Suggestions de lieux) avec des icônes thématiques dédiées sur fond coloré.
+    \end{itemize}
+    \item \textbf{États visuels} : Les notifications non lues sont distinguées par un point bleu et un arrière-plan très légèrement contrasté. Cliquer sur un onglet ou sur "Tout marquer" met à jour dynamiquement l'interface.
+\end{itemize}
+Le \texttt{NotificationsFragment} est alimenté par la méthode \texttt{getNotifications} de \texttt{MockDataProvider}, simulant un historique varié de 8 notifications. L'intégration avec Firebase Cloud Messaging (FCM) est prévue pour le passage en production.
+
+\subsection{Phase 9 : Paramètres des notifications (\texttt{NotificationSettingsActivity})}
+Cet écran permet à l'utilisateur de fine-tuner ses alertes par catégorie (personnes, groupes, lieux, tags). Conformément à la maquette :
+\begin{itemize}
+    \item \textbf{Contrôle Global} : Un switch principal permet d'activer ou désactiver l'ensemble des notifications push via une carte mise en évidence.
+    \item \textbf{Gestion granulaire} : Quatre sections distinctes permettent de gérer les abonnements spécifiques. Chaque élément est présenté dans une carte blanche avec son propre switch d'activation et une option de suppression brute.
+    \item \textbf{Architecture dynamique} : L'activité génère dynamiquement les vues à partir des données fournies par \texttt{MockDataProvider.getNotificationSettings()}. Les interactions (basculement, suppression) sont gérées localement en mémoire pour simuler le comportement final.
+    \item \textbf{Design System} : Utilisation du code couleur Teal pour les Switchs et les boutons d'ajout. La section "Tags" utilise un rendu spécifique sous forme de Chips pour une meilleure distinction visuelle.
+\end{itemize}
+Les classes \texttt{NotificationSettingsActivity} (Logique UI) et \texttt{NotificationSettingItem} (Modèle de données) constituent le cœur de ce module. Les données sont actuellement isolées de Firebase pour cette phase de prototypage UI/UX.
+
+\subsection{Phase 10 : Gestion des Groupes (\texttt{GroupsActivity})}
+Cette phase introduit la gestion des communautés au sein de l'application. L'architecture repose sur un système d'onglets pour séparer l'expérience utilisateur :
+\begin{itemize}
+    \item \textbf{Navigation par onglets} : Utilisation de \texttt{TabLayout} synchronisé avec un \texttt{ViewPager2}. Deux fragments \texttt{GroupListFragment} sont instanciés pour gérer respectivement "Mes groupes" et "Découvrir".
+    \item \textbf{Cartes de Groupes} : Un \texttt{GroupAdapter} gère le rendu complexe des cartes. Chaque carte affiche un badge dynamique (Public/Privé en Teal/Gris), le compteur de membres avec l'icône \texttt{Users}, le compteur de photos avec l'icône \texttt{Camera}, et une icône \texttt{Crown} (Couronne) exclusive aux administrateurs.
+    \item \textbf{Modèle et Données} : La classe \texttt{Group} encapsule les propriétés sociales. Les données sont fournies par \texttt{MockDataProvider.getMyGroups()} et \texttt{getDiscoverGroups()}, simulant un environnement peuplé.
+    \item \textbf{Transitions} : Le clic sur un groupe navigue vers \texttt{GroupDetailActivity} (stub) ou ouvre le dialogue de détail riche selon le contexte utilisateur.
+\end{itemize}
+Techniquement, la persistance des données pour ce module a été refactorisée. \texttt{MockDataProvider} utilise désormais des listes statiques persistantes en mémoire vive. Ce choix permet d'ajouter dynamiquement des groupes (via création ou adhésion) et de voir ces changements se répercuter immédiatement sur l'ensemble des fragments, simulant le comportement d'une base de données locale ou distante.
+L'accès se fait directement depuis la barre d'outils de l'écran d'accueil via le bouton \texttt{ivGroup}.
+
+\subsubsection{Composant : \texttt{JoinGroupDialogFragment}}
+Pour permettre l'adhésion à des groupes restreints, un fragment de dialogue a été implémenté :
+\begin{itemize}
+    \item \textbf{Interface} : Un dialogue aux coins très arrondis (20dp) conforme à la charte Material Design 3, incluant un champ de saisie stylisé en Cyan.
+    \item \textbf{Validation} : Le bouton "Rejoindre" est activé dynamiquement par un \texttt{TextWatcher} dès qu'un caractère est saisi. Le texte est automatiquement transformé en majuscules pour correspondre au format des codes d'invitation.
+    \item \textbf{Affinage UI} : Les boutons "Annuler" et "Rejoindre" ont été calibrés avec une taille de texte de 16sp et la désactivation de la mise en majuscules automatique (\texttt{textAllCaps=false}) pour garantir une lisibilité optimale et une fidélité accrue au design original.
+    \item \textbf{Logique Métier} : La vérification s'appuie sur \texttt{MockDataProvider.findGroupByCode()}. Les codes \texttt{PAR2026} (Voyage Paris) et \texttt{FAM-MTN} (Famille Martin) sont reconnus. En cas d'échec, un message d'erreur rouge s'affiche dynamiquement sous le champ.
+\end{itemize}
+Ce composant sera ultérieurement relié à une fonction Firebase pour valider les tokens d'invitation en temps réel.
+
+\subsubsection{Composant : \texttt{CreateGroupDialogFragment}}
+Complémentaire au module de ralliement, ce dialogue permet l'initialisation de nouvelles communautés :
+\begin{itemize}
+    \item \textbf{Gestion de la Visibilité} : Mise en œuvre d'un sélecteur de visibilité agissant comme des boutons radio riches. L'option sélectionnée (Public ou Privé) bénéficie d'une bordure Cyan et d'un fond teinté (\texttt{bg\_radio\_option\_active}), tandis que l'option inactive repasse en mode neutre.
+    \item \textbf{Génération de Code} : Pour les groupes marqués comme "Privé", un algorithme de génération aléatoire produit un code alphanumérique de 6 caractères (ex: \texttt{X7B92A}). Ce code est immédiatement communiqué à l'utilisateur via un Toast persistant.
+    \item \textbf{Flux de Données} : Le nouveau groupe est inséré dynamiquement en tête de la liste \texttt{myGroups} via \texttt{MockDataProvider.addGroup()}. Un mécanisme d'écouteur (\texttt{OnGroupCreatedListener}) permet à l'activité parente de rafraîchir instantanément le \texttt{ViewPager2}.
+\end{itemize}
+La persistance réelle des données sera assurée par l'intégration de Firebase Firestore dans une phase ultérieure.
+
+\subsubsection{Correction : Navigation Inter-Activités}
+Un bug identifié dans la barre de navigation de \texttt{GroupsActivity} a été corrigé. Bien que visuellement présente, la barre ne permettait pas de naviguer vers les autres sections de l'application. La solution implémentée utilise des \texttt{Intent} avec des drapeaux de type \texttt{FLAG\_ACTIVITY\_CLEAR\_TOP} pour réutiliser l'instance de \texttt{MainActivity} et y injecter l'ID du fragment cible via un extra \texttt{target\_fragment\_id}. \texttt{MainActivity} a été modifiée pour intercepter ces appels dans \texttt{onNewIntent} et déclencher la navigation via son \texttt{NavController}. Un crash lié à une erreur d'ID lors de l'initialisation de cette barre (\texttt{NullPointerException}) a également été résolu par une synchronisation rigoureuse des identifiants XML et Java.
+
+\subsubsection{Composant : \texttt{GroupDetailDialogFragment}}
+Une refonte majeure de l'écran de détail a été effectuée, passant d'une activité standard à un \texttt{DialogFragment} riche et contextuel. Ce composant introduit une gestion fine des droits via l'énumération \texttt{UserRole} :
+\begin{itemize}
+    \item \textbf{ADMIN} : Accès total. Affiche le bandeau narratif, les statistiques complètes, le bloc de code d'invitation avec fonction de copie, ainsi que le bouton "Gérer".
+    \item \textbf{MEMBER\_WITH\_CODE} : Rôle de membre ayant le droit de partager le groupe. Affiche le code d'invitation mais masque le bouton de gestion administrative.
+    \item \textbf{MEMBER} : Accès restreint à la consultation. Masque totalement le bloc de code d'invitation pour garantir la confidentialité des accès privés.
+\end{itemize}
+Techniquement, l'ouverture est déclenchée par le \texttt{GroupAdapter} via l'injection d'un \texttt{FragmentManager}. Le design inclut un système d'avatars dynamiques générés à partir des initiales des membres, avec un badge de débordement (\texttt{+N}) pour les groupes importants.
+
+\subsubsection{Onglet : Découverte de Groupes}
+L'onglet "Découvrir" a été implémenté via le fragment \texttt{DiscoverGroupsFragment}. Il propose une expérience de recherche immersive avec une barre de filtrage en temps réel.
+\begin{itemize}
+    \item \textbf{Filtrage Dynamique} : L'adaptateur \texttt{DiscoverGroupAdapter} implémente un mécanisme de filtrage basé sur le nom et la description des groupes.
+    \item \textbf{Design Distingué} : Contrairement aux groupes personnels, les cartes de découverte utilisent \texttt{item\_group\_discover.xml} avec une bannière pleine largeur et un overlay en gradient pour le nom du groupe.
+    \item \textbf{Logique d'Adhésion} : Le bouton d'état gère visuellement le passage de "Rejoindre" (Teal) à "Rejoint" (Gris/Désactivé). L'adhésion déclenche une mise à jour dans \texttt{MockDataProvider}, ajoutant instantanément le groupe à l'onglet "Mes groupes" avec le rôle \texttt{MEMBER}.
+\end{itemize}
+Cette architecture permet une séparation nette entre la consultation des groupes rejoints et l'exploration de nouvelles communautés.
 
 \end{document}

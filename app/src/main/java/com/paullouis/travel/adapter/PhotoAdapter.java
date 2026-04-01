@@ -15,6 +15,11 @@ import com.bumptech.glide.Glide;
 import com.paullouis.travel.R;
 import com.paullouis.travel.model.Photo;
 import java.util.List;
+import android.text.format.DateUtils;
+import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.model.User;
+import android.content.Intent;
+import com.paullouis.travel.PhotoDetailActivity;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder> {
 
@@ -35,19 +40,41 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
     public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
         Photo photo = photoList.get(position);
         
-        String authorName = "Voyageur " + photo.getUserId().replace("u", "");
+        User user = MockDataProvider.getUserById(photo.getUserId());
+        String authorName = (user != null) ? user.getName() : "Voyageur " + photo.getUserId().replace("u", "");
+        
         holder.tvUserName.setText(authorName);
         holder.tvAvatarInitials.setText(authorName.substring(0, 1).toUpperCase());
         holder.tvLocationHeader.setText(photo.getLocationName());
-        holder.tvDate.setText("Janvier 2026"); // Mock static date
-        holder.tvLikesCount.setText(String.valueOf(photo.getLikesCount()));
-        holder.tvCommentsCount.setText(String.valueOf(photo.getLikesCount() / 10)); // Arbitrary for mock
+        
+        // Relative time formatting
+        CharSequence relativeTime = DateUtils.getRelativeTimeSpanString(
+                photo.getTimestamp(), 
+                System.currentTimeMillis(), 
+                DateUtils.MINUTE_IN_MILLIS);
+        holder.tvDate.setText(relativeTime);
+        
+        holder.tvLikesCount.setText(String.valueOf(photo.getLikes()));
+        holder.tvCommentsCount.setText(String.valueOf(photo.getComments()));
         holder.tvLocationChip.setText(photo.getLocationName());
 
-        // Inline description with bold author name
-        String descText = authorName + " " + photo.getDescription();
-        SpannableString spannable = new SpannableString(descText);
+        // Inline description with bold author name and bold title
+        String title = (photo.getTitle() != null) ? photo.getTitle() : "";
+        String desc = (photo.getDescription() != null) ? photo.getDescription() : "";
+        
+        String fullText = authorName + " " + title + " - " + desc;
+        SpannableString spannable = new SpannableString(fullText);
+        
+        // Bold Author
         spannable.setSpan(new StyleSpan(Typeface.BOLD), 0, authorName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        
+        // Bold Title
+        if (!title.isEmpty()) {
+            int titleStart = authorName.length() + 1;
+            int titleEnd = titleStart + title.length();
+            spannable.setSpan(new StyleSpan(Typeface.BOLD), titleStart, titleEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        
         holder.tvInlineDesc.setText(spannable);
 
         // Load image using Glide
@@ -58,8 +85,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
                 .into(holder.ivPhoto);
                 
         holder.itemView.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v)
-                .navigate(R.id.photoDetailFragment);
+            Intent intent = new Intent(v.getContext(), PhotoDetailActivity.class);
+            intent.putExtra("photo", photo);
+            v.getContext().startActivity(intent);
         });
     }
 
