@@ -45,14 +45,9 @@ public class ItinerarySuggestionAdapter extends RecyclerView.Adapter<ItinerarySu
 
         holder.chipGroup.removeAllViews();
         for (String place : suggestion.getPlaces()) {
-            Chip chip = new Chip(holder.itemView.getContext());
+            Chip chip = (Chip) LayoutInflater.from(holder.itemView.getContext())
+                    .inflate(R.layout.item_chip_place, holder.chipGroup, false);
             chip.setText(place);
-            chip.setChipIconResource(R.drawable.ic_map_pin);
-            chip.setChipIconSize(32f); // 12dp equivalent approx
-            chip.setChipIconVisible(true);
-            chip.setChipBackgroundColorResource(R.color.background); // Light teal-ish if possible
-            chip.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.primary));
-            chip.setChipStartPadding(8f);
             holder.chipGroup.addView(chip);
         }
 

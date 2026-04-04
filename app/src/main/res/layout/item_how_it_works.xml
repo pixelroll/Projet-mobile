@@ -10,10 +10,10 @@
         android:id="@+id/tvStepNumber"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:background="@drawable/bg_circle_primary"
+        android:background="@drawable/bg_circle_light_cyan"
         android:gravity="center"
         android:text="1"
-        android:textColor="@color/white"
+        android:textColor="#0891B2"
         android:textSize="18sp"
         android:textStyle="bold" />
 

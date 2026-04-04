@@ -82,7 +82,7 @@ public class GatewayActivity extends AppCompatActivity {
         photoAdapter = new GatewayPhotoAdapter(photos, count -> {
             updateSelectionUI(count);
         });
-        rvPhotos.setLayoutManager(new GridLayoutManager(this, 3));
+        rvPhotos.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvPhotos.setAdapter(photoAdapter);
     }
 
@@ -90,7 +90,7 @@ public class GatewayActivity extends AppCompatActivity {
         tvSelectionCount.setText(count + " sélectionnée" + (count > 1 ? "s" : ""));
         
         // Update button appearance
-        int color = count > 0 ? 0xFF009688 : 0xFFBDBDBD;
+        int color = count > 0 ? 0xFF0891B2 : 0xFFBDBDBD;
         btnGenerate.setBackgroundColor(color);
         
         // Update button text with plural logic

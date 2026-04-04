@@ -60,7 +60,11 @@ public class GatewayPhotoAdapter extends RecyclerView.Adapter<GatewayPhotoAdapte
 
         boolean isSelected = selectedPhotoIds.contains(photo.getId());
         holder.ivHeart.setImageResource(isSelected ? R.drawable.ic_heart_filled : R.drawable.ic_favorite_border);
-        holder.ivHeart.setColorFilter(isSelected ? Color.RED : Color.WHITE);
+        holder.ivHeart.setBackgroundTintList(android.content.res.ColorStateList.valueOf(isSelected ? 0xFF0891B2 : 0x88000000));
+        
+        com.google.android.material.card.MaterialCardView card = (com.google.android.material.card.MaterialCardView) holder.itemView;
+        card.setStrokeColor(isSelected ? 0xFF0891B2 : 0xFFE2E8F0);
+        card.setStrokeWidth(isSelected ? 8 : 2); // Internal px, approximate 3dp and 1dp
 
         holder.itemView.setOnClickListener(v -> {
             if (isSelected) {

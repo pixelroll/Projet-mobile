@@ -17,6 +17,7 @@ public class MockDataProvider {
     private static List<Group> myGroups;
     private static List<Group> discoverGroups;
     private static List<Photo> userPhotos;
+    private static User currentUser;
 
     static {
         myGroups = new ArrayList<>();
@@ -46,16 +47,18 @@ public class MockDataProvider {
     }
 
     public static User getCurrentUser() {
-        User user = new User();
-        user.setId("u1");
-        user.setName("Sophie Martin");
-        user.setEmail("sophie.martin@travel.com");
-        user.setBio("Passionné de voyages et de photographie 📸");
-        user.setPostsCount(47);
-        user.setFollowersCount(1248);
-        user.setFollowingCount(532);
-        user.setCountriesVisited(12);
-        return user;
+        if (currentUser == null) {
+            currentUser = new User();
+            currentUser.setId("u1");
+            currentUser.setName("Sophie Martin");
+            currentUser.setEmail("sophie.martin@email.com"); // Matched with mockup
+            currentUser.setBio("🌍 Voyageur passionné | 🎞 Photographe amateur");
+            currentUser.setPostsCount(47);
+            currentUser.setFollowersCount(1248);
+            currentUser.setFollowingCount(532);
+            currentUser.setCountriesVisited(12);
+        }
+        return currentUser;
     }
 
     private static List<Photo> generateInitialPhotos() {
@@ -261,12 +264,21 @@ public class MockDataProvider {
         };
         
         int[] resIds = {
-            R.drawable.arc_de_triomphe, // Fallback Eiffel
+            0, // Eiffel uses URL
             R.drawable.louvre,
-            R.drawable.notre_dame, // Fallback Jardin
+            0, // Luxembourg uses URL
             R.drawable.notre_dame,
             R.drawable.arc_de_triomphe,
-            R.drawable.louvre // Fallback Montmartre
+            0 // Montmartre uses URL
+        };
+
+        String[] urls = {
+            "https://images.unsplash.com/photo-1431274172761-fca41d930114?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800", // Eiffel
+            null,
+            "https://images.unsplash.com/photo-1626946548234-a65fd193db41?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800", // Jardin Luxembourg
+            null,
+            null,
+            "https://images.unsplash.com/photo-1653677903266-1d814985b3cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" // Montmartre
         };
 
         for (int i = 0; i < locations.length; i++) {
@@ -274,7 +286,11 @@ public class MockDataProvider {
             p.setId("gw_" + i);
             p.setTitle(locations[i]);
             p.setLocationName("Paris");
-            p.setImageResId(resIds[i]);
+            if (resIds[i] != 0) {
+                p.setImageResId(resIds[i]);
+            } else {
+                p.setImageUrl(urls[i]);
+            }
             photos.add(p);
         }
         return photos;

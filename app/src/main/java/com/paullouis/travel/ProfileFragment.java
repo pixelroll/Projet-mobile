@@ -37,13 +37,8 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Handle safe area for notch
+        // Handle safe area for notch is already handled by MainActivity.
         View headerLayout = view.findViewById(R.id.headerLayout);
-        ViewCompat.setOnApplyWindowInsetsListener(headerLayout, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), systemBars.top, v.getPaddingRight(), v.getPaddingBottom());
-            return insets;
-        });
 
         // Initialize views
         tvHeaderName = view.findViewById(R.id.tvHeaderName);
@@ -89,6 +84,11 @@ public class ProfileFragment extends Fragment {
 
         view.findViewById(R.id.ivAdd).setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
+            startActivity(intent);
+        });
+
+        view.findViewById(R.id.ivMenu).setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(getActivity(), SettingsActivity.class);
             startActivity(intent);
         });
 

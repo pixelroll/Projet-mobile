@@ -171,15 +171,14 @@ L'écran de profil (Sophie Martin) a été implémenté pour refléter fidèleme
 Techniquement, les données sont fournies par le \texttt{MockDataProvider} via des méthodes dédiées (\texttt{getCurrentUser} et \texttt{getUserPhotos}). L'interface a été conçue pour forcer visuellement le "mode connecté" afin de présenter l'ensemble des options de gestion de profil, en attendant l'intégration du système d'authentification réel.
 
 \subsection{Phase 11 : Passerelle Inteligente (\texttt{GatewayActivity})}
-L'activité \texttt{GatewayActivity} a fait l'objet d'un polissage final pour garantir une fidélité absolue aux maquettes de référence et une expérience utilisateur sans couture.
+L'activité \texttt{GatewayActivity} a fait l'objet d'une refonte UI minutieuse pour garantir une fidélité absolue aux maquettes de référence et une expérience utilisateur sans couture.
 \begin{itemize}
-    \item \textbf{Cohérence Visuelle} : Le titre de la Toolbar a été étendu à "Créer un parcours depuis vos photos" et l'ensemble de l'iconographie IA a été uniformisée avec l'icône Lucide \texttt{sparkles}.
-    \item \textbf{Grille de Photos Dynamique} : Les images de la grille sont désormais sourcées directement depuis les ressources locales (\texttt{louvre}, \texttt{notre\_dame}, \texttt{arc\_de\_triomphe}) pour garantir un affichage instantané et fiable sans dépendance réseau.
-    \item \textbf{Architecture de Défilement} : Suite aux tests utilisateurs, le bouton de génération a été intégré directement dans le flux de défilement (entre la grille et les suggestions), simplifiant la structure visuelle globale.
-    \item \textbf{Logique d'État Avancée} : Le bouton principal gère désormais un état binair visuel : gris (\#BDBDBD) et texte au singulier par défaut, passant au Teal (\#009688) avec gestion dynamique du pluriel dès la première sélection de lieu.
-    \item \textbf{Suggestions Pré-chargées} : La section "Idées de parcours" est désormais visible dès l'ouverture, présentant immédiatement des itinéraires types basés sur les préférences déjà connues de l'utilisateur.
+    \item \textbf{Cohérence Visuelle et Charte Graphique} : Le titre de la Toolbar a été étendu à "Créer un parcours depuis vos photos". L'ensemble de l'iconographie IA a été uniformisée avec l'icône Lucide \texttt{sparkles}. La palette de couleurs a été strictement recalée sur le Cyan (\#0891B2) pour les états actifs, remplaçant l'ancien Teal (\#009688) incorrect.
+    \item \textbf{Textes dynamiques et retour à la ligne} : Un algorithme natif \texttt{breakStrategy="simple"} et un width 0dp ont été appliqués aux sous-titres, et le bouton "Générer" autorise désormais son texte sur 2 lignes avec contrainte de `minHeight`, empêchant toute coupure ou écrasement de police.
+    \item \textbf{Liste horizontale sans compromis} : Les photos aimées s'affichent correctement en carrousel natif (`LinearLayoutManager.HORIZONTAL`) de 140x180dp sans barre de défilement visuelle parasite (`android:scrollbars="none"`).
+    \item \textbf{Alignement parfait des icônes} : La génération programmatique complexe des "Chips" (tags lieux) a été remplacée par un layout dédié \texttt{item\_chip\_place.xml}, offrant un alignement intra-composant rigoureux (icon start padding, text paddings) et un rendu de l'icône \texttt{map-pin} identique à la maquette.
 \end{itemize}
-Cette phase de finition a permis de valider l'intégration des composants Material Design 3 dans des flux de navigation complexes, tout en assurant une réactivité graphique optimale grâce à la logique de mise à jour granulaire des adaptateurs (\texttt{notifyItemChanged}).
+Cette phase de finition méticuleuse a permis de valider l'intégration des composants Material Design 3 dans des flux de navigation complexes, tout en assurant une réactivité graphique optimale.
 
 \subsection{Phase 8 : Panneau de Notifications (\texttt{NotificationsFragment})}
 L'écran de notifications a été implémenté en tant que fragment complet, accessible via l'icône cloche de l'accueil. Cette vue permet de centraliser les interactions sociales et les alertes système :
@@ -255,5 +254,58 @@ L'onglet "Découvrir" a été implémenté via le fragment \texttt{DiscoverGroup
     \item \textbf{Logique d'Adhésion} : Le bouton d'état gère visuellement le passage de "Rejoindre" (Teal) à "Rejoint" (Gris/Désactivé). L'adhésion déclenche une mise à jour dans \texttt{MockDataProvider}, ajoutant instantanément le groupe à l'onglet "Mes groupes" avec le rôle \texttt{MEMBER}.
 \end{itemize}
 Cette architecture permet une séparation nette entre la consultation des groupes rejoints et l'exploration de nouvelles communautés.
+
+\subsection{Phase 12 : Écran de Paramètres globaux (\texttt{SettingsActivity})}
+La gestion du compte et des préférences de l'utilisateur a été matérialisée par la création from scratch de l'écran \texttt{SettingsActivity}, accessible depuis l'icône \texttt{menu} (Lucide) du \texttt{ProfileFragment}.
+Cette activité structure proprement les différentes options selon la maquette fournie, en listant les sections via un \texttt{NestedScrollView} pour un défilement complet.
+
+\begin{itemize}
+    \item \textbf{Carte Utilisateur (\texttt{MaterialCardView})} : Affiche les informations de l'utilisateur connecté via chargement dynamique depuis le \texttt{MockDataProvider}.
+    \item \textbf{Section COMPTE} :
+    \begin{itemize}
+        \item \textit{Modifier le profil} : Débouche sur \texttt{EditProfileActivity} (stub actuel).
+        \item \textit{Notifications} : Redirige vers la \texttt{NotificationSettingsActivity}.
+    \end{itemize}
+    \item \textbf{Section PRÉFÉRENCES} :
+    \begin{itemize}
+        \item \textit{Langue} : Ouvre un `AlertDialog` gérant le basculement fonctionnel simulé de la sélection (Français, English, Español).
+        \item \textit{Confidentialité} : Débouche sur \texttt{PrivacyActivity} (stub actuel).
+    \end{itemize}
+    \item \textbf{Section SUPPORT} :
+    \begin{itemize}
+        \item \textit{Aide \& Support} : Débouche sur \texttt{SupportActivity} (stub actuel).
+    \end{itemize}
+    \item \textbf{Déconnexion} : Un bloc cliquable rouge clair distinct du reste de la liste lance une demande de confirmation via dialogue. Actuellement, l'action `finishAffinity()` purge l'historique et redirige vers \texttt{MainActivity}.
+\end{itemize}
+
+\textbf{Information liée aux données et futures évolutions :} 
+L'ensemble des options et profils sont actuellement mockés. Cet écran est structurellement prêt à accueillir \textbf{Firebase Auth} (pour la structure dynamique du profile et l'action de déconnexion) ainsi que \textbf{Firestore} pour l'enregistrement persistant des préférences utilisateur (langue, confidentialité). Lors du raccordement au Backend, le bouton "Se déconnecter" pointera logiquement vers une \texttt{LoginActivity}.
+
+\subsubsection{Correctifs UI : Insets et Icônes}
+Une passe de stabilisation a corrigé des anomalies visuelles urgentes :
+\begin{itemize}
+    \item \textbf{Harmonisation des teintes} : Les icônes "menu" et "ajouter" du \texttt{ProfileFragment} se sont vu attribuer une dynamique via \texttt{app:tint="@color/on\_background"} pour matcher la couleur des autres ressources (claire ou sombre selon le contexte), remplaçant l'affichage blanc cassé.
+    \item \textbf{Gestion des Marges (Edge-To-Edge)} : Suppression d'effets de double-marges (grand écart en haut de l'écran) identifiés dans le \texttt{ProfileFragment}. La redondance entre l'attribut \texttt{fitsSystemWindows="true"} du layout XML et l'application manuelle des Insets (\texttt{ViewCompat.setOnApplyWindowInsetsListener}) a été révoquée. L'approche s'en remet désormais au \texttt{MainActivity} pour le fragment. En revanche, \texttt{SettingsActivity} étant une activité autonome (hors du NavController), son propre \texttt{ViewCompat.setOnApplyWindowInsetsListener} lui a été rétabli de manière exclusive afin d'éviter qu'elle ne passe sous la caméra frontale, garantissant un flux Inset naturel et homogène.
+\end{itemize}
+
+\subsection{Phase 13 : Édition du Profil (\texttt{EditProfileActivity})}
+Afin de compléter la gestion de compte, l'écran \texttt{EditProfileActivity} a été implémenté d'après les maquettes, avec une structure basée sur un \texttt{CoordinatorLayout} et un formulaire riche au sein d'un \texttt{NestedScrollView}. Elle s'ouvre logiquement depuis l'item "Modifier le profil" de l'écran des paramètres.
+
+\subsubsection{Interface et Formulaire}
+\begin{itemize}
+    \item \textbf{Zone Avatar} : Conteneur \texttt{ShapeableImageView} circulaire doté d'un "badge" caméra statique (overlap). Clyn d'œil interactif : un clic déclenche l'\texttt{Intent.ACTION\_PICK} pour sélectionner une image locale et met à jour dynamiquement l'ImageView.
+    \item \textbf{Champs configurés} : Le formulaire intègre des \texttt{EditText} stylisés globalement via un sélecteur XML (bordure Cyan `#0891b2` au focus). Les champs intègrent Nom, Localisation (avec icône intra-champ), Email et Site Web.
+    \item \textbf{Compteur biographique} : Le champ de biographie, restreint à \texttt{150 caractères} (\texttt{maxLines=5}), est observé par un \texttt{TextWatcher}. Celui-ci met visuellement à jour le label de progression ("X / 150 caractères").
+    \item \textbf{Section Lecture Seule} : Recapitulatif inerte incluant les statistiques basiques (ex: l'ancienneté hardcodée à "Janvier 2026").
+\end{itemize}
+
+\subsubsection{Gouvernance et Zone de Danger}
+\begin{itemize}
+    \item \textbf{Persistance Mocks} : Le \texttt{MockDataProvider} a été refactoré pour cacher l'objet \texttt{currentUser} sous forme de \textit{Singleton}. Cela permet au bouton "Enregistrer" de la \textit{Toolbar} d'éditer réellement ce \texttt{User} mocké et de vérifier la non-vacuité du champ Nom avant fermeture de la page, répercutant l'information aux écrans parents.
+    \item \textbf{Modales Destructives} : Les boutons de désactivation et de suppression du compte activent des \texttt{AlertDialog} d'alerte, peints avec l'accentuation `#EF4444` (Rouge). Une confirmation purge virtuellement l'application (\texttt{finishAffinity()}) dans sa version actuelle.
+\end{itemize}
+
+\textbf{Information liée aux données et futures évolutions :} 
+Toutes les saisies et interactions media (\texttt{URI}) s'arrêtent actuellement au cache de l'appareil. Le système est structuré pour une connexion ultérieure à \textbf{Firebase Storage} pour l'upload de l'avatar et à \textbf{Firestore} pour l'enregistrement robuste des champs de profil et du rôle d'authentification.
 
 \end{document}

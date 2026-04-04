@@ -57,6 +57,30 @@
             android:screenOrientation="portrait"
             android:windowLayoutInDisplayCutoutMode="shortEdges"
             android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".PrivacyActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".SupportActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
             
     </application>
 

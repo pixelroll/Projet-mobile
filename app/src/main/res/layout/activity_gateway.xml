@@ -51,6 +51,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
+                android:breakStrategy="simple"
                 android:text="Sélectionnez les lieux que vous aimez pour générer un itinéraire personnalisé"
                 android:textColor="@color/muted_foreground"
                 android:textSize="14sp" />
@@ -60,10 +61,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                app:cardBackgroundColor="#E0F2F1"
+                app:cardBackgroundColor="#F0F9FF"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeWidth="0dp">
+                app:strokeColor="#B9E6FE"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -81,7 +83,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_sparkles"
-                            app:tint="@color/primary" />
+                            app:tint="#0891B2" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -135,24 +137,33 @@
                 android:layout_marginHorizontal="12dp"
                 android:layout_marginTop="12dp"
                 android:nestedScrollingEnabled="false"
+                android:scrollbars="none"
+                android:overScrollMode="never"
                 tools:listitem="@layout/item_gateway_photo" />
+            
+            <!-- Removed fake scrollbar track per user instruction to clean up horizontal scroll -->
 
             <!-- 3. Bouton Générer (In-scroll) -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGenerate"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
                 android:layout_margin="16dp"
                 android:backgroundTint="#BDBDBD"
                 android:text="Générer un parcours complet (0 lieu)"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
+                android:maxLines="2"
+                android:gravity="center"
+                android:ellipsize="none"
+                android:paddingVertical="12dp"
                 app:cornerRadius="12dp"
                 app:icon="@drawable/ic_sparkles"
                 app:iconGravity="textStart"
-                app:iconPadding="12dp"
+                app:iconPadding="10dp"
                 app:iconSize="20dp"
                 app:iconTint="@color/white" />
 
