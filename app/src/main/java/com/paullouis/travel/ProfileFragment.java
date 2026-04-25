@@ -16,7 +16,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import com.paullouis.travel.adapter.ProfilePhotoAdapter;
+import com.paullouis.travel.adapter.ProfileItineraryAdapter;
 import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.User;
 
@@ -24,7 +26,7 @@ public class ProfileFragment extends Fragment {
 
     private TextView tvHeaderName, tvName, tvCountries, tvBio;
     private TextView tvStatPosts, tvStatFollowers, tvStatFollowing;
-    private RecyclerView rvProfilePhotos;
+    private RecyclerView rvProfilePhotos, rvProfileTrips;
     private LinearLayout tabPhotos, tabTrips;
 
     @Nullable
@@ -49,6 +51,7 @@ public class ProfileFragment extends Fragment {
         tvStatFollowers = view.findViewById(R.id.tvStatFollowers);
         tvStatFollowing = view.findViewById(R.id.tvStatFollowing);
         rvProfilePhotos = view.findViewById(R.id.rvProfilePhotos);
+        rvProfileTrips = view.findViewById(R.id.rvProfileTrips);
         tabPhotos = view.findViewById(R.id.tabPhotos);
         tabTrips = view.findViewById(R.id.tabTrips);
 
@@ -60,6 +63,11 @@ public class ProfileFragment extends Fragment {
         rvProfilePhotos.setLayoutManager(new GridLayoutManager(getContext(), 3));
         ProfilePhotoAdapter adapter = new ProfilePhotoAdapter(MockDataProvider.getUserPhotos());
         rvProfilePhotos.setAdapter(adapter);
+
+        // Setup Trips List
+        rvProfileTrips.setLayoutManager(new LinearLayoutManager(getContext()));
+        ProfileItineraryAdapter tripAdapter = new ProfileItineraryAdapter(MockDataProvider.getProfileItineraries(), getContext());
+        rvProfileTrips.setAdapter(tripAdapter);
 
         // Setup Click Listeners
         setupListeners(view);
@@ -76,11 +84,13 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupListeners(View view) {
-        view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Modifier le profil (à implémenter)", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(getActivity(), EditProfileActivity.class);
+            startActivity(intent);
+        });
         
         view.findViewById(R.id.btnShareProfile).setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Partager le profil (à implémenter)", Toast.LENGTH_SHORT).show());
+            ShareProfileDialogFragment.newInstance().show(getChildFragmentManager(), "share_profile"));
 
         view.findViewById(R.id.ivAdd).setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
@@ -104,13 +114,14 @@ public class ProfileFragment extends Fragment {
             tabTrips.setBackground(null);
             tabTrips.setElevation(0f);
             rvProfilePhotos.setVisibility(View.VISIBLE);
+            if (rvProfileTrips != null) rvProfileTrips.setVisibility(View.GONE);
         } else {
             tabTrips.setBackgroundResource(R.drawable.bg_rounded_white);
             tabTrips.setElevation(4f);
             tabPhotos.setBackground(null);
             tabPhotos.setElevation(0f);
             rvProfilePhotos.setVisibility(View.GONE);
-            Toast.makeText(getContext(), "Onglet Parcours (à implémenter)", Toast.LENGTH_SHORT).show();
+            if (rvProfileTrips != null) rvProfileTrips.setVisibility(View.VISIBLE);
         }
     }
 }

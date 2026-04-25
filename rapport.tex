@@ -308,4 +308,107 @@ Afin de compléter la gestion de compte, l'écran \texttt{EditProfileActivity} a
 \textbf{Information liée aux données et futures évolutions :} 
 Toutes les saisies et interactions media (\texttt{URI}) s'arrêtent actuellement au cache de l'appareil. Le système est structuré pour une connexion ultérieure à \textbf{Firebase Storage} pour l'upload de l'avatar et à \textbf{Firestore} pour l'enregistrement robuste des champs de profil et du rôle d'authentification.
 
+\subsection{Phase 14 : Partage de Profil et Parcours Générés}
+
+\subsubsection{Composant : \texttt{ShareProfileDialogFragment}}
+Le bouton "Partager le profil" ouvre désormais une boîte de dialogue contextuelle (non pas un BottomSheet, mais un dialogue centré à bords arrondis), facilitant l'export de la fiche utilisateur vers l'écosystème du téléphone.
+\begin{itemize}
+    \item \textbf{Design} : Titre "Partager" flanqué de l'icône \texttt{share-2} et d'un bouton de fermeture. La liste d'options est stylisée de manière aérée avec des icônes dans des cercles gris clair pour un rendu optimal.
+    \item \textbf{Interactions Systèmes} :
+    \begin{itemize}
+        \item \textit{Partage Système} : Exploitation de \texttt{Intent.ACTION\_SEND} avec un type MIME \texttt{text/plain} pour ouvrir le tiroir de partage natif d'Android.
+        \item \textit{Presse-papiers} : Utilisation du service \texttt{ClipboardManager} pour copier discrètement l'URL d'invitation avec confirmation via \texttt{Toast}.
+        \item \textit{Email \& SMS} : Appels directs aux Intents \texttt{ACTION\_SENDTO} avec les préfixes \texttt{mailto:} et \texttt{smsto:} pour injecter un texte de découverte préparé à l'avance.
+    \end{itemize}
+    \item \textbf{Mocking de l'URL} : En attendant l'intégration des Dynamic Links de Firebase, les URL partagées reprennent le nom du \texttt{User} mocké (ex: \texttt{https://traveling.app/u/sophie.martin}).
+\end{itemize}
+
+\subsubsection{Écran : \texttt{GeneratedItinerariesActivity}}
+Le bouton de génération au sein de \texttt{TravelPathPreferencesFragment} aboutit désormais sur une nouvelle activité présentant les parcours concoctés par le système, \texttt{GeneratedItinerariesActivity}.
+\begin{itemize}
+    \item \textbf{Modèle de Données} : Création de la classe \texttt{GeneratedItinerary} stockant les métriques principales (Titre, Description, Budget, Durée, Niveau d'effort, Nombre d'étapes) ainsi que l'état d'appréciation ("Like"). Trois profils factices (Économique, Équilibré, Confort) sont renvoyés par \texttt{MockDataProvider}.
+    \item \textbf{Bannière Contextuelle} : Un encart informatif (bleu \texttt{\#E0F7FA}) au-dessus de la liste rassure l'utilisateur en synthétisant avec mise en gras \texttt{Html.fromHtml()} le nombre d'itinéraires trouvés.
+    \item \textbf{Carte Itinéraire} : Implémentée avec le \texttt{MaterialCardView}, chaque recommandation présente une matrice $2 \times 2$ très lisible pour les caractéristiques du parcours.
+    \item \textbf{Badges Dynamiques} : Le niveau d'effort est soutenu visuellement par un \texttt{GradientDrawable} dont la couleur change de manière programmatique selon la sévérité (Vert clair pour "Facile", Jaune pastel pour "Modéré", et Rouge rosé pour "Difficile").
+    \item \textbf{Bouton Like Actif} : L'action sur l'icône de cœur bascule non seulement le booléen du modèle, mais redessine l'interface avec la version "pleine" de l'icône et teinte le tracé en \texttt{\#EF4444} (Rouge).
+\end{itemize}
+Dans les prochaines itérations, ces données seront générées par le backend IA basé sur les choix formulés dans le formulaire précédent. Un écran final \texttt{ItineraryDetailActivity} a été stubs pour recueillir le détail de la navigation point-par-point plus tard.
+
+\section{Phase 15 : Détails de Parcours, Export PDF et Profil Utilisateur}
+\subsection{Description}
+Cette phase a permis d'implémenter l'écran complet de détail d'un parcours généré par l'IA, la modale d'export PDF associée, ainsi que le peuplement de l'onglet "Parcours" sur le profil de l'utilisateur.
+
+\subsection{Détails techniques}
+\begin{itemize}
+    \item \textbf{ItineraryDetailActivity} : Une activité complexe utilisant un \texttt{NestedScrollView}. Elle est structurée en 5 blocs distincts :
+    \begin{itemize}
+        \item Bloc 1 : Carte statique et bouton flottant redirigeant vers une application de navigation GPS externe via Intent (\texttt{geo:}).
+        \item Bloc 2 : Météo du jour présentée dans une grille 2x2 avec icônes personnalisées.
+        \item Bloc 3 : Statistiques résumées (budget, durée, nombre d'étapes).
+        \item Bloc 4 : Option de sauvegarde hors-ligne simulant un téléchargement local.
+        \item Bloc 5 : Une "Timeline" générée dynamiquement affichant la chronologie des étapes via \texttt{item\_itinerary\_step.xml}.
+    \end{itemize}
+    \item \textbf{Modèles et Données} : Création des classes \texttt{ItineraryStep.java} et \texttt{ProfileItinerary.java}. Le \texttt{MockDataProvider} a été enrichi pour fournir les données associées.
+    \item \textbf{Export PDF} : \texttt{PdfReadyDialogFragment} est un \texttt{DialogFragment} centré simulant la confirmation de génération PDF. Il inclut une fonctionnalité de partage via \texttt{Intent.ACTION\_SEND} avec le type MIME \texttt{application/pdf}.
+    \item \textbf{Onglet Parcours du Profil} : Le \texttt{ProfileFragment} intègre désormais un second \texttt{RecyclerView} (\texttt{rvProfileTrips}) alimenté par \texttt{ProfileItineraryAdapter}. Le basculement entre l'onglet "Photos" et "Parcours" gère dynamiquement la visibilité des deux listes, en plus de modifier l'état actif des boutons.
+\end{itemize}
+
+\subsection{Difficultés et Solutions}
+\begin{itemize}
+    \item \textbf{Difficulté} : La quantité d'icônes spécifiques (Météo, Actions) nécessaires pour l'écran de détail du parcours.
+    \item \textbf{Solution} : Création de 10 nouveaux \texttt{VectorDrawable} (Lucide Icons) directement en XML (\texttt{ic\_sun}, \texttt{ic\_cloud}, \texttt{ic\_droplets}, \texttt{ic\_wind}, \texttt{ic\_thermometer}, etc.) pour maintenir le poids de l'application bas et garantir une mise à l'échelle parfaite, sans ajouter de dépendances externes.
+\end{itemize}
+
+\subsection{Améliorations UI/UX (Correctifs)}
+Suite à une revue détaillée, plusieurs améliorations esthétiques et fonctionnelles ont été apportées :
+\begin{itemize}
+    \item \textbf{Lisibilité des Blocs} : Les encarts "Météo" et "Statistiques" bénéficient de nouveaux fonds dédiés (cyan très pâle \texttt{\#ECFCFF} et \texttt{\#F2F9FB}) accompagnés de bordures fines afin de structurer l'information visuellement.
+    \item \textbf{Galerie Média par Étape} : Remplacement du layout simple par une vue déroulante (Expand/Collapse). Un composant interactif affiche désormais un \texttt{RecyclerView} horizontal de miniatures (via le nouveau modèle \texttt{StepPhoto.java}) lorsqu'on clique sur le bandeau média d'une étape. Au clic sur une miniature, une modale plein écran (\texttt{MediaViewerDialogFragment}) s'ouvre pour afficher l'image ou lire la vidéo, offrant une expérience immersive.
+    \item \textbf{Ajustement Modale PDF} : La largeur du \texttt{PdfReadyDialogFragment} a été fixée dynamiquement via \texttt{onStart()} à 90\% de la largeur de l'écran (\texttt{widthPixels * 0.90}) pour éviter l'écrasement du contenu.
+    \item \textbf{Mutualisation du Partage} : Le \texttt{ShareProfileDialogFragment} a été rendu réutilisable grâce à une méthode \texttt{newInstanceForItinerary} injectant dynamiquement via un \texttt{Bundle} les textes et URLs adaptés au contexte d'un parcours (au lieu d'un profil).
+    \item \textbf{Correction des Badges} : Application de \texttt{singleLine="true"} pour empêcher le retour à la ligne du créneau "Après-midi", et ajustement de la colorimétrie des fonds (notamment le violet pâle \texttt{\#EDE7F6} pour le badge "Soir") pour garantir un contraste optimal.
+\end{itemize}
+
+\subsection{Phase 16 : Intégration de la Navigation Globale}
+L'un des défis majeurs de l'application résidait dans la coexistence d'une architecture à Fragment unique (\texttt{MainActivity}) et d'activités autonomes pour les flux complexes (Génération d'itinéraires, Détails). Cette phase a permis d'unifier l'expérience utilisateur en intégrant la barre de navigation inférieure (\texttt{BottomNavigationView}) dans toutes les pages clés.
+
+\subsubsection{Détails techniques}
+\begin{itemize}
+    \item \textbf{Mutualisation de la Navigation} : La barre de navigation a été ajoutée aux layouts \texttt{activity\_generated\_itineraries.xml}, \texttt{activity\_itinerary\_detail.xml} et \texttt{activity\_gateway.xml}. Pour maintenir une structure propre, ces layouts ont été convertis en \texttt{ConstraintLayout} permettant de fixer le contenu entre la barre d'outils et la barre de navigation.
+    \item \textbf{Logique de Routage Inter-Activités} : Comme ces activités ne sont pas gérées par le \texttt{NavController} de l'activité principale, une logique de redirection manuelle a été implémentée dans chaque classe Java (\texttt{setupBottomNavigation}). 
+    \item \textbf{Drapeaux de Navigation} : L'utilisation de \texttt{Intent.FLAG\_ACTIVITY\_CLEAR\_TOP} et \texttt{FLAG\_ACTIVITY\_SINGLE\_TOP} garantit que le retour vers l'accueil ou le profil ne crée pas de multiples instances de \texttt{MainActivity}, préservant ainsi la pile d'activités (backstack).
+    \item \textbf{Synchronisation des États} : L'ID du fragment cible est passé en extra (\texttt{target\_fragment\_id}), permettant à \texttt{MainActivity} d'ouvrir directement le bon onglet (Accueil, Carte, Parcours, Recherche ou Profil) dès le démarrage.
+\end{itemize}
+
+\subsubsection{Difficultés et Solutions}
+\begin{itemize}
+    \item \textbf{Problème} : Le contenu défilant (\texttt{NestedScrollView}) passait derrière la barre de navigation ou était rogné en bas de page.
+    \item \textbf{Solution} : Utilisation des contraintes \texttt{app:layout\_constraintBottom\_toTopOf="@id/bottom\_navigation"} et d'une hauteur \texttt{0dp} pour le conteneur de contenu, forçant Android à calculer dynamiquement l'espace disponible entre les composants fixes.
+\end{itemize}
+
+\subsection{Améliorations UI/UX (Affinage Final)}
+Suite aux retours utilisateurs, plusieurs ajustements de précision ont été effectués :
+\begin{itemize}
+    \item \textbf{Nettoyage des Cartes} : Suppression des icônes de favoris (cœurs) redondantes en haut à droite des cartes d'itinéraires générés, pour ne conserver que l'interaction principale en bas à gauche, évitant ainsi la surcharge visuelle.
+    \item \textbf{Cohérence des Couleurs} : Recalage des fonds de badges (Cyan \texttt{\#06B6D4} pour la marche, Gris clair \texttt{\#F3F4F6} pour la météo nuageuse) pour une harmonie parfaite avec la charte Tailwind demandée.
+    \item \textbf{Correction des Icônes} : L'icône de l'euro (\texttt{ic\_euro}) a été redessinée manuellement en XML pour corriger un défaut d'alignement des barres horizontales.
+\end{itemize}
+
+\subsection{Phase 17 : Barre d'actions Contextuelle (Parcours Générés)}
+Afin d'améliorer l'interactivité de l'écran des parcours générés, une nouvelle barre d'actions a été intégrée en fin de liste.
+
+\begin{itemize}
+    \item \textbf{Interface Sobres} : Contrairement aux boutons Material classiques, ces boutons utilisent un style ``Outline'' avec un fond blanc cassé (\texttt{\#F8FAFB}) et une bordure fine grise. Ce design a été implémenté via un \texttt{drawable} personnalisé (\texttt{bg\_action\_btn\_outline.xml}).
+    \item \textbf{Structure et Répartition} : Les deux boutons (``Modifier les préférences'' et ``Regénérer'') occupent chacun 50\% de la largeur de l'écran via un système de \texttt{layout\_weight}.
+    \item \textbf{Positionnement Statique} : Conformément aux exigences d'ergonomie, la barre est positionnée à la suite du contenu défilant (\texttt{NestedScrollView}). Elle ne "flotte" pas sur l'interface mais apparaît naturellement à la fin de la liste des itinéraires.
+    \item \textbf{Correction des Badges (FlowLayout)} : Pour résoudre définitivement les problèmes de texte tronqué sur les petits écrans, les lignes d'informations des étapes utilisent désormais des \texttt{ChipGroup}. Ce composant permet un retour à la ligne automatique (wrapping) des badges (Ouvert, Matin, etc.) si l'espace horizontal est insuffisant, garantissant l'intégrité visuelle du texte en toute circonstance.
+    \item \textbf{Synchronisation de la Navigation} : Correction d'un bug où la barre de navigation basse perdait sa sélection après plusieurs changements de pages. L'implémentation utilise désormais \texttt{setSelectedItemId} dans la \texttt{MainActivity} pour forcer la synchronisation de l'état visuel avec le contrôleur de navigation, et le \texttt{launchMode} a été passé en \texttt{singleTop} pour une gestion plus saine de la pile d'activités.
+    \item \textbf{Optimisation de l'Espace} : Réduction des marges de la timeline et passage du bouton de déploiement des photos en pleine largeur pour maximiser l'espace utile sur les écrans étroits.
+    \item \textbf{Interactions} :
+    \begin{itemize}
+        \item Le bouton de modification déclenche un \texttt{finish()}, ramenant naturellement l'utilisateur au formulaire de préférences.
+        \item Le bouton de régénération affiche un \texttt{Snackbar} de confirmation, simulant le lancement d'un nouveau calcul par l'IA.
+    \end{itemize}
+\end{itemize}
+
 \end{document}

@@ -19,6 +19,7 @@
         <activity
             android:name=".MainActivity"
             android:windowLayoutInDisplayCutoutMode="shortEdges"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -78,6 +79,18 @@
 
         <activity
             android:name=".SupportActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".GeneratedItinerariesActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".ItineraryDetailActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Travel" />

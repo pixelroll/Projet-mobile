@@ -144,5 +144,26 @@ public class GatewayActivity extends AppCompatActivity {
         new Handler().postDelayed(() -> {
             nestedScrollView.smoothScrollTo(0, sectionSuggestions.getTop());
         }, 100);
+
+        setupBottomNavigation();
+    }
+
+    private void setupBottomNavigation() {
+        com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav.setSelectedItemId(R.id.travelPathPreferencesFragment);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.travelPathPreferencesFragment) {
+                return true;
+            }
+            
+            // Go back to MainActivity with the target fragment
+            android.content.Intent intent = new android.content.Intent(this, MainActivity.class);
+            intent.putExtra("target_fragment_id", itemId);
+            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+            return true;
+        });
     }
 }

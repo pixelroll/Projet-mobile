@@ -57,7 +57,10 @@ public class TravelPathPreferencesFragment extends Fragment {
 
         // Generate button (placeholder)
         view.findViewById(R.id.btnGenerate).setOnClickListener(v -> {
-            // TODO: Collect preferences and navigate to results
+            android.content.Intent intent = new android.content.Intent(getActivity(), GeneratedItinerariesActivity.class);
+            intent.putExtra("LOCATION_NAME", "Paris, France");
+            intent.putExtra("LOCATION_DATE", "17 Mars 2026");
+            startActivity(intent);
         });
 
         // Try Now button

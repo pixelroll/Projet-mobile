@@ -514,59 +514,73 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
-                    <LinearLayout
+                    <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:scrollbars="none">
 
-                        <TextView
-                            android:id="@+id/chipFamille"
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Famille"
-                            android:textColor="@android:color/white"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_filled_turquoise"
-                            android:paddingHorizontal="16dp"
-                            android:layout_marginEnd="8dp" />
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/chipSeniors"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Seniors"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp"
-                            android:layout_marginEnd="8dp" />
+                            <TextView
+                                android:id="@+id/chipFamille"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Famille"
+                                android:textColor="@android:color/white"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_filled_turquoise"
+                                android:paddingHorizontal="16dp"
+                                android:layout_marginEnd="8dp" />
 
-                        <TextView
-                            android:id="@+id/chipSportif"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Sportif"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp"
-                            android:layout_marginEnd="8dp" />
+                            <TextView
+                                android:id="@+id/chipSeniors"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Seniors"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp"
+                                android:layout_marginEnd="8dp" />
 
-                        <TextView
-                            android:id="@+id/chipAventurier"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Aventurier"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp" />
+                            <TextView
+                                android:id="@+id/chipSportif"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Sportif"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp"
+                                android:layout_marginEnd="8dp" />
 
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/chipAventurier"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Aventurier"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp" />
+
+                        </LinearLayout>
+                    </HorizontalScrollView>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -597,59 +611,73 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
-                    <LinearLayout
+                    <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:scrollbars="none">
 
-                        <TextView
-                            android:id="@+id/chipFroid"
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Froid"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp"
-                            android:layout_marginEnd="8dp" />
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/chipChaleur"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Chaleur"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp"
-                            android:layout_marginEnd="8dp" />
+                            <TextView
+                                android:id="@+id/chipFroid"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Froid"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp"
+                                android:layout_marginEnd="8dp" />
 
-                        <TextView
-                            android:id="@+id/chipHumidite"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Humidité"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp"
-                            android:layout_marginEnd="8dp" />
+                            <TextView
+                                android:id="@+id/chipChaleur"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Chaleur"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp"
+                                android:layout_marginEnd="8dp" />
 
-                        <TextView
-                            android:id="@+id/chipEnsoleille"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:gravity="center"
-                            android:text="Ensoleillé"
-                            android:textColor="#4A5568"
-                            android:textSize="13sp"
-                            android:background="@drawable/chip_outline"
-                            android:paddingHorizontal="16dp" />
+                            <TextView
+                                android:id="@+id/chipHumidite"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Humidité"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp"
+                                android:layout_marginEnd="8dp" />
 
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/chipEnsoleille"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:gravity="center"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:text="Ensoleillé"
+                                android:textColor="#4A5568"
+                                android:textSize="13sp"
+                                android:background="@drawable/chip_outline"
+                                android:paddingHorizontal="16dp" />
+
+                        </LinearLayout>
+                    </HorizontalScrollView>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

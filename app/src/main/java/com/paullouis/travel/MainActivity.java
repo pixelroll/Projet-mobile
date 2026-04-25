@@ -48,10 +48,10 @@ public class MainActivity extends AppCompatActivity {
     private void handleIntent(android.content.Intent intent) {
         if (intent != null && intent.hasExtra("target_fragment_id")) {
             int targetId = intent.getIntExtra("target_fragment_id", -1);
-            if (targetId != -1 && navController != null) {
-                // Check current destination to avoid redundant navigations
-                if (navController.getCurrentDestination() == null || navController.getCurrentDestination().getId() != targetId) {
-                    navController.navigate(targetId);
+            if (targetId != -1) {
+                BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+                if (bottomNav != null && bottomNav.getSelectedItemId() != targetId) {
+                    bottomNav.setSelectedItemId(targetId);
                 }
             }
         }

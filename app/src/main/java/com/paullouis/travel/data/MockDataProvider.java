@@ -7,6 +7,10 @@ import com.paullouis.travel.model.NotificationSettingItem;
 import com.paullouis.travel.model.Photo;
 import com.paullouis.travel.model.User;
 import com.paullouis.travel.model.Comment;
+import com.paullouis.travel.model.GeneratedItinerary;
+import com.paullouis.travel.model.ItineraryStep;
+import com.paullouis.travel.model.ProfileItinerary;
+import com.paullouis.travel.model.StepPhoto;
 import com.paullouis.travel.R;
 
 import java.util.ArrayList;
@@ -294,5 +298,127 @@ public class MockDataProvider {
             photos.add(p);
         }
         return photos;
+    }
+
+    public static List<GeneratedItinerary> getGeneratedItineraries() {
+        List<GeneratedItinerary> itineraries = new ArrayList<>();
+        itineraries.add(new GeneratedItinerary(
+            "Économique",
+            "Découverte des essentiels avec un budget limité",
+            "45€",
+            "6h30",
+            "Modéré",
+            "8 arrêts",
+            false
+        ));
+        itineraries.add(new GeneratedItinerary(
+            "Équilibré",
+            "Un mélange parfait de culture, gastronomie et détente",
+            "95€",
+            "8h",
+            "Modéré",
+            "10 arrêts",
+            false
+        ));
+        itineraries.add(new GeneratedItinerary(
+            "Confort",
+            "Expérience premium avec des pauses régulières",
+            "180€",
+            "7h30",
+            "Facile",
+            "7 arrêts",
+            false
+        ));
+        return itineraries;
+    }
+
+    public static List<ItineraryStep> getItinerarySteps() {
+        List<ItineraryStep> steps = new ArrayList<>();
+        
+        ItineraryStep step1 = new ItineraryStep(
+                "09:00", "Petit-déjeuner au Café de Flore", "Café historique du quartier Saint-Germain",
+                "07:30 – 01:30", "Ouvert", "1h", "15€", "Matin", "2 photos • 1 vidéo",
+                R.drawable.ic_map_pin, R.drawable.profile_sophie
+        );
+        step1.setPhotos(Arrays.asList(
+            new StepPhoto(R.drawable.profile_sophie, "Terrasse du Café de...", false),
+            new StepPhoto(R.drawable.profile_sophie, "Café et croissant", false),
+            new StepPhoto(R.drawable.profile_sophie, "Ambiance matinale", true)
+        ));
+        steps.add(step1);
+
+        ItineraryStep step2 = new ItineraryStep(
+                "10:30", "Musée du Louvre", "Visite des collections principales",
+                "09:00 – 18:00", "Ouvert", "2h30", "17€", "Matin", "3 photos • 1 vidéo",
+                R.drawable.ic_map_pin, R.drawable.profile_sophie
+        );
+        step2.setPhotos(Arrays.asList(
+            new StepPhoto(R.drawable.profile_sophie, "Pyramide du Louvre", false),
+            new StepPhoto(R.drawable.profile_sophie, "Grande galerie", false),
+            new StepPhoto(R.drawable.profile_sophie, "Joconde", true)
+        ));
+        steps.add(step2);
+
+        ItineraryStep step3 = new ItineraryStep(
+                "13:00", "Déjeuner à La Palette", "Restaurant traditionnel avec terrasse",
+                "12:00 – 23:00", "Ouvert", "1h30", "28€", "Après-midi", "2 photos",
+                R.drawable.ic_map_pin, R.drawable.profile_sophie
+        );
+        step3.setPhotos(Arrays.asList(
+            new StepPhoto(R.drawable.profile_sophie, "Terrasse", false),
+            new StepPhoto(R.drawable.profile_sophie, "Menu du jour", false)
+        ));
+        steps.add(step3);
+
+        ItineraryStep step4 = new ItineraryStep(
+                "14:30", "Jardin du Luxembourg", "Balade relaxante dans les jardins",
+                "07:30 – 21:30", "Ouvert", "1h", "0€", "Après-midi", "2 photos • 1 vidéo",
+                R.drawable.ic_map_pin, R.drawable.profile_sophie
+        );
+        step4.setPhotos(Arrays.asList(
+            new StepPhoto(R.drawable.profile_sophie, "Fontaine", false),
+            new StepPhoto(R.drawable.profile_sophie, "Allée principale", false),
+            new StepPhoto(R.drawable.profile_sophie, "Pigeons", true)
+        ));
+        steps.add(step4);
+
+        ItineraryStep step5 = new ItineraryStep(
+                "16:00", "Tour Eiffel", "Montée au 2ème étage",
+                "09:30 – 23:45", "Ouvert", "1h30", "26€", "Après-midi", "2 photos • 1 vidéo",
+                R.drawable.ic_map_pin, R.drawable.profile_sophie
+        );
+        step5.setPhotos(Arrays.asList(
+            new StepPhoto(R.drawable.profile_sophie, "Vue du dessus", false),
+            new StepPhoto(R.drawable.profile_sophie, "Escaliers", false),
+            new StepPhoto(R.drawable.profile_sophie, "Coucher de soleil", true)
+        ));
+        steps.add(step5);
+
+        ItineraryStep step6 = new ItineraryStep(
+                "18:00", "Pause café - Carette", "Pâtisserie renommée du Trocadéro",
+                "08:00 – 23:30", "Ouvert", "45min", "9€", "Soir", "2 photos",
+                R.drawable.ic_map_pin, R.drawable.profile_sophie
+        );
+        step6.setPhotos(Arrays.asList(
+            new StepPhoto(R.drawable.profile_sophie, "Vitrine", false),
+            new StepPhoto(R.drawable.profile_sophie, "Tasse et macaron", false)
+        ));
+        steps.add(step6);
+
+        return steps;
+    }
+
+    public static List<ProfileItinerary> getProfileItineraries() {
+        List<ProfileItinerary> itineraries = new ArrayList<>();
+        itineraries.add(new ProfileItinerary(
+                "Paris Romantique", "3 jours", "Paris, France", R.drawable.profile_sophie
+        ));
+        itineraries.add(new ProfileItinerary(
+                "Aventure à Tokyo", "7 jours", "Tokyo, Japon", R.drawable.profile_sophie
+        ));
+        itineraries.add(new ProfileItinerary(
+                "Barcelone Culturelle", "4 jours", "Barcelone, Espagne", R.drawable.profile_sophie
+        ));
+        return itineraries;
     }
 }
