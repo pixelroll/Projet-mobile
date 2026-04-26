@@ -90,14 +90,41 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:orientation="vertical">
-                <TextView
-                    android:id="@+id/tvAuthorNameDetail"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/on_background"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    tools:text="Sophie Martin" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/tvAuthorNameDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/on_background"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        tools:text="Sophie Martin" />
+                    <TextView
+                        android:id="@+id/tvGroupBadgeDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_icon_primary_10"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:textColor="#0891B2"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        app:drawableStartCompat="@drawable/ic_group"
+                        app:drawableTint="#0891B2"
+                        android:drawablePadding="4dp"
+                        android:gravity="center_vertical"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:maxWidth="120dp"
+                        tools:text="Voyage Paris 2026"
+                        tools:visibility="visible" />
+                </LinearLayout>
                 <TextView
                     android:id="@+id/tvDateDetail"
                     android:layout_width="wrap_content"
@@ -192,7 +219,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
-                    android:text="S'y rendre (Google Maps)"
+                    android:text="Comment y aller (Google Maps)"
                     android:textColor="@color/primary"
                     android:textSize="13sp"
                     android:textStyle="italic" />

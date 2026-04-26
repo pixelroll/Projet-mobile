@@ -11,6 +11,7 @@ import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.ItineraryStep;
 import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.StepPhoto;
+import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.R;
 
 import java.util.ArrayList;
@@ -22,14 +23,16 @@ public class MockDataProvider {
     private static List<Group> discoverGroups;
     private static List<Photo> userPhotos;
     private static User currentUser;
+    private static List<SearchNavigationOption> searchNavigationOptions;
+    private static boolean userLoggedIn = false; // Par défaut non connecté pour montrer la modale
 
     static {
         myGroups = new ArrayList<>();
         discoverGroups = new ArrayList<>();
         
         // Initialize groups
-        Group g1 = new Group("1", "Voyage Paris 2026", "Groupe pour notre voyage a Paris en mars 2026. Partagez vos photos et lieux preferes !", 8, 34, false, true, true, "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=400", "PAR2026", Group.UserRole.ADMIN);
-        Group g2 = new Group("2", "Famille Martin", "Photos de voyages en famille", 5, 67, true, true, false, "https://images.unsplash.com/photo-1613278435217-de4e5a91a4ee?w=400", "FAM-MTN", Group.UserRole.MEMBER_WITH_CODE);
+        Group g1 = new Group("1", "Voyage Paris 2026", "Groupe pour notre voyage a Paris en mars 2026. Partagez vos photos et lieux preferes !", 8, 34, false, true, true, "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=400", "PAR2026", Group.UserRole.OWNER);
+        Group g2 = new Group("2", "Famille Martin", "Photos de voyages en famille", 5, 67, true, true, false, "https://images.unsplash.com/photo-1613278435217-de4e5a91a4ee?w=400", "FAM-MTN", Group.UserRole.MEMBER);
         Group g3 = new Group("3", "Amis proches", "Nos aventures entre amis", 12, 89, true, true, false, "https://images.unsplash.com/photo-1626946548234-a65fd193db41?w=400", null, Group.UserRole.MEMBER);
         
         myGroups.add(g1);
@@ -48,6 +51,28 @@ public class MockDataProvider {
 
         // Initialize user photos
         userPhotos = generateInitialPhotos();
+        
+        // Associate some photos with groups
+        userPhotos.get(0).setGroupId("1");
+        userPhotos.get(0).setGroupName("Voyage Paris 2026");
+        userPhotos.get(4).setGroupId("2");
+        userPhotos.get(4).setGroupName("Famille Martin");
+
+        // Initialize search navigation options
+        searchNavigationOptions = new ArrayList<>();
+        searchNavigationOptions.add(new SearchNavigationOption("random", "Découverte aléatoire", "Explorez des photos au hasard", R.drawable.ic_shuffle));
+        searchNavigationOptions.add(new SearchNavigationOption("location", "Par lieu", "Parcourir par destination", R.drawable.ic_map_pin));
+        searchNavigationOptions.add(new SearchNavigationOption("period", "Par période", "Explorer par date ou saison", R.drawable.ic_calendar));
+        searchNavigationOptions.add(new SearchNavigationOption("author", "Par auteur", "Découvrir par photographe", R.drawable.ic_user));
+        searchNavigationOptions.add(new SearchNavigationOption("similar", "Photos similaires", "Recherche par similarité (IA)", R.drawable.ic_sparkles));
+    }
+
+    public static boolean isUserLoggedIn() {
+        return userLoggedIn;
+    }
+
+    public static void setUserLoggedIn(boolean loggedIn) {
+        userLoggedIn = loggedIn;
     }
 
     public static User getCurrentUser() {
@@ -109,6 +134,10 @@ public class MockDataProvider {
         userPhotos.add(0, photo);
     }
 
+    /**
+     * @deprecated Use {@link #getUserPhotos()} directly.
+     */
+    @Deprecated
     public static List<Photo> getMockPhotos() {
         return getUserPhotos();
     }
@@ -133,6 +162,10 @@ public class MockDataProvider {
         return getMockComments(null);
     }
 
+    /**
+     * Returns a fixed list of mock comments.
+     * Note: photoId parameter is reserved for future Firebase filtering.
+     */
     public static List<Comment> getMockComments(String photoId) {
         List<Comment> comments = new ArrayList<>();
         comments.add(new Comment("Marie L.", "M", "Il y a 2 jours", "Magnifique photo ! J'y etais la semaine derniere."));
@@ -235,15 +268,11 @@ public class MockDataProvider {
     }
 
     public static void joinGroup(String groupId) {
+        if (groupId == null) return;
         for (Group g : discoverGroups) {
             if (g.getId().equals(groupId)) {
-                boolean alreadyJoined = false;
-                for (Group myG : myGroups) {
-                    if (myG.getId().equals(groupId)) {
-                        alreadyJoined = true;
-                        break;
-                    }
-                }
+                boolean alreadyJoined = myGroups.stream()
+                        .anyMatch(myG -> myG.getId().equals(groupId));
                 if (!alreadyJoined) {
                     myGroups.add(g);
                 }
@@ -338,7 +367,8 @@ public class MockDataProvider {
         ItineraryStep step1 = new ItineraryStep(
                 "09:00", "Petit-déjeuner au Café de Flore", "Café historique du quartier Saint-Germain",
                 "07:30 – 01:30", "Ouvert", "1h", "15€", "Matin", "2 photos • 1 vidéo",
-                R.drawable.ic_map_pin, R.drawable.profile_sophie
+                R.drawable.ic_map_pin, R.drawable.profile_sophie,
+                48.8541, 2.3331
         );
         step1.setPhotos(Arrays.asList(
             new StepPhoto(R.drawable.profile_sophie, "Terrasse du Café de...", false),
@@ -350,7 +380,8 @@ public class MockDataProvider {
         ItineraryStep step2 = new ItineraryStep(
                 "10:30", "Musée du Louvre", "Visite des collections principales",
                 "09:00 – 18:00", "Ouvert", "2h30", "17€", "Matin", "3 photos • 1 vidéo",
-                R.drawable.ic_map_pin, R.drawable.profile_sophie
+                R.drawable.ic_map_pin, R.drawable.profile_sophie,
+                48.8606, 2.3376
         );
         step2.setPhotos(Arrays.asList(
             new StepPhoto(R.drawable.profile_sophie, "Pyramide du Louvre", false),
@@ -362,7 +393,8 @@ public class MockDataProvider {
         ItineraryStep step3 = new ItineraryStep(
                 "13:00", "Déjeuner à La Palette", "Restaurant traditionnel avec terrasse",
                 "12:00 – 23:00", "Ouvert", "1h30", "28€", "Après-midi", "2 photos",
-                R.drawable.ic_map_pin, R.drawable.profile_sophie
+                R.drawable.ic_map_pin, R.drawable.profile_sophie,
+                48.8559, 2.3346
         );
         step3.setPhotos(Arrays.asList(
             new StepPhoto(R.drawable.profile_sophie, "Terrasse", false),
@@ -373,7 +405,8 @@ public class MockDataProvider {
         ItineraryStep step4 = new ItineraryStep(
                 "14:30", "Jardin du Luxembourg", "Balade relaxante dans les jardins",
                 "07:30 – 21:30", "Ouvert", "1h", "0€", "Après-midi", "2 photos • 1 vidéo",
-                R.drawable.ic_map_pin, R.drawable.profile_sophie
+                R.drawable.ic_map_pin, R.drawable.profile_sophie,
+                48.8462, 2.3371
         );
         step4.setPhotos(Arrays.asList(
             new StepPhoto(R.drawable.profile_sophie, "Fontaine", false),
@@ -385,7 +418,8 @@ public class MockDataProvider {
         ItineraryStep step5 = new ItineraryStep(
                 "16:00", "Tour Eiffel", "Montée au 2ème étage",
                 "09:30 – 23:45", "Ouvert", "1h30", "26€", "Après-midi", "2 photos • 1 vidéo",
-                R.drawable.ic_map_pin, R.drawable.profile_sophie
+                R.drawable.ic_map_pin, R.drawable.profile_sophie,
+                48.8584, 2.2945
         );
         step5.setPhotos(Arrays.asList(
             new StepPhoto(R.drawable.profile_sophie, "Vue du dessus", false),
@@ -397,7 +431,8 @@ public class MockDataProvider {
         ItineraryStep step6 = new ItineraryStep(
                 "18:00", "Pause café - Carette", "Pâtisserie renommée du Trocadéro",
                 "08:00 – 23:30", "Ouvert", "45min", "9€", "Soir", "2 photos",
-                R.drawable.ic_map_pin, R.drawable.profile_sophie
+                R.drawable.ic_map_pin, R.drawable.profile_sophie,
+                48.8631, 2.2872
         );
         step6.setPhotos(Arrays.asList(
             new StepPhoto(R.drawable.profile_sophie, "Vitrine", false),
@@ -420,5 +455,50 @@ public class MockDataProvider {
                 "Barcelone Culturelle", "4 jours", "Barcelone, Espagne", R.drawable.profile_sophie
         ));
         return itineraries;
+    }
+
+    public static List<SearchNavigationOption> getSearchNavigationOptions() {
+        return searchNavigationOptions;
+    }
+
+    public static List<com.paullouis.travel.model.GroupMember> getGroupMembers(String groupId) {
+        List<com.paullouis.travel.model.GroupMember> members = new ArrayList<>();
+        members.add(new com.paullouis.travel.model.GroupMember(getCurrentUser(), Group.UserRole.OWNER, 47, "Aujourd'hui"));
+        members.add(new com.paullouis.travel.model.GroupMember(new User("u2", "Thomas Martin", null), Group.UserRole.ADMIN, 23, "Hier"));
+        members.add(new com.paullouis.travel.model.GroupMember(new User("u3", "Lucas Bernard", null), Group.UserRole.MODERATOR, 15, "Il y a 2h"));
+        members.add(new com.paullouis.travel.model.GroupMember(new User("u4", "Emma Petit", null), Group.UserRole.MEMBER, 8, "Il y a 3j"));
+        members.add(new com.paullouis.travel.model.GroupMember(new User("u5", "Chloé Roux", null), Group.UserRole.MEMBER, 2, "La semaine dernière"));
+        return members;
+    }
+
+    public static List<com.paullouis.travel.model.ReportedPhoto> getReportedPhotos(String groupId) {
+        List<com.paullouis.travel.model.ReportedPhoto> reports = new ArrayList<>();
+        if (userPhotos != null && userPhotos.size() > 2) {
+            reports.add(new com.paullouis.travel.model.ReportedPhoto("r1", userPhotos.get(1), "Contenu inapproprié", "Jean Dupont", "24 Mars 2026"));
+            reports.add(new com.paullouis.travel.model.ReportedPhoto("r2", userPhotos.get(2), "Spam", "Marie Curie", "25 Mars 2026"));
+        }
+        return reports;
+    }
+
+    public static java.util.Map<String, Integer> getGroupStats(String groupId) {
+        java.util.Map<String, Integer> stats = new java.util.HashMap<>();
+        stats.put("active_members", 45);
+        stats.put("photos_shared", 342);
+        stats.put("new_members_7d", 12);
+        stats.put("total_interactions", 1560);
+        return stats;
+    }
+
+    public static List<Photo> getPhotosByGroup(String groupId) {
+        if (groupId == null) return new ArrayList<>();
+        List<Photo> filtered = new ArrayList<>();
+        if (userPhotos != null) {
+            for (Photo p : userPhotos) {
+                if (java.util.Objects.equals(groupId, p.getGroupId())) {
+                    filtered.add(p);
+                }
+            }
+        }
+        return filtered;
     }
 }

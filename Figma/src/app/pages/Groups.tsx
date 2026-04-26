@@ -14,6 +14,9 @@ import {
   Copy,
   Camera,
   MapPin,
+  MoreVertical,
+  Image,
+  Eye,
 } from "lucide-react";
 import { MobileContainer } from "../components/MobileContainer";
 import { BottomNav } from "../components/BottomNav";
@@ -31,6 +34,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "../components/ui/dropdown-menu";
 import { useUserMode } from "../contexts/UserModeContext";
 
 interface Group {
@@ -257,16 +267,19 @@ export function Groups() {
             {mockGroups.map((group) => (
               <div
                 key={group.id}
-                className="bg-white rounded-xl border border-border overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => setGroupDetailOpen(group)}
+                className="bg-white rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
               >
                 <div className="flex gap-3 p-3">
                   <img
                     src={group.coverImage}
                     alt={group.name}
-                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0 cursor-pointer"
+                    onClick={() => navigate(`/groups/${group.id}`)}
                   />
-                  <div className="flex-1 min-w-0">
+                  <div
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                  >
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold truncate">{group.name}</h3>
                       {group.isOwner && (
@@ -298,6 +311,35 @@ export function Groups() {
                       )}
                     </div>
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="p-2 hover:bg-muted rounded-lg transition-colors self-start"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => navigate(`/groups/${group.id}`)}>
+                        <Image className="w-4 h-4 mr-2" />
+                        Voir les photos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setGroupDetailOpen(group)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Infos du groupe
+                      </DropdownMenuItem>
+                      {group.isOwner && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => navigate(`/groups/${group.id}/admin`)}>
+                            <Settings className="w-4 h-4 mr-2" />
+                            Administration
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
@@ -625,7 +667,14 @@ export function Groups() {
 
                 <div className="flex gap-2 pt-2">
                   {groupDetailOpen.isOwner && (
-                    <Button variant="outline" className="flex-1 gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 gap-2"
+                      onClick={() => {
+                        setGroupDetailOpen(null);
+                        navigate(`/groups/${groupDetailOpen.id}/admin`);
+                      }}
+                    >
                       <Settings className="w-4 h-4" />
                       Gerer
                     </Button>
@@ -634,7 +683,7 @@ export function Groups() {
                     className="flex-1 gap-2 bg-primary hover:bg-primary/90"
                     onClick={() => {
                       setGroupDetailOpen(null);
-                      navigate("/home");
+                      navigate(`/groups/${groupDetailOpen.id}`);
                     }}
                   >
                     <Camera className="w-4 h-4" />

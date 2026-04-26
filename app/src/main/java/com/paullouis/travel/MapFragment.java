@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,6 +35,9 @@ import org.osmdroid.views.overlay.Marker;
 public class MapFragment extends Fragment {
 
     private MapView map;
+    private View cardPreview;
+    private ImageView ivPreview, btnCloseCard;
+    private TextView tvPreviewTitle, tvPreviewLocation, tvPreviewAuthor, tvPreviewLikes;
 
     @Nullable
     @Override
@@ -56,9 +61,20 @@ public class MapFragment extends Fragment {
         map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         map.setMultiTouchControls(true);
 
-        // Center on Greece area to see both markers
-        map.getController().setZoom(4.0);
-        GeoPoint startPoint = new GeoPoint(38.0, 50.0);
+        // Initialize Card Views
+        cardPreview = view.findViewById(R.id.cardMapPreview);
+        ivPreview = view.findViewById(R.id.ivPreview);
+        tvPreviewTitle = view.findViewById(R.id.tvPreviewTitle);
+        tvPreviewLocation = view.findViewById(R.id.tvPreviewLocation);
+        tvPreviewAuthor = view.findViewById(R.id.tvPreviewAuthor);
+        tvPreviewLikes = view.findViewById(R.id.tvPreviewLikes);
+        btnCloseCard = view.findViewById(R.id.btnCloseCard);
+
+        btnCloseCard.setOnClickListener(v -> cardPreview.setVisibility(View.GONE));
+
+        // Center on Europe
+        map.getController().setZoom(5.0);
+        GeoPoint startPoint = new GeoPoint(48.8566, 2.3522); // Paris
         map.getController().setCenter(startPoint);
 
         ImageButton btnBack = view.findViewById(R.id.btnBack);
@@ -66,21 +82,34 @@ public class MapFragment extends Fragment {
             Navigation.findNavController(v).popBackStack();
         });
 
-        // Add mock markers matching MockDataProvider locations with real Unsplash URLs
+        // Add real mock markers from MockDataProvider
         addMockMarker(
-            new GeoPoint(36.3932, 25.4615),
-            "Santorin",
-            "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&q=80&w=200"
+            "up0",
+            new GeoPoint(48.8584, 2.2945),
+            "Tour Eiffel",
+            "Paris, France",
+            "342 j'aime",
+            "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=400"
         );
         addMockMarker(
-            new GeoPoint(35.0116, 135.7681),
-            "Kyoto",
-            "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=200"
+            "up1",
+            new GeoPoint(41.8902, 12.4922),
+            "Colisée",
+            "Rome, Italie",
+            "521 j'aime",
+            "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400"
+        );
+        addMockMarker(
+            "up2",
+            new GeoPoint(41.3851, 2.1734),
+            "Sagrada Familia",
+            "Barcelone, Espagne",
+            "289 j'aime",
+            "https://images.unsplash.com/photo-1583778175739-9994ed09c965?w=400"
         );
     }
     
-    private void addMockMarker(GeoPoint point, String title, String imageUrl) {
-        // First load the image with Glide, then build the marker bitmap
+    private void addMockMarker(String photoId, GeoPoint point, String title, String location, String likes, String imageUrl) {
         Glide.with(this)
             .asBitmap()
             .load(imageUrl)
@@ -105,10 +134,6 @@ public class MapFragment extends Fragment {
 
                         Bitmap returnedBitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888);
                         Canvas canvas = new Canvas(returnedBitmap);
-                        Drawable bgDrawable = customMarkerView.getBackground();
-                        if (bgDrawable != null) {
-                            bgDrawable.draw(canvas);
-                        }
                         customMarkerView.draw(canvas);
 
                         Marker marker = new Marker(map);
@@ -116,8 +141,18 @@ public class MapFragment extends Fragment {
                         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                         marker.setIcon(new BitmapDrawable(getResources(), returnedBitmap));
                         marker.setTitle(title);
+                        
+                        // Disable default InfoWindow
+                        marker.setInfoWindow(null);
+                        
+                        marker.setOnMarkerClickListener((m, mapView) -> {
+                            showPhotoPreview(photoId, title, location, likes, imageUrl);
+                            mapView.getController().animateTo(m.getPosition());
+                            return true; // Consume the click
+                        });
+
                         map.getOverlays().add(marker);
-                        map.invalidate(); // Refresh the map to show the new marker
+                        map.invalidate();
 
                     } catch (Exception e) {
                         Log.e("MapFragment", "Error generating marker icon", e);
@@ -125,10 +160,41 @@ public class MapFragment extends Fragment {
                 }
 
                 @Override
-                public void onLoadCleared(@Nullable Drawable placeholder) {
-                    // No-op
-                }
+                public void onLoadCleared(@Nullable Drawable placeholder) {}
             });
+    }
+
+    private void showPhotoPreview(String photoId, String title, String location, String likes, String imageUrl) {
+        tvPreviewTitle.setText(title);
+        tvPreviewLocation.setText(location);
+        tvPreviewLikes.setText(likes);
+        tvPreviewAuthor.setText("Par Sophie Martin");
+        
+        Glide.with(this).load(imageUrl).centerCrop().into(ivPreview);
+        
+        cardPreview.setVisibility(View.VISIBLE);
+        cardPreview.setAlpha(0f);
+        cardPreview.setTranslationY(100f);
+        cardPreview.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(300)
+            .start();
+
+        cardPreview.setOnClickListener(v -> {
+            com.paullouis.travel.model.Photo photo = null;
+            for (com.paullouis.travel.model.Photo p : com.paullouis.travel.data.MockDataProvider.getMockPhotos()) {
+                if (p.getId().equals(photoId)) {
+                    photo = p;
+                    break;
+                }
+            }
+            if (photo != null) {
+                android.content.Intent intent = new android.content.Intent(getActivity(), PhotoDetailActivity.class);
+                intent.putExtra("photo", photo);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

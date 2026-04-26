@@ -101,6 +101,9 @@ public class PhotoDetailActivity extends AppCompatActivity {
         tvAuthorInitial.setText(photo.getAuthorInitial());
         tvDate.setText(photo.getDate());
 
+        TextView tvGroupBadge = findViewById(R.id.tvGroupBadgeDetail);
+        tvGroupBadge.setVisibility(View.GONE);
+
         // Content
         TextView tvTitle = findViewById(R.id.tvPhotoTitle);
         TextView tvLocation = findViewById(R.id.tvLocationNameDetail);
@@ -129,9 +132,13 @@ public class PhotoDetailActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnCreatePathDetail).setOnClickListener(v -> {
-            Intent intent = new Intent(this, GatewayActivity.class);
-            intent.putExtra("location", photo.getLocationName());
-            startActivity(intent);
+            if (MockDataProvider.isUserLoggedIn()) {
+                Intent intent = new Intent(this, GatewayActivity.class);
+                intent.putExtra("location", photo.getLocationName());
+                startActivity(intent);
+            } else {
+                LoginRequiredDialogFragment.newInstance().show(getSupportFragmentManager(), "login_required");
+            }
         });
 
         // Tags
@@ -199,6 +206,10 @@ public class PhotoDetailActivity extends AppCompatActivity {
         View btnSend = findViewById(R.id.btnSendComment);
         
         btnSend.setOnClickListener(v -> {
+            if (!MockDataProvider.isUserLoggedIn()) {
+                LoginRequiredDialogFragment.newInstance().show(getSupportFragmentManager(), "login_required");
+                return;
+            }
             String text = etComment.getText().toString().trim();
             if (!text.isEmpty()) {
                 Comment newComment = new Comment("Sophie M.", "S", "À l'instant", text);

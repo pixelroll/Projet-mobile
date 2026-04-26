@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { 
-  ArrowLeft, 
-  Search, 
-  Mic, 
-  Shuffle, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Search,
+  Mic,
+  Shuffle,
+  MapPin,
   Calendar,
   User,
   Tag,
   Sparkles,
   SlidersHorizontal,
-  X
+  X,
+  Users
 } from 'lucide-react';
 import { MobileContainer } from '../components/MobileContainer';
 import { BottomNav } from '../components/BottomNav';
@@ -33,6 +34,7 @@ export function AdvancedSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('filters');
+  const [selectedGroup, setSelectedGroup] = useState<string>('');
 
   const placeTypes = [
     { value: 'nature', label: 'Nature', icon: '🌿' },
@@ -50,6 +52,12 @@ export function AdvancedSearch() {
     { value: 'night', label: 'Nuit' },
   ];
 
+  const userGroups = [
+    { id: '1', name: 'Voyage Paris 2026', members: 8 },
+    { id: '2', name: 'Famille Martin', members: 5 },
+    { id: '3', name: 'Amis proches', members: 12 },
+  ];
+
   const toggleFilter = (filter: string) => {
     setSelectedFilters(prev =>
       prev.includes(filter)
@@ -61,6 +69,7 @@ export function AdvancedSearch() {
   const clearFilters = () => {
     setSelectedFilters([]);
     setSearchQuery('');
+    setSelectedGroup('');
   };
 
   return (
@@ -233,6 +242,48 @@ export function AdvancedSearch() {
               <Input
                 placeholder="Rechercher un auteur..."
               />
+            </div>
+
+            {/* Group filter */}
+            <div>
+              <Label className="text-base font-semibold mb-3 block">
+                Groupe
+              </Label>
+              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les groupes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les groupes</SelectItem>
+                  {userGroups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        <span>{group.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({group.members})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedGroup && selectedGroup !== 'all' && (
+                <div className="mt-2 p-2 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span className="text-primary font-medium">
+                      {userGroups.find((g) => g.id === selectedGroup)?.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setSelectedGroup('')}
+                    className="p-1 hover:bg-primary/10 rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4 text-primary" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Tags */}

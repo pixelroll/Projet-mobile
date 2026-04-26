@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, Heart, MessageCircle, Flag, MapPin, Navigation, Share2, Bookmark, Send, Route, ExternalLink } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Flag, MapPin, Navigation, Share2, Bookmark, Send, Route, ExternalLink, Users } from "lucide-react";
 import { MobileContainer } from "../components/MobileContainer";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 
-const photoData: Record<string, { image: string; title: string; author: string; location: string; date: string; description: string; likes: number; tags: string[] }> = {
+const photoData: Record<string, { image: string; title: string; author: string; location: string; date: string; description: string; likes: number; tags: string[]; group?: { id: string; name: string } }> = {
   "1": {
     image: "https://images.unsplash.com/photo-1431274172761-fca41d930114?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYXJpcyUyMGVpZmZlbCUyMHRvd2VyfGVufDF8fHx8MTc3MzczNTUwOXww&ixlib=rb-4.1.0&q=80&w=1080",
     title: "Tour Eiffel au coucher du soleil",
@@ -26,6 +26,7 @@ const photoData: Record<string, { image: string; title: string; author: string; 
     description: "Une vue magnifique au coucher du soleil depuis le Champ de Mars. L'eclairage dore cree une atmosphere magique autour de ce monument emblematique de Paris. Parfait pour une soiree romantique ou une balade en famille.",
     likes: 342,
     tags: ["Monument", "Coucher de soleil", "Paris", "Architecture"],
+    group: { id: "1", name: "Voyage Paris 2026" },
   },
   "2": {
     image: "https://images.unsplash.com/photo-1626946548234-a65fd193db41?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b2t5byUyMHN0cmVldCUyMG5pZ2h0fGVufDF8fHx8MTc3Mzc1Njk2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -46,6 +47,7 @@ const photoData: Record<string, { image: string; title: string; author: string; 
     description: "Architecture spectaculaire de Gaudi. Un chef-d'oeuvre inacheve qui continue de fasciner des millions de visiteurs chaque annee.",
     likes: 687,
     tags: ["Architecture", "Monument", "Barcelone", "Art"],
+    group: { id: "2", name: "Famille Martin" },
   },
 };
 
@@ -137,7 +139,20 @@ export function PhotoDetail() {
               <span className="text-primary font-semibold">{photo.author[0]}</span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm">{photo.author}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-sm">{photo.author}</p>
+                {photo.group && (
+                  <button
+                    onClick={() => navigate(`/groups/${photo.group.id}`)}
+                    className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                  >
+                    <Users className="w-3 h-3 text-primary" />
+                    <span className="text-xs font-medium text-primary">
+                      {photo.group.name}
+                    </span>
+                  </button>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">{photo.date}</p>
             </div>
           </div>

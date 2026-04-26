@@ -23,6 +23,10 @@ interface PhotoPost {
   likes: number;
   comments: number;
   author?: string;
+  group?: {
+    id: string;
+    name: string;
+  };
 }
 
 const mockPhotos: PhotoPost[] = [
@@ -36,6 +40,10 @@ const mockPhotos: PhotoPost[] = [
     likes: 342,
     comments: 28,
     author: "Sophie Martin",
+    group: {
+      id: "1",
+      name: "Voyage Paris 2026",
+    },
   },
   {
     id: 2,
@@ -58,6 +66,10 @@ const mockPhotos: PhotoPost[] = [
     likes: 687,
     comments: 62,
     author: "Thomas Martin",
+    group: {
+      id: "2",
+      name: "Famille Martin",
+    },
   },
   {
     id: 4,
@@ -192,14 +204,30 @@ export function Home() {
                     {photo.author?.[0] || "?"}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">{photo.author || "Anonyme"}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm">{photo.author || "Anonyme"}</p>
+                    {photo.group && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/groups/${photo.group.id}`);
+                        }}
+                        className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                      >
+                        <Users className="w-3 h-3 text-primary" />
+                        <span className="text-xs font-medium text-primary truncate max-w-[100px]">
+                          {photo.group.name}
+                        </span>
+                      </button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="w-3 h-3" />
                     <span>{photo.city}</span>
                   </div>
                 </div>
-                <span className="text-xs text-muted-foreground">{photo.date}</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">{photo.date}</span>
               </div>
 
               {/* Image */}

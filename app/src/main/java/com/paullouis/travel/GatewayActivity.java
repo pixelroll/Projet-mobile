@@ -1,38 +1,29 @@
 package com.paullouis.travel;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.widget.NestedScrollView;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.paullouis.travel.adapter.GatewayPhotoAdapter;
-import com.paullouis.travel.adapter.ItinerarySuggestionAdapter;
 import com.paullouis.travel.data.MockDataProvider;
-import com.paullouis.travel.model.ItinerarySuggestion;
 import com.paullouis.travel.model.Photo;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class GatewayActivity extends AppCompatActivity {
 
-    private RecyclerView rvPhotos, rvSuggestions;
+    private RecyclerView rvPhotos;
     private TextView tvSelectionCount, tvSuggestionsSubtitle;
     private MaterialButton btnGenerate;
-    private View sectionSuggestions;
-    private NestedScrollView nestedScrollView;
     private GatewayPhotoAdapter photoAdapter;
-    private ItinerarySuggestionAdapter suggestionAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +33,6 @@ public class GatewayActivity extends AppCompatActivity {
         initViews();
         setupToolbar();
         setupPhotosGrid();
-        setupSuggestions(); // Load suggestions immediately
         setupHowItWorks();
         
         // Handle incoming extra for pre-selection
@@ -56,12 +46,9 @@ public class GatewayActivity extends AppCompatActivity {
 
     private void initViews() {
         rvPhotos = findViewById(R.id.rvGatewayPhotos);
-        rvSuggestions = findViewById(R.id.rvSuggestions);
         tvSelectionCount = findViewById(R.id.tvSelectionCount);
         tvSuggestionsSubtitle = findViewById(R.id.tvSuggestionsSubtitle);
         btnGenerate = findViewById(R.id.btnGenerate);
-        sectionSuggestions = findViewById(R.id.sectionSuggestions);
-        nestedScrollView = findViewById(R.id.nestedScrollView);
 
         btnGenerate.setOnClickListener(v -> generateItinerary());
     }
@@ -114,56 +101,13 @@ public class GatewayActivity extends AppCompatActivity {
         ((TextView) view.findViewById(R.id.tvStepDescription)).setText(desc);
     }
 
-    private void setupSuggestions() {
-        List<ItinerarySuggestion> suggestions = new ArrayList<>();
-        suggestions.add(new ItinerarySuggestion(
-                "Tour des monuments parisiens", 
-                Arrays.asList("Tour Eiffel", "Louvre", "Montmartre"), 
-                "1 jour", "~85€"));
-        suggestions.add(new ItinerarySuggestion(
-                "Paris romantique", 
-                Arrays.asList("Tour Eiffel", "Montmartre", "Seine"), 
-                "½ journée", "~45€"));
-
-        suggestionAdapter = new ItinerarySuggestionAdapter(suggestions, suggestion -> {
-            Toast.makeText(this, "Ouverture de : " + suggestion.getName(), Toast.LENGTH_SHORT).show();
-        });
-        rvSuggestions.setLayoutManager(new LinearLayoutManager(this));
-        rvSuggestions.setAdapter(suggestionAdapter);
-        
-        sectionSuggestions.setVisibility(View.VISIBLE);
-    }
 
     private void generateItinerary() {
         if (photoAdapter.getSelectedCount() == 0) {
             Toast.makeText(this, "Veuillez sélectionner au moins un lieu", Toast.LENGTH_SHORT).show();
             return;
         }
-        
-        // Use a small delay for the layout to measure the new visibility before scrolling
-        new Handler().postDelayed(() -> {
-            nestedScrollView.smoothScrollTo(0, sectionSuggestions.getTop());
-        }, 100);
-
-        setupBottomNavigation();
-    }
-
-    private void setupBottomNavigation() {
-        com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        bottomNav.setSelectedItemId(R.id.travelPathPreferencesFragment);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.travelPathPreferencesFragment) {
-                return true;
-            }
-            
-            // Go back to MainActivity with the target fragment
-            android.content.Intent intent = new android.content.Intent(this, MainActivity.class);
-            intent.putExtra("target_fragment_id", itemId);
-            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            finish();
-            return true;
-        });
+        // Navigate directly to the generated itineraries page
+        startActivity(new Intent(this, GeneratedItinerariesActivity.class));
     }
 }

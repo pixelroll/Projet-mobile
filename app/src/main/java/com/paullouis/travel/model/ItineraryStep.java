@@ -15,6 +15,8 @@ public class ItineraryStep {
     private int typeIconRes;
     private int imageRes;
     private List<StepPhoto> photos;
+    private double latitude;
+    private double longitude;
 
     public ItineraryStep(String time, String title, String description, String hours, String status, String duration, String price, String period, String mediaInfo, int typeIconRes, int imageRes) {
         this.time = time;
@@ -30,6 +32,12 @@ public class ItineraryStep {
         this.imageRes = imageRes;
     }
 
+    public ItineraryStep(String time, String title, String description, String hours, String status, String duration, String price, String period, String mediaInfo, int typeIconRes, int imageRes, double latitude, double longitude) {
+        this(time, title, description, hours, status, duration, price, period, mediaInfo, typeIconRes, imageRes);
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public String getTime() { return time; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -42,6 +50,8 @@ public class ItineraryStep {
     public int getTypeIconRes() { return typeIconRes; }
     public int getImageRes() { return imageRes; }
     public List<StepPhoto> getPhotos() { return photos; }
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
 
     public void setPhotos(List<StepPhoto> photos) { this.photos = photos; }
 }

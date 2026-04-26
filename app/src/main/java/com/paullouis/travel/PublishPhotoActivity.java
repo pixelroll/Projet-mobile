@@ -16,6 +16,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -27,7 +30,12 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import com.paullouis.travel.util.WindowInsetsHelper;
+
 public class PublishPhotoActivity extends AppCompatActivity {
+
+    public static final String EXTRA_GROUP_ID = "group_id";
+    public static final String EXTRA_GROUP_NAME = "group_name";
 
     private ImageView ivSelectedPhoto;
     private View photoUploadZone, emptyPhotoContent;
@@ -55,8 +63,17 @@ public class PublishPhotoActivity extends AppCompatActivity {
 
         initViews();
         setupToolbar();
+        handleWindowInsets();
         setupListeners();
         setupDefaultTags();
+    }
+
+    private void handleWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.publishRootLayout), (v, insets) -> {
+            Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(0, statusBars.top, 0, 0);
+            return insets;
+        });
     }
 
     private void initViews() {

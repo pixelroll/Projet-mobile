@@ -26,6 +26,8 @@ public class Photo implements Parcelable {
     private String date;
     private boolean isBookmarked;
     private boolean isLiked;
+    private String groupId;
+    private String groupName;
 
     public Photo() {}
 
@@ -50,6 +52,8 @@ public class Photo implements Parcelable {
         date = in.readString();
         isBookmarked = in.readByte() != 0;
         isLiked = in.readByte() != 0;
+        groupId = in.readString();
+        groupName = in.readString();
     }
 
     @Override
@@ -74,6 +78,8 @@ public class Photo implements Parcelable {
         dest.writeString(date);
         dest.writeByte((byte) (isBookmarked ? 1 : 0));
         dest.writeByte((byte) (isLiked ? 1 : 0));
+        dest.writeString(groupId);
+        dest.writeString(groupName);
     }
 
     @Override
@@ -134,4 +140,8 @@ public class Photo implements Parcelable {
     public void setBookmarked(boolean bookmarked) { isBookmarked = bookmarked; }
     public boolean isLiked() { return isLiked; }
     public void setLiked(boolean liked) { isLiked = liked; }
+    public String getGroupId() { return groupId; }
+    public void setGroupId(String groupId) { this.groupId = groupId; }
+    public String getGroupName() { return groupName; }
+    public void setGroupName(String groupName) { this.groupName = groupName; }
 }

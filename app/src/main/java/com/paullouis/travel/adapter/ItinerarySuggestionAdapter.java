@@ -1,5 +1,6 @@
 package com.paullouis.travel.adapter;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.paullouis.travel.GeneratedItinerariesActivity;
 import com.paullouis.travel.R;
 import com.paullouis.travel.model.ItinerarySuggestion;
 
@@ -18,15 +20,9 @@ import java.util.List;
 public class ItinerarySuggestionAdapter extends RecyclerView.Adapter<ItinerarySuggestionAdapter.SuggestionViewHolder> {
 
     private final List<ItinerarySuggestion> suggestions;
-    private final OnSuggestionClickListener listener;
 
-    public interface OnSuggestionClickListener {
-        void onCustomizeClick(ItinerarySuggestion suggestion);
-    }
-
-    public ItinerarySuggestionAdapter(List<ItinerarySuggestion> suggestions, OnSuggestionClickListener listener) {
+    public ItinerarySuggestionAdapter(List<ItinerarySuggestion> suggestions) {
         this.suggestions = suggestions;
-        this.listener = listener;
     }
 
     @NonNull
@@ -51,10 +47,10 @@ public class ItinerarySuggestionAdapter extends RecyclerView.Adapter<ItinerarySu
             holder.chipGroup.addView(chip);
         }
 
-        holder.btnCustomize.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onCustomizeClick(suggestion);
-            }
+        // Tapping the card navigates to Parcours générés
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), GeneratedItinerariesActivity.class);
+            v.getContext().startActivity(intent);
         });
     }
 
@@ -66,7 +62,6 @@ public class ItinerarySuggestionAdapter extends RecyclerView.Adapter<ItinerarySu
     static class SuggestionViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDuration, tvBudget;
         ChipGroup chipGroup;
-        View btnCustomize;
 
         public SuggestionViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -74,7 +69,6 @@ public class ItinerarySuggestionAdapter extends RecyclerView.Adapter<ItinerarySu
             tvDuration = itemView.findViewById(R.id.tvDuration);
             tvBudget = itemView.findViewById(R.id.tvBudget);
             chipGroup = itemView.findViewById(R.id.chipGroupPlaces);
-            btnCustomize = itemView.findViewById(R.id.btnCustomize);
         }
     }
 }

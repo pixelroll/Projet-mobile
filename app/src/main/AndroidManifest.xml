@@ -94,6 +94,24 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".TripMapActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".GroupFeedActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
+        <activity
+            android:name=".GroupAdminActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
             
     </application>
 

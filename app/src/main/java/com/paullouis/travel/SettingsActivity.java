@@ -54,18 +54,6 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(new Intent(this, NotificationSettingsActivity.class));
         });
 
-        setupItem(findViewById(R.id.btnLanguage), R.drawable.ic_globe, "Langue", "Français", v -> {
-            showLanguageDialog((View) v);
-        });
-
-        setupItem(findViewById(R.id.btnPrivacy), R.drawable.ic_shield, "Confidentialité", null, v -> {
-            startActivity(new Intent(this, PrivacyActivity.class));
-        });
-
-        setupItem(findViewById(R.id.btnSupport), R.drawable.ic_help_circle, "Aide & Support", null, v -> {
-            startActivity(new Intent(this, SupportActivity.class));
-        });
-
         findViewById(R.id.btnLogout).setOnClickListener(v -> showLogoutDialog());
     }
 
@@ -87,17 +75,6 @@ public class SettingsActivity extends AppCompatActivity {
         itemView.setOnClickListener(listener);
     }
 
-    private void showLanguageDialog(View languageItemView) {
-        String[] languages = {"Français", "English", "Español"};
-        new AlertDialog.Builder(this)
-                .setTitle("Sélectionner la langue")
-                .setItems(languages, (dialog, which) -> {
-                    String selected = languages[which];
-                    TextView tvCurrentValue = languageItemView.findViewById(R.id.tvCurrentValue);
-                    tvCurrentValue.setText(selected);
-                })
-                .show();
-    }
 
     private void showLogoutDialog() {
         new AlertDialog.Builder(this)
@@ -105,11 +82,13 @@ public class SettingsActivity extends AppCompatActivity {
                 .setMessage("Voulez-vous vraiment vous déconnecter de votre compte ?")
                 .setPositiveButton("Confirmer", (dialog, which) -> {
                     // Simulation of logout
+                    MockDataProvider.setUserLoggedIn(false);
                     Toast.makeText(this, "Déconnexion réussie", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(this, MainActivity.class);
-                    // Usually redirects to LoginActivity, using MainActivity as fallback
-                    finishAffinity();
+                    // Clear all activities and start fresh in anonymous mode
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
+                    finishAffinity();
                 })
                 .setNegativeButton("Annuler", null)
                 .show();

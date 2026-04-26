@@ -30,8 +30,12 @@ public class HomeFragment extends Fragment {
         
         // Navigation from top bar
         view.findViewById(R.id.ivAdd).setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
-            startActivity(intent);
+            if (MockDataProvider.isUserLoggedIn()) {
+                android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
+                startActivity(intent);
+            } else {
+                LoginRequiredDialogFragment.newInstance().show(getChildFragmentManager(), "login_required");
+            }
         });
 
         view.findViewById(R.id.flNotification).setOnClickListener(v -> {
@@ -39,8 +43,12 @@ public class HomeFragment extends Fragment {
         });
 
         view.findViewById(R.id.ivGroup).setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(getActivity(), GroupsActivity.class);
-            startActivity(intent);
+            if (MockDataProvider.isUserLoggedIn()) {
+                android.content.Intent intent = new android.content.Intent(getActivity(), GroupsActivity.class);
+                startActivity(intent);
+            } else {
+                LoginRequiredDialogFragment.newInstance().show(getChildFragmentManager(), "login_required");
+            }
         });
         
         return view;

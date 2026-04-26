@@ -24,6 +24,8 @@ import com.paullouis.travel.adapter.ItineraryStepAdapter;
 import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.ItineraryStep;
 
+import com.paullouis.travel.util.OfflineManager;
+
 import java.util.List;
 
 public class ItineraryDetailActivity extends AppCompatActivity {
@@ -72,6 +74,9 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         ImageView ivLikeHeader = findViewById(R.id.ivLike);
         ivLikeHeader.setOnClickListener(v -> toggleLike(ivLikeHeader));
 
+        final String finalTitle = title;
+        final String finalCity = city;
+
         // Bloc 1: Navigation FAB
         findViewById(R.id.fabNavigation).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:48.8566,2.3522"));
@@ -84,7 +89,22 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         // Bloc 4: Offline Save
         findViewById(R.id.btnOfflineSave).setOnClickListener(v -> {
-            // TODO: Implémenter la sauvegarde hors-ligne
+            String itineraryId = finalTitle; // Use final version
+            if (OfflineManager.isItinerarySaved(this, itineraryId)) {
+                OfflineManager.removeItineraryOffline(this, itineraryId);
+                Toast.makeText(this, "Retiré du mode hors-ligne", Toast.LENGTH_SHORT).show();
+            } else {
+                OfflineManager.saveItineraryOffline(this, itineraryId);
+                Toast.makeText(this, "Disponible hors-ligne", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Open Interactive Map
+        findViewById(R.id.mapCard).setOnClickListener(v -> {
+            Intent intentMap = new Intent(this, TripMapActivity.class);
+            intentMap.putExtra("TRIP_TITLE", finalTitle);
+            intentMap.putExtra("TRIP_DESTINATION", finalCity);
+            startActivity(intentMap);
         });
 
         // Bloc 5: Steps Timeline
@@ -102,9 +122,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         findViewById(R.id.btnSave).setOnClickListener(v -> {
             toggleLike(ivLikeHeader);
         });
-
-        String finalTitle = title;
-        String finalCity = city;
 
         findViewById(R.id.btnShare).setOnClickListener(v -> {
             ShareProfileDialogFragment dialog = ShareProfileDialogFragment.newInstanceForItinerary(finalTitle, finalCity);

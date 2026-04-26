@@ -17,6 +17,8 @@ import { Settings } from "./pages/Settings";
 import { NotFound } from "./pages/NotFound";
 import { PhotoMap } from "./pages/PhotoMap";
 import { Groups } from "./pages/Groups";
+import { GroupAdmin } from "./pages/GroupAdmin";
+import { GroupFeed } from "./pages/GroupFeed";
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +84,14 @@ export const router = createBrowserRouter([
   {
     path: "/groups",
     Component: Groups,
+  },
+  {
+    path: "/groups/:groupId",
+    Component: GroupFeed,
+  },
+  {
+    path: "/groups/:groupId/admin",
+    Component: GroupAdmin,
   },
   {
     path: "/trip/:id",

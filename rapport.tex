@@ -120,7 +120,7 @@ Lors des premiers tests sur téléphone physique, l'application héritait automa
 Sur les téléphones modernes dotés d'une encoche (``notch'') ou d'un poinçon caméra (``punch-hole''), le contenu de l'application se retrouvait partiellement caché sous la barre d'état système.
 \begin{itemize}
     \item \textbf{Cutout Mode} : Ajout de l'attribut \texttt{android:windowLayoutInDisplayCutoutMode="shortEdges"} dans l'activité principale du Manifest pour autoriser le dessin de l'interface jusque sous les bords courts de l'écran.
-    \item \textbf{WindowInsetsCompat} : Implémentation d'un listener \texttt{ViewCompat.setOnApplyWindowInsetsListener} dans \texttt{MainActivity.java} qui applique dynamiquement un \texttt{paddingTop} égal à la hauteur de la barre d'état. Le contenu est ainsi décalé juste en-dessous de la caméra frontale sans jamais être masqué.
+    \item \textbf{WindowInsetsCompat} : Implémentation d'un listener \texttt{ViewCompat.setOnApplyWindowInsetsListener} généralisé à l'ensemble des activités (\texttt{MainActivity}, \texttt{GroupFeedActivity}, \texttt{GroupAdminActivity}, \texttt{SettingsActivity}, \texttt{PublishPhotoActivity}, etc.). Ce mécanisme applique dynamiquement un \texttt{paddingTop} égal à la hauteur de la barre d'état au conteneur principal ou à la barre d'outils, garantissant que les éléments interactifs ne soient jamais obstrués par la caméra frontale.
 \end{itemize}
 
 \subsection{Rendu des marqueurs personnalisés sur la carte}
@@ -409,6 +409,241 @@ Afin d'améliorer l'interactivité de l'écran des parcours générés, une nouv
         \item Le bouton de modification déclenche un \texttt{finish()}, ramenant naturellement l'utilisateur au formulaire de préférences.
         \item Le bouton de régénération affiche un \texttt{Snackbar} de confirmation, simulant le lancement d'un nouveau calcul par l'IA.
     \end{itemize}
+\end{itemize}
+
+\subsection{Phase 18 : Onglet Navigation de la Recherche Avancée}
+L'écran de recherche avancée a été enrichi d'un système d'onglets permettant de basculer entre les filtres classiques et un nouveau mode de navigation thématique.
+
+\subsubsection{Interface et Design}
+\begin{itemize}
+    \item \textbf{Système d'Onglets} : Implémentation d'un sélecteur d'onglets personnalisé (Filtres / Navigation) avec indicateurs animés et gestion dynamique des couleurs (\texttt{\#0891b2} pour l'état actif, \texttt{\#4A5568} pour l'inactif).
+    \item \textbf{Barre de Recherche Premium} : Mise à jour du layout avec un champ de saisie aux bords arrondis (\texttt{24dp}) et un bouton microphone indépendant dans un carré arrondi, respectant scrupuleusement la maquette.
+    \item \textbf{Cartes de Navigation} : Création d'un \texttt{RecyclerView} pour afficher les 5 options de navigation. Chaque option est présentée dans une \texttt{MaterialCardView} avec :
+    \begin{itemize}
+        \item Un cercle de couleur "muted" (\texttt{\#E5F4F7}) contenant une icône Lucide.
+        \item Un titre en gras et un sous-titre gris pour une hiérarchie visuelle claire.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Détails techniques}
+\begin{itemize}
+    \item \textbf{Modèle de Données} : Création de la classe \texttt{SearchNavigationOption.java} pour structurer les items (ID, Titre, Sous-titre, Icône, État de sélection).
+    \item \textbf{Mocking des Actions} :
+    \begin{itemize}
+        \item \textit{Découverte aléatoire} : Sélectionnée par défaut, simule l'exploration fortuite.
+        \item \textit{Sélection interactive} : Le clic sur une carte met à jour l'état visuel localement (fond légèrement bleuté \texttt{\#F1F5F9}).
+        \item \textit{Bouton Rechercher} : Centralise l'action selon l'option choisie, affichant des \texttt{Toast} contextuels préparant l'intégration future des flux réels (IA, Calendrier, Map).
+    \end{itemize}
+    \item \textbf{Composants Lucide} : Ajout manuel en XML de l'icône \texttt{ic\_shuffle.xml} manquante, pour garantir la cohérence totale avec le design system Lucide utilisé dans le reste de l'application.
+\end{itemize}
+
+\subsubsection{Difficultés et Solutions}
+\begin{itemize}
+    \item \textbf{Problème} : Coexistence de deux structures de données radicalement différentes (Formulaire vs Liste) sous un même écran.
+    \item \textbf{Solution} : Refactorisation du layout \texttt{fragment\_advanced\_search.xml} en utilisant deux conteneurs distincts (\texttt{ScrollView} pour les filtres et \texttt{RecyclerView} pour la navigation) dont la visibilité est permutée par code, assurant des performances optimales et une maintenance aisée.
+\end{itemize}
+
+\subsection{Phase 19 : Carte Interactive de l'Itinéraire (\texttt{TripMapActivity})}
+Cette phase introduit une dimension interactive cruciale pour le module TravelPath, permettant de visualiser l'ensemble d'un parcours sur une carte dynamique.
+
+\subsubsection{Interface et Visualisation}
+\begin{itemize}
+    \item \textbf{Navigation Interactive} : L'écran \texttt{TripMapActivity} est accessible par un clic sur le bloc "Carte" de l'itinéraire. Il propose une vue plein écran pilotée par le moteur \textbf{OSMDroid}.
+    \item \textbf{Tracé du Parcours (Polyline)} : Un tracé vectoriel relie automatiquement toutes les étapes du voyage. La ligne est stylisée en Cyan (\texttt{\#0891B2}) avec des extrémités arrondies pour un rendu fluide et moderne.
+    \item \textbf{Marqueurs Photo Dynamiques} : Chaque étape est représentée par un marqueur personnalisé. À l'instar du flux principal, ces marqueurs intègrent une miniature de la photo du lieu, générée asynchronement via \texttt{Glide} et convertie en \texttt{Bitmap} pour le moteur de carte.
+    \item \textbf{Overlay de Statistiques} : Un panneau flottant aux bords arrondis (style "pill") en bas de l'écran synthétise les métriques du voyage (nombre de lieux visités et total de photos prises), offrant une lecture immédiate de la richesse du parcours.
+\end{itemize}
+
+\subsubsection{Détails techniques}
+\begin{itemize}
+    \item \textbf{Modèle de données} : Extension de la classe \texttt{ItineraryStep} pour inclure les coordonnées GPS (\texttt{latitude}, \texttt{longitude}).
+    \item \textbf{Calcul des Insets} : L'activité gère les barres système de manière transparente, assurant que le header et la carte occupent l'espace optimal sans chevauchement avec l'encoche du téléphone.
+    \item \textbf{Performance} : Utilisation du cache d'OSMDroid pour les tuiles de carte et de Glide pour le redimensionnement des miniatures des marqueurs, garantissant une fluidité de mouvement même avec de nombreux points d'intérêt.
+\end{itemize}
+
+\subsection{Conflit de JRE avec l'environnement Antigravity}
+Une erreur de compilation critique est survenue dans Android Studio, indiquant l'absence de l'exécutable \texttt{jlink} dans un dossier d'extension \texttt{.antigravity}.
+\begin{itemize}
+    \item \textbf{Cause} : Fuite des variables d'environnement (notamment \texttt{JAVA\_HOME}) de l'environnement de l'assistant IA vers le processus de build Gradle de l'utilisateur.
+    \item \textbf{Solution} : Redéfinition manuelle du JDK Gradle dans les réglages d'Android Studio (\textit{Build Tools > Gradle > Gradle JDK}) pour pointer sur le \texttt{jbr-21} local, et forçage de la propriété \texttt{org.gradle.java.home} dans le fichier \texttt{gradle.properties}.
+\end{itemize}
+
+\subsection{Phase 20 : Mode Hors-Ligne et Gestion des Comptes}
+Cette phase se concentre sur l'amélioration de l'expérience utilisateur par la gestion des états de connexion et la persistance locale des données.
+
+\subsubsection{Mode Hors-Ligne (\texttt{OfflineManager})}
+Un système de sauvegarde locale a été mis en œuvre pour permettre la consultation d'itinéraires sans connexion internet.
+\begin{itemize}
+    \item \textbf{Technique} : Utilisation de \texttt{SharedPreferences} pour stocker une liste d'identifiants de parcours marqués comme "Hors-ligne".
+    \item \textbf{Interaction} : Le bouton "Sauvegarder hors-ligne" dans le détail d'un itinéraire bascule l'état et affiche une confirmation visuelle (\textit{Toast}). Cette structure est prête pour une migration vers une base de données **Room** pour le stockage complet des objets JSON.
+\end{itemize}
+
+\subsubsection{Gestion des Comptes et Sécurité UI}
+\begin{itemize}
+    \item \textbf{Changement de Compte} : Un nouveau composant \texttt{SwitchAccountDialogFragment} a été intégré. Il se déclenche lors d'un clic sur le nom d'utilisateur dans le profil, permettant de visualiser le compte actif et de simuler une déconnexion.
+    \item \textbf{Modale de Connexion Requise} : Pour renforcer la cohérence métier, l'accès à la publication de contenu (bouton +) déclenche désormais la modale \texttt{LoginRequiredDialogFragment} si l'utilisateur n'est pas identifié. Cette modale respecte le design "Glassmorphism" avec des boutons Cyan et Gris.
+\end{itemize}
+
+\subsection{Séparation des Modes Anonyme et Connecté}
+L'application a été adaptée pour offrir une expérience progressive selon l'état de connexion de l'utilisateur.
+
+\subsubsection{Expérience en Mode Anonyme (Public)}
+Les fonctionnalités suivantes sont accessibles sans compte :
+\begin{itemize}
+    \item \textbf{Exploration} : Recherche textuelle et vocale de photos, navigation dans les flux publics.
+    \item \textbf{Filtres Avancés} : Tri par lieu, type, période, auteur et recherche par similarité (IA).
+    \item \textbf{Visualisation} : Vues carte (OSMDroid) et grille, détail des photos publiques.
+    \item \textbf{Interactions Limitées} : Like/Unlike, signalement de contenu inapproprié et bouton "Comment y aller" (lien externe vers Google Maps).
+\end{itemize}
+
+\subsubsection{Expérience en Mode Connecté (Privé)}
+Une fois identifié via \texttt{SwitchAccount} ou le bouton "Se connecter" du profil, l'utilisateur débloque :
+\begin{itemize}
+    \item \textbf{Contribution} : Publication de nouvelles photos et partage dans des groupes privés.
+    \item \textbf{Enrichissement IA} : Ajout de métadonnées audio, annotations IA et tags automatiques.
+    \item \textbf{Social \& Communaute} : Ajout de commentaires et gestion des notifications configurables.
+    \item \textbf{TravelPath Avancé} : Génération de parcours personnalisés et intégration complète d'itinéraires Google Maps.
+\end{itemize}
+
+\subsection{Correction technique : Imports manquants}
+Une erreur de compilation liée à l'absence de l'import \texttt{MockDataProvider} dans \texttt{TravelPathPreferencesFragment} a été corrigée. Ce fichier, situé à la racine du package principal, nécessitait l'import explicite de la classe de données située dans le sous-package \texttt{.data}.
+
+\subsection{Correction technique : Logique de Déconnexion}
+Le bouton "Se déconnecter" fermait précédemment l'application via \texttt{finishAffinity()}. La logique a été corrigée pour basculer l'état \texttt{userLoggedIn} à \texttt{false} et redémarrer \texttt{MainActivity} avec les flags \texttt{FLAG\_ACTIVITY\_CLEAR\_TASK}, garantissant un retour propre au mode anonyme avec rafraîchissement complet de l'interface.
+
+\subsection{Amélioration UI : Carte des Photos}
+L'interface de prévisualisation lors du clic sur un marqueur de la carte a été refondue. L'info-bulle standard d'OSMDroid, jugée trop basique, a été désactivée au profit d'une carte de prévisualisation "Premium" située en bas de l'écran. Cette carte inclut une image miniature, le titre, le lieu, l'auteur et le nombre de likes, avec une animation de transition fluide (slide-up). De plus, un clic sur cette carte redirige désormais l'utilisateur vers la vue détaillée de la photo (\texttt{PhotoDetailActivity}) pour une navigation cohérente.
+
+\subsection{Phase 21 : Écosystème des Groupes (Advanced Features)}
+Cette phase majeure complète l'aspect communautaire de TravelShare en introduisant un système de groupes riche, doté de fonctionnalités d'administration avancées, conformément aux maquettes web fournies.
+
+\subsubsection{Group Feed et Navigation (\texttt{GroupFeedActivity})}
+Un flux dédié par groupe a été implémenté pour filtrer les photos par appartenance communautaire.
+\begin{itemize}
+    \item \textbf{Interface Immersive} : Utilisation d'un \texttt{CollapsingToolbarLayout} avec une bannière de couverture dynamique et un effet de fondu sur le titre.
+    \item \textbf{Badges Contextuels} : Des "badges" de groupe (\texttt{tvGroupBadge}) ont été ajoutés sur les photos dans le flux principal et l'écran de détail, permettant une navigation directe vers le feed du groupe concerné.
+    \item \textbf{Accès Admin} : Un bouton "Admin" apparaît dynamiquement pour les propriétaires et administrateurs, grâce au helper \texttt{GroupPermissionHelper}.
+\end{itemize}
+
+\subsubsection{Administration et Modération (\texttt{GroupAdminActivity})}
+L'interface d'administration centralise la gestion du groupe via 4 onglets (\texttt{TabLayout} + \texttt{ViewPager2}) :
+\begin{itemize}
+    \item \textbf{Membres} : Liste complète avec rôles (\texttt{OWNER}, \texttt{ADMIN}, \texttt{MODERATOR}, \texttt{MEMBER}) et statistiques d'activité. Un menu contextuel permet de modifier les rôles ou de bannir des membres.
+    \item \textbf{Modération} : File d'attente des photos signalées (\texttt{ReportedPhotoAdapter}). Les administrateurs peuvent décider de conserver ou de supprimer définitivement le contenu litigieux.
+    \item \textbf{Paramètres} : Modification du nom, de la description et de la visibilité. Gestion du code d'invitation avec fonction de régénération et de copie via le \texttt{ClipboardHelper}.
+    \item \textbf{Statistiques} : Tableau de bord visuel utilisant des cartes de données (\texttt{StatCardView}) et un classement des top contributeurs avec barres de progression.
+\end{itemize}
+
+\subsubsection{Système de Dialogues Avancé}
+Pour sécuriser les actions critiques, cinq nouveaux types de \texttt{BottomSheetDialogFragment} ont été conçus :
+\begin{itemize}
+    \item \textbf{InviteMemberDialog} : Partage du code et du lien d'invitation.
+    \item \textbf{ChangeRoleDialog} : Sélection du niveau de permission avec description des droits associés.
+    \item \textbf{RemoveMemberDialog} : Confirmation de bannissement.
+    \item \textbf{DeleteGroupDialog} : Sélection sécurisée nécessitant la saisie manuelle du nom du groupe pour valider la suppression définitive.
+\end{itemize}
+
+\subsubsection{Détails techniques et Modélisation}
+\begin{itemize}
+    \item \textbf{Modèles POJO} : Création des classes \texttt{GroupMember.java} et \texttt{ReportedPhoto.java}. Mise à jour de \texttt{Photo.java} pour supporter le filtrage par \texttt{groupId}.
+    \item \textbf{Helper de Permissions} : Centralisation de la logique métier des droits (ex: \texttt{canModerate}, \texttt{canEditSettings}) pour garantir une interface cohérente avec le rôle de l'utilisateur.
+    \item \textbf{Recherche Avancée} : Intégration d'un filtre de groupe (\texttt{Spinner} stylisé) dans l'onglet des filtres de recherche.
+\end{itemize}
+
+\subsection{Phase 22 : Raffinement UI Haute-Fidélité (Groupes)}
+Suite à la réception de maquettes haute-fidélité, une refonte graphique intégrale du module des groupes a été menée pour aligner l'application sur les standards visuels demandés (style Tailwind/Modern-Web).
+
+\subsubsection{Refonte Visuelle des Composants}
+\begin{itemize}
+    \item \textbf{Flux de Groupe (\texttt{GroupFeedActivity})} : Le bandeau de couverture massif a été remplacé par une en-tête plus compacte et informative. Une zone d'information bleu clair (\texttt{\#F0F9FF}) présente désormais la photo de profil du groupe, la description et deux boutons d'action ``Publier'' et ``Inviter'' positionnés côte à côte. La barre d'outils intègre les statistiques dynamiques (membres, photos, confidentialité) avec une iconographie Lucide.
+    \item \textbf{Gestion des Membres} : Les items de la liste utilisent désormais des \texttt{MaterialCardView} aux coins très arrondis (16dp). Un système de badges de rôle premium a été implémenté (Or pour le Propriétaire, Bleu pour l'Admin, Violet pour le Modérateur) avec icônes (\texttt{ic\_crown}, \texttt{ic\_shield}) et fonds colorés spécifiques.
+    \item \textbf{Tableau de Bord (\texttt{AdminStatsFragment})} : Redesign complet du dashboard. Les indicateurs clés sont présentés dans une grille 2x2 de cartes blanches épurées. Des barres de progression (\texttt{LinearProgressIndicator}) visualisent l'activité récente (photos, nouveaux membres) et le classement des contributeurs a été stylisé avec des badges de rang (\#1, \#2, etc.).
+    \item \textbf{Paramètres (\texttt{AdminSettingsFragment})} : Le formulaire a été modernisé avec des champs de saisie à fond gris (\texttt{bg\_input\_light}), une zone d'upload de couverture en pointillés (\texttt{bg\_upload\_placeholder}) et une carte d'invitation distinctive au fond bleu ciel (\texttt{\#ECFEFF}).
+\end{itemize}
+
+\subsubsection{Détails Techniques et Résolution de Problèmes}
+\begin{itemize}
+    \item \textbf{Résolution des Crashs Material3} : L'utilisation de composants \texttt{Material3} (comme \texttt{MaterialSwitch}) dans un thème \texttt{MaterialComponents} provoquait des exceptions critiques (\texttt{IllegalArgumentException} liée aux text appearances). Nous avons purgé l'utilisation de Material3 au profit de styles \texttt{MaterialComponents} personnalisés, garantissant une stabilité totale sur l'ensemble de l'application.
+    \item \textbf{Design Tokens et Drawables} : Création d'une bibliothèque de ressources XML pour les fonds de badges (\texttt{bg\_badge\_gold}, \texttt{bg\_badge\_purple}, etc.) et d'icônes vectorielles (\texttt{ic\_crown}, \texttt{ic\_user\_plus}, \texttt{ic\_trending\_up}) pour assurer un rendu net à toutes les résolutions.
+    \item \textbf{Thémage des Onglets} : Personnalisation de la \texttt{TabLayout} dans \texttt{GroupAdminActivity} pour inclure des icônes descriptives et une typographie sans mise en majuscules automatique (\texttt{TabTextAppearance}), conforme à la charte graphique moderne.
+\end{itemize}
+
+\subsection{Difficultés et Solutions}
+\begin{itemize}
+    \item \textbf{Problème} : Les boutons et interrupteurs de style Material3 causaient des crashs systématiques lors de l'ouverture des fragments d'administration.
+    \item \textbf{Solution} : Remplacement de \texttt{MaterialSwitch} par \texttt{SwitchMaterial} et application explicite de styles \texttt{Widget.MaterialComponents} sur tous les boutons et champs de texte, tout en conservant l'aspect visuel moderne via des \texttt{drawable} de fond personnalisés.
+    \item \textbf{Problème} : L'icône de couronne (\texttt{ic\_crown}) utilisée pour identifier le propriétaire du groupe présentait des artefacts visuels (points isolés, silhouette écrasée).
+    \item \textbf{Solution} : Redessin intégral de l'icône en format \texttt{VectorDrawable} plein (Solid version) avec une base rectangulaire stable et trois pointes géométriques nettes, améliorant considérablement sa lisibilité en tant que badge miniature.
+    \item \textbf{Problème} : Mauvais centrage vertical du texte dans les badges de rôle et chevauchement des boutons de modération ("Supprimer"/"Rejeter") sur les petits écrans.
+    \item \textbf{Solution} : Ajustement du `gravity` et suppression du `fontPadding` dans les badges. Pour la modération, le bouton "Rejeter" a été renommé en "Ignorer" (plus court et sémantiquement plus clair pour un signalement), et les dimensions des boutons ont été optimisées (réduction de la hauteur à 44dp et de la police à 13sp) pour garantir un alignement horizontal parfait sans saut de ligne.
+    \item \textbf{Problème} : Le dialogue d'invitation original (BottomSheet) ne correspondait pas aux attentes de la maquette et le flux de groupe était trop encombré par un bandeau d'information.
+    \item \textbf{Solution} : Refonte du \texttt{InviteMemberDialogFragment} en un dialogue centré premium, avec des zones de copie stylisées (fond bleu clair, icônes Lucide) et une structure fidèle au screenshot fourni. Parallèlement, l'\texttt{activity\_group\_feed.xml} a été simplifiée par la suppression du bandeau d'en-tête, recentrant l'interface sur le titre du groupe et le flux de photos, harmonisant ainsi son design avec celui de l'écran d'accueil de l'application.
+    \item \textbf{Problème} : Décalage visuel du titre dans la barre d'outils du groupe, icônes de modération mal alignées, et menus déroulants (spinners) personnalisés non interactifs.
+    \item \textbf{Solution} : Utilisation de \texttt{contentInsetStart=0dp} sur la Toolbar pour un centrage parfait du titre. Application de \texttt{app:iconGravity="textStart"} sur les boutons de modération pour centrer les icônes avec le texte. Enfin, activation de la cliquabilité des conteneurs de menus déroulants et implémentation de \texttt{PopupMenu} dans les Fragments correspondants pour restaurer l'interactivité.
+    \item \textbf{Problème} : Positionnement imprécis des icônes de gauche dans le fil de groupe, défaut de centrage vertical dans les listes déroulantes, et ombres de boutons "Supprimer/Ignorer" décalées.
+    \item \textbf{Solution} : Remplacement de l'icône de navigation par défaut de la Toolbar par un bouton de retour personnalisé dans un \texttt{ConstraintLayout}, permettant un alignement pixel-perfect du bouton "+" à l'extrême gauche. Correction du centrage vertical par l'utilisation de \texttt{match\_parent} et \texttt{gravity} sur les champs de type de groupe. Suppression définitive des ombres en remplaçant les \texttt{MaterialButton} (dont le \texttt{stateListAnimator} génère des ombres résiduelles incompressibles) par des \texttt{LinearLayout} cliquables avec des fonds XML purs (\texttt{bg\_btn\_delete.xml}, \texttt{bg\_btn\_keep.xml}).
+    \item \textbf{Problème} : Uniformité de la carte "Code d'invitation" (contour bleu au lieu de gris), troncature du label "Paramètres" en "PARAMET..." dans la TabLayout, et sections inutiles ("Langue", "Confidentialité", "Aide \& Support") dans l'écran de paramètres du profil.
+    \item \textbf{Solution} : Suppression du fond et du contour cyan de la carte d'invitation (uniformisation vers \texttt{\#E2E8F0}). Passage à \texttt{tabMode="fixed"} avec \texttt{tabGravity="fill"} et réduction de la police à 11sp pour que les 4 onglets occupent toute la largeur sans troncature. Suppression des sections "PRÉFÉRENCES" (Langue, Confidentialité) et "SUPPORT" (Aide) de \texttt{activity\_settings.xml}.
+\end{itemize}
+
+\subsection*{Phase 23 — Audit qualité et refactoring}
+\begin{itemize}
+    \item \textbf{Principe DRY} : La méthode \texttt{handleWindowInsets()} était dupliquée dans 6 activités. Elle a été extraite dans \texttt{WindowInsetsHelper.java} avec deux méthodes statiques : \texttt{applyStatusBarPadding()} et \texttt{applyFullInsets()}.
+    \item \textbf{Magic strings} : Les clés d'Intent \texttt{"group\_id"} et \texttt{"group\_name"} codées en dur dans \texttt{GroupFeedActivity} et \texttt{GroupAdapter} ont été remplacées par les constantes typées \texttt{EXTRA\_GROUP\_ID} et \texttt{EXTRA\_GROUP\_NAME} définies dans les activités cibles.
+    \item \textbf{Boucles dupliquées} : Les recherches manuelles par boucle \texttt{for} dans \texttt{GroupAdminActivity} et \texttt{GroupFeedActivity} ont été remplacées par un appel direct à \texttt{MockDataProvider.getGroupById()}.
+    \item \textbf{Null-safety} : Ajout d'un guard sur \texttt{groupId} dans \texttt{GroupFeedActivity} (finish anticipé si null). Utilisation de \texttt{java.util.Objects.equals()} dans \texttt{getPhotosByGroup()} pour éviter un NPE. Ajout d'un guard \texttt{if (groupId == null) return} dans \texttt{joinGroup()}.
+    \item \textbf{KISS} : La logique \texttt{alreadyJoined} dans \texttt{joinGroup()} a été simplifiée par un \texttt{Stream.anyMatch()}, réduisant le code de 7 à 2 lignes.
+    \item \textbf{YAGNI} : \texttt{getMockPhotos()} marqué \texttt{@Deprecated} (alias inutile de \texttt{getUserPhotos()}). Le paramètre \texttt{photoId} de \texttt{getMockComments()} documenté comme réservé pour la future intégration Firebase.
+    \item \textbf{Nommage} : Correction des labels d'onglets sans accent (\texttt{"Moderation"} → \texttt{"Modération"}, \texttt{"Parametres"} → \texttt{"Paramètres"}) dans \texttt{GroupAdminActivity}.
+    \item \textbf{Hors périmètre} : Le bouton "Personnaliser ce parcours" a été retiré de \texttt{item\_itinerary\_suggestion.xml} (non requis dans le sujet). Un clic sur la carte redirige désormais directement vers \texttt{GeneratedItinerariesActivity} (page "Parcours générés"). L'interface \texttt{OnSuggestionClickListener} et la référence \texttt{btnCustomize} ont été supprimées de \texttt{ItinerarySuggestionAdapter}, et l'import \texttt{Toast} inutilisé a été retiré de \texttt{GatewayActivity}.
+\end{itemize}
+
+% ============================================================
+\section*{Architecture des données et stratégie de migration}
+% ============================================================
+
+\subsection*{Couche de données simulée (\texttt{MockDataProvider})}
+
+L'application repose sur une couche de données simulée centralisée dans la classe \texttt{MockDataProvider.java}. Cette classe joue le rôle d'un faux backend en mémoire : elle expose des méthodes statiques qui retournent des listes de modèles pré-remplis (\texttt{Group}, \texttt{Photo}, \texttt{User}, \texttt{GeneratedItinerary}, etc.), simulant ainsi des appels à une base de données distante.
+
+Ce choix architectural délibéré permet deux choses :
+\begin{enumerate}
+    \item \textbf{Développement UI indépendant} : L'interface graphique a pu être intégralement développée, testée et validée sans dépendance à un backend opérationnel.
+    \item \textbf{Migration facilitée} : Chaque méthode de \texttt{MockDataProvider} constitue un \textit{point d'appel unique}, remplaçable individuellement par une requête Firebase, Cloudinary ou une API REST, sans modifier les Activités ni les Fragments.
+\end{enumerate}
+
+\subsection*{Correspondance Mock → Backend réel}
+
+\begin{tabular}{|p{6cm}|p{8cm}|}
+\hline
+\textbf{Méthode Mock actuelle} & \textbf{Remplacement backend réel} \\
+\hline
+\texttt{getMyGroups()} & \texttt{Firestore.collection("groups")}\newline\texttt{.whereArrayContains("memberIds", uid)} \\
+\hline
+\texttt{getPhotosByGroup(groupId)} & \texttt{Firestore.collection("photos")}\newline\texttt{.whereEqualTo("groupId", groupId)} \\
+\hline
+\texttt{getCurrentUser()} & \texttt{FirebaseAuth.getCurrentUser()} + doc \texttt{users/\{uid\}} \\
+\hline
+\texttt{getGroupById(id)} & \texttt{Firestore.document("groups/\{id\}).get()} \\
+\hline
+\texttt{addPhoto(photo)} & Upload image → Cloudinary → URL stockée dans Firestore \\
+\hline
+\texttt{getGeneratedItineraries()} & Appel \texttt{POST /api/generate} avec liste de lieux → JSON mappé sur \texttt{GeneratedItinerary} \\
+\hline
+\texttt{isUserLoggedIn()} & \texttt{FirebaseAuth.getInstance().getCurrentUser() != null} \\
+\hline
+\texttt{joinGroup(groupId)} & Transaction Firestore : ajout de \texttt{uid} dans \texttt{group.members[]} \\
+\hline
+\end{tabular}
+
+\subsection*{Prérequis à la migration}
+
+\begin{itemize}
+    \item \textbf{Modèles compatibles} : Tous les POJOs (\texttt{Group}, \texttt{Photo}, \texttt{User}...) sont annotables avec \texttt{@DocumentId} et supportent le mapping automatique Firestore via \texttt{toObject(Class)}.
+    \item \textbf{Adaptateurs découplés} : Les \texttt{RecyclerView.Adapter} reçoivent des \texttt{List<X>} sans connaître la source des données — aucune modification nécessaire côté UI.
+    \item \textbf{Pattern asynchrone} : La seule adaptation structurelle consiste à passer des méthodes synchrones (retour direct \texttt{List<X>}) à un modèle asynchrone (callbacks, \texttt{LiveData} ou \texttt{Flow}) pour respecter le caractère non-bloquant des SDK Firebase.
+    \item \textbf{Cloudinary} : Les URL Unsplash actuellement codées dans les photos seront remplacées par les URLs de transformation Cloudinary générées après upload.
+    \item \textbf{API IA} : La génération de parcours (\texttt{getGeneratedItineraries()}) appellera un endpoint REST externe dont la réponse JSON sera désérialisée sur les modèles \texttt{GeneratedItinerary} et \texttt{ItineraryStep} existants.
 \end{itemize}
 
 \end{document}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StatCardView">
+        <attr name="statTitle" format="string" />
+        <attr name="statValue" format="string" />
+        <attr name="statIcon" format="reference" />
+    </declare-styleable>
+</resources>

@@ -57,6 +57,19 @@
                 android:src="@drawable/ic_crown"
                 android:visibility="gone"
                 tools:visibility="visible" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/btnGroupOptions"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_more_vertical"
+                app:tint="@color/muted_foreground" />
         </LinearLayout>
 
         <TextView

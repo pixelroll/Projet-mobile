@@ -13,6 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.paullouis.travel.data.MockDataProvider;
+
 public class TravelPathPreferencesFragment extends Fragment {
 
     @Nullable
@@ -57,16 +59,24 @@ public class TravelPathPreferencesFragment extends Fragment {
 
         // Generate button (placeholder)
         view.findViewById(R.id.btnGenerate).setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(getActivity(), GeneratedItinerariesActivity.class);
-            intent.putExtra("LOCATION_NAME", "Paris, France");
-            intent.putExtra("LOCATION_DATE", "17 Mars 2026");
-            startActivity(intent);
+            if (MockDataProvider.isUserLoggedIn()) {
+                android.content.Intent intent = new android.content.Intent(getActivity(), GeneratedItinerariesActivity.class);
+                intent.putExtra("LOCATION_NAME", "Paris, France");
+                intent.putExtra("LOCATION_DATE", "17 Mars 2026");
+                startActivity(intent);
+            } else {
+                LoginRequiredDialogFragment.newInstance().show(getChildFragmentManager(), "login_required");
+            }
         });
 
         // Try Now button
         view.findViewById(R.id.btnTryNow).setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(getActivity(), GatewayActivity.class);
-            startActivity(intent);
+            if (MockDataProvider.isUserLoggedIn()) {
+                android.content.Intent intent = new android.content.Intent(getActivity(), GatewayActivity.class);
+                startActivity(intent);
+            } else {
+                LoginRequiredDialogFragment.newInstance().show(getChildFragmentManager(), "login_required");
+            }
         });
     }
 

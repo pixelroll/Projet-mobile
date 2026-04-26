@@ -77,17 +77,5 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCustomize"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:text="Personnaliser ce parcours"
-            android:textAllCaps="false"
-            android:textColor="#212121"
-            app:cornerRadius="8dp"
-            app:strokeColor="#E0E0E0" />
-
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

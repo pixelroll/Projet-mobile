@@ -77,6 +77,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         
         holder.tvInlineDesc.setText(spannable);
 
+        // Group Badge (Disabled as per user request)
+        holder.tvGroupBadge.setVisibility(View.GONE);
+
         // Load image using Glide
         Glide.with(holder.itemView.getContext())
                 .load(photo.getImageUrl())
@@ -97,13 +100,14 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
     }
 
     static class PhotoViewHolder extends RecyclerView.ViewHolder {
-        TextView tvAvatarInitials, tvUserName, tvLocationHeader, tvDate, tvLikesCount, tvCommentsCount, tvLocationChip, tvInlineDesc;
+        TextView tvAvatarInitials, tvUserName, tvLocationHeader, tvDate, tvLikesCount, tvCommentsCount, tvLocationChip, tvInlineDesc, tvGroupBadge;
         ImageView ivPhoto, ivLike, ivComment, ivShare, ivBookmark;
 
         public PhotoViewHolder(@NonNull View itemView) {
             super(itemView);
             tvAvatarInitials = itemView.findViewById(R.id.tvAvatarInitials);
             tvUserName = itemView.findViewById(R.id.tvUserName);
+            tvGroupBadge = itemView.findViewById(R.id.tvGroupBadge);
             tvLocationHeader = itemView.findViewById(R.id.tvLocationHeader);
             tvDate = itemView.findViewById(R.id.tvDate);
             tvLikesCount = itemView.findViewById(R.id.tvLikesCount);

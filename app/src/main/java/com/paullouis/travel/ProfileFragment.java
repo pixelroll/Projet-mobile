@@ -32,12 +32,20 @@ public class ProfileFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (!MockDataProvider.isUserLoggedIn()) {
+            return inflater.inflate(R.layout.fragment_profile_anonymous, container, false);
+        }
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        if (!MockDataProvider.isUserLoggedIn()) {
+            setupAnonymousView(view);
+            return;
+        }
 
         // Handle safe area for notch is already handled by MainActivity.
         View headerLayout = view.findViewById(R.id.headerLayout);
@@ -84,6 +92,10 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupListeners(View view) {
+        // Account Switcher
+        view.findViewById(R.id.llTitle).setOnClickListener(v -> 
+            SwitchAccountDialogFragment.newInstance().show(getChildFragmentManager(), "switch_account"));
+
         view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(getActivity(), EditProfileActivity.class);
             startActivity(intent);
@@ -93,8 +105,12 @@ public class ProfileFragment extends Fragment {
             ShareProfileDialogFragment.newInstance().show(getChildFragmentManager(), "share_profile"));
 
         view.findViewById(R.id.ivAdd).setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
-            startActivity(intent);
+            if (MockDataProvider.isUserLoggedIn()) {
+                android.content.Intent intent = new android.content.Intent(getActivity(), PublishPhotoActivity.class);
+                startActivity(intent);
+            } else {
+                LoginRequiredDialogFragment.newInstance().show(getChildFragmentManager(), "login_required");
+            }
         });
 
         view.findViewById(R.id.ivMenu).setOnClickListener(v -> {
@@ -104,6 +120,20 @@ public class ProfileFragment extends Fragment {
 
         tabPhotos.setOnClickListener(v -> selectTab(true));
         tabTrips.setOnClickListener(v -> selectTab(false));
+    }
+
+    private void setupAnonymousView(View view) {
+        view.findViewById(R.id.btnLogin).setOnClickListener(v -> {
+            MockDataProvider.setUserLoggedIn(true);
+            if (getActivity() != null) getActivity().recreate();
+        });
+
+        view.findViewById(R.id.btnExplore).setOnClickListener(v -> {
+            // Navigate to Home
+            com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = 
+                getActivity().findViewById(R.id.bottom_navigation);
+            bottomNav.setSelectedItemId(R.id.homeFragment);
+        });
     }
 
     private void selectTab(boolean isPhotos) {
