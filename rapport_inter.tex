@@ -1,0 +1,360 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{mdframed}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{tabularx}
+
+\geometry{margin=2.2cm, top=2.5cm}
+
+\definecolor{teal}{RGB}{8,145,178}
+\definecolor{lightgray}{RGB}{248,250,252}
+\definecolor{codebg}{RGB}{245,247,250}
+\definecolor{codeframe}{RGB}{200,220,230}
+\definecolor{darkgray}{RGB}{60,60,60}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=teal,
+    urlcolor=teal,
+    pdftitle={Rapport Intermédiaire — Traveling},
+}
+
+\titleformat{\section}{\large\bfseries\color{teal}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{darkgray}}{}{0em}{}
+\titleformat{\subsubsection}{\small\bfseries}{}{0em}{}
+
+% Style pour les blocs de code Java
+\lstset{
+    language=Java,
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    showstringspaces=false,
+    keywordstyle=\color{teal}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{orange!70!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    xleftmargin=15pt,
+    captionpos=b,
+    aboveskip=8pt,
+    belowskip=8pt,
+}
+
+% Environnement empechant la coupure de page dans les blocs de code
+\newenvironment{codeblock}{
+    \par\noindent\minipage{\linewidth}\vspace{4pt}
+}{
+    \vspace{4pt}\endminipage\par
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Rapport Intermédiaire — Traveling}}
+\fancyhead[R]{\small\textit{BERGON Paul, VERAN Louis}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Large\textbf{Rapport Intermédiaire — Dépôt 2}\par}
+    \vspace{0.5cm}
+    {\LARGE\bfseries\color{teal} Application Mobile Android\par}
+    \vspace{0.3cm}
+    {\LARGE\bfseries Traveling\par}
+    \vspace{0.5cm}
+    {\large\itshape TravelShare \& TravelPath\par}
+    \vspace{2cm}
+    \rule{0.5\textwidth}{0.4pt}\par
+    \vspace{0.8cm}
+    {\large BERGON Paul \quad — \quad VERAN Louis\par}
+    \vspace{0.3cm}
+    {\normalsize Projet de Programmation Mobile — Binôme\par}
+    \vspace{0.3cm}
+    {\normalsize\today\par}
+    \vspace{2cm}
+    \rule{0.5\textwidth}{0.4pt}\par
+    \vspace{0.8cm}
+    {\normalsize\textbf{Dépôt GitHub :}\par}
+    \vspace{0.2cm}
+    {\normalsize\url{https://github.com/pixelroll/Projet-mobile}\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Présentation du projet}
+% ============================================================
+
+Dans le cadre du projet universitaire de programmation mobile, notre binôme a développé \textbf{Traveling}, une application Android de voyage structurée en trois parties conformément au sujet fourni :
+
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+    \item \textbf{TravelShare} (partie 1) — plateforme de partage et découverte de photos de voyages, avec modes anonyme et connecté.
+    \item \textbf{TravelPath} (partie 2) — générateur intelligent de parcours de visite personnalisés, avec présentation des options Économique, Équilibré et Confort.
+    \item \textbf{Passerelle} (partie 3) — intégration cohérente des deux modules via \texttt{GatewayActivity}, permettant de générer un parcours depuis ses photos TravelShare.
+\end{itemize}
+
+\noindent L'application est développée en \textbf{Java natif Android} (API 26+, Material Design 3) sous Android Studio.
+
+% ============================================================
+\section{Stratégie de développement : UI-first avec données simulées}
+% ============================================================
+
+\subsection{Choix architectural}
+
+Notre approche consiste à \textbf{développer intégralement l'interface utilisateur en premier}, avant d'intégrer le backend réel. Ce choix est justifié par plusieurs raisons :
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=3pt]
+    \item \textbf{Validation rapide des écrans} : toutes les interactions, animations et navigation peuvent être testées sur émulateur dès le premier jour, sans dépendance réseau.
+    \item \textbf{Séparation claire des responsabilités} : l'UI ne connaît pas la source des données — elle reçoit des \texttt{List<X>} qu'elle affiche, quelle que soit leur provenance.
+    \item \textbf{Migration facilitée} : remplacer les données simulées par de vraies requêtes backend ne nécessite de toucher qu'à \textbf{un seul fichier} : \texttt{MockDataProvider.java}.
+\end{enumerate}
+
+\subsection{La couche Mock : \texttt{MockDataProvider}}
+
+Toutes les données transitent par \texttt{MockDataProvider.java}, classe utilitaire statique jouant le rôle de faux backend en mémoire. Elle expose des méthodes qui retournent des objets POJO pré-remplis (groupes, photos, utilisateur, parcours générés, commentaires, notifications...).
+
+\begin{codeblock}
+\begin{lstlisting}[caption={Exemple : recherche d'un groupe par ID (pattern centralisé)}]
+// MockDataProvider.java
+public static Group getGroupById(String groupId) {
+    if (groupId == null) return null;
+    for (Group g : myGroups) {
+        if (Objects.equals(g.getId(), groupId)) return g;
+    }
+    for (Group g : discoverGroups) {
+        if (Objects.equals(g.getId(), groupId)) return g;
+    }
+    return null;
+}
+\end{lstlisting}
+\end{codeblock}
+
+\begin{codeblock}
+\begin{lstlisting}[caption={Exemple : filtrage des photos par groupe (null-safe)}]
+public static List<Photo> getPhotosByGroup(String groupId) {
+    if (groupId == null) return new ArrayList<>();
+    List<Photo> filtered = new ArrayList<>();
+    for (Photo p : userPhotos) {
+        if (Objects.equals(groupId, p.getGroupId())) {
+            filtered.add(p);
+        }
+    }
+    return filtered;
+}
+\end{lstlisting}
+\end{codeblock}
+
+\noindent Chacune de ces méthodes constitue un \textbf{point d'appel unique} : lors de l'intégration Firebase, on ne modifie que la méthode concernée, sans toucher aux Activités ni aux Adaptateurs.
+
+\subsection{État d'avancement de l'UI}
+
+À ce stade intermédiaire, \textbf{la quasi-totalité des écrans est développée}. Il manque uniquement :
+
+\begin{itemize}[leftmargin=1.5em]
+    \item L'écran d'\textbf{inscription} (formulaire de création de compte)
+    \item L'écran de \textbf{connexion} (email/mot de passe + OAuth)
+\end{itemize}
+
+Ces deux écrans sont les prochains à développer avant de passer à l'intégration backend.
+
+% ============================================================
+\section{Choix techniques backend}
+% ============================================================
+
+\subsection{Firebase — Authentification et Base de données}
+
+Nous avons retenu \textbf{Firebase} (suite Google) pour deux raisons principales : la facilité d'intégration Android via le SDK officiel, et la complémentarité des services proposés.
+
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+    \item \textbf{Firebase Authentication} : gestion de l'inscription, de la connexion (email/mot de passe, Google Sign-In) et de la session utilisateur. Le booléen \texttt{MockDataProvider.userLoggedIn} sera remplacé par \texttt{FirebaseAuth.getInstance().getCurrentUser() != null}.
+    \item \textbf{Firebase Firestore} : base de données NoSQL temps réel pour stocker groupes, photos (métadonnées), utilisateurs, parcours sauvegardés, notifications. La structure documentaire de Firestore correspond directement à nos modèles POJO.
+    \item \textbf{Firebase Cloud Messaging (FCM)} : push notifications pour les événements (nouvelle photo dans un groupe suivi, nouveau like, etc.), correspondant à notre \texttt{NotificationsFragment} déjà développé.
+\end{itemize}
+
+\begin{codeblock}
+\begin{lstlisting}[caption={Migration exemple — getMyGroups() vers Firestore}]
+// AVANT (Mock)
+public static List<Group> getMyGroups() {
+    return myGroups; // liste statique en RAM
+}
+
+// APRES (Firebase)
+public static void getMyGroups(OnGroupsLoaded callback) {
+    String uid = FirebaseAuth.getInstance()
+                             .getCurrentUser().getUid();
+    FirebaseFirestore.getInstance()
+        .collection("groups")
+        .whereArrayContains("memberIds", uid)
+        .get()
+        .addOnSuccessListener(snapshot -> {
+            List<Group> groups = snapshot.toObjects(Group.class);
+            callback.onLoaded(groups); // LiveData ou callback
+        });
+}
+\end{lstlisting}
+\end{codeblock}
+
+\noindent Les modèles POJO existants (\texttt{Group}, \texttt{Photo}, \texttt{User}...) sont immédiatement compatibles avec le mapping Firestore via \texttt{toObject(Class)} grâce à leurs constructeurs vides et getters/setters standards.
+
+\subsection{Cloudinary — Gestion des médias}
+
+\textbf{Cloudinary} est retenu pour l'hébergement et la transformation des images (photos de voyages, avatars, covers de groupes). Les URL Unsplash actuellement codées en dur dans le Mock seront remplacées par des URLs Cloudinary générées après upload.
+
+\begin{codeblock}
+\begin{lstlisting}[caption={Pattern d'upload prévu : Cloudinary + Firestore}]
+// Etape 1 : upload de l'image vers Cloudinary
+cloudinary.uploader().upload(imageBytes,
+    ObjectUtils.asMap("folder", "photos/" + uid),
+    new UploadCallback() {
+        public void onSuccess(String requestId, Map result) {
+            String url = (String) result.get("secure_url");
+
+            // Etape 2 : sauvegarder les metadonnees dans Firestore
+            Photo photo = new Photo(uid, url, title, groupId);
+            FirebaseFirestore.getInstance()
+                .collection("photos")
+                .add(photo);
+        }
+    });
+\end{lstlisting}
+\end{codeblock}
+
+\noindent Notre \texttt{PublishPhotoActivity} (déjà développée) est prête à recevoir cet appel : elle dispose du titre, de la description, des tags, du groupId et de l'URI locale de l'image.
+
+\subsection{API IA — Génération de parcours}
+
+La génération de parcours (cœur de \textbf{TravelPath}) reposera sur un \textbf{appel à une API REST externe} (OpenAI / Gemini / API propriétaire) à partir de la liste des préférences saisies dans \texttt{TravelPathPreferencesFragment}.
+
+\begin{codeblock}
+\begin{lstlisting}[caption={Appel API prévu pour la génération de parcours}]
+// Requete POST vers le backend IA
+RequestBody body = RequestBody.create(
+    jsonPayload, MediaType.get("application/json"));
+
+Request request = new Request.Builder()
+    .url("https://api.example.com/generate-itinerary")
+    .post(body)
+    .addHeader("Authorization", "Bearer " + API_KEY)
+    .build();
+
+client.newCall(request).enqueue(new Callback() {
+    public void onResponse(Call call, Response response) {
+        // Deserialiser le JSON sur List<GeneratedItinerary>
+        List<GeneratedItinerary> itineraries =
+            gson.fromJson(response.body().string(),
+                new TypeToken<List<GeneratedItinerary>>(){}.getType());
+
+        // Afficher dans GeneratedItinerariesActivity
+        runOnUiThread(() -> adapter.submitList(itineraries));
+    }
+});
+\end{lstlisting}
+\end{codeblock}
+
+\noindent Les modèles \texttt{GeneratedItinerary} et \texttt{ItineraryStep} sont déjà définis et utilisés par \texttt{GeneratedItinerariesActivity} et \texttt{ItineraryDetailActivity} — aucune modification de l'UI ne sera nécessaire.
+
+\subsection{Tableau récapitulatif : Mock → Backend réel}
+
+\begin{tabularx}{\textwidth}{>{\ttfamily\small}p{5.2cm} X}
+\toprule
+\textbf{Méthode Mock actuelle} & \textbf{Remplacement backend réel} \\
+\midrule
+getMyGroups() & Firestore \texttt{.whereArrayContains("memberIds", uid)} \\
+getPhotosByGroup(id) & Firestore \texttt{.whereEqualTo("groupId", id)} \\
+getCurrentUser() & FirebaseAuth + document \texttt{users/\{uid\}} \\
+getGroupById(id) & Firestore \texttt{.document("groups/\{id\}).get()} \\
+addPhoto(photo) & Upload Cloudinary → URL stockée dans Firestore \\
+getGeneratedItineraries() & POST \texttt{/api/generate} → JSON → \texttt{GeneratedItinerary} \\
+isUserLoggedIn() & \texttt{FirebaseAuth.getCurrentUser() != null} \\
+joinGroup(groupId) & Transaction Firestore sur \texttt{group.members[]} \\
+getMockComments(photoId) & Firestore \texttt{.collection("comments").whereEqualTo("photoId", id)} \\
+\bottomrule
+\end{tabularx}
+
+% ============================================================
+\section{Parties réalisées}
+% ============================================================
+
+\subsection{TravelShare — Mode Anonyme \& Connecté}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+    \item \textbf{Flux photo} (\texttt{HomeFragment}) : RecyclerView de photos, like/unlike, commentaires, partage.
+    \item \textbf{Détail photo} (\texttt{PhotoDetailActivity}) : bannière, section auteur, itinéraire GPS (\texttt{geo:}), commentaires dynamiques, like.
+    \item \textbf{Publication} (\texttt{PublishPhotoActivity}) : sélection image, tags ChipGroup, date, groupe, description.
+    \item \textbf{Carte interactive} (\texttt{MapFragment}) : OSMDroid, marqueurs personnalisés, carte de prévisualisation slide-up.
+    \item \textbf{Recherche avancée} (\texttt{AdvancedSearchFragment}) : filtres (lieu, budget, durée, groupe, type), onglet carte.
+    \item \textbf{Profil utilisateur} (\texttt{ProfileFragment}) : onglets Photos/Parcours/Groupes/À propos, modes anonyme et connecté distincts.
+    \item \textbf{Édition profil} (\texttt{EditProfileActivity}) : formulaire complet, avatar galerie/caméra, zone de danger.
+    \item \textbf{Notifications} : liste paginée (\texttt{NotificationsFragment}) + paramétrage granulaire (\texttt{NotificationSettingsActivity}).
+    \item \textbf{Gestion des groupes} (\texttt{GroupsActivity}) : onglets Mes groupes / Découverte / Invitations, création, rejoindre via code.
+    \item \textbf{Fil de groupe} (\texttt{GroupFeedActivity}) : flux filtré par groupe, badges, accès admin conditionnel.
+    \item \textbf{Administration groupe} (\texttt{GroupAdminActivity}) : 4 onglets — Membres, Modération, Paramètres, Stats.
+    \item \textbf{Dialogues sécurisés} : invitation, changement de rôle, bannissement, suppression de groupe.
+    \item \textbf{Paramètres} (\texttt{SettingsActivity}) : compte, notifications, confidentialité.
+    \item \textbf{Partage de profil} (\texttt{ShareProfileDialogFragment}) : Intent système, clipboard, email, SMS.
+    \item \textbf{Mode hors-ligne} : \texttt{OfflineManager} avec détection réseau et file d'attente différée.
+    \item \textbf{Multi-comptes} : \texttt{SwitchAccountDialogFragment}.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Non encore développé :} écran d'inscription et écran de connexion (prochaine étape).
+
+\subsection{TravelPath — Générateur de Parcours}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+    \item \textbf{Préférences} (\texttt{TravelPathPreferencesFragment}) : activités, lieux, budget, durée, effort, tolérances météo.
+    \item \textbf{Parcours générés} (\texttt{GeneratedItinerariesActivity}) : 3 profils (Économique, Équilibré, Confort), badges dynamiques, like, barre d'actions contextuelle.
+    \item \textbf{Détail de parcours} (\texttt{ItineraryDetailActivity}) : carte statique, liste d'étapes, navigation GPS.
+    \item \textbf{Carte d'itinéraire} (\texttt{TripMapActivity}) : polylignes OSMDroid, marqueurs numérotés, BottomSheet d'étape.
+    \item \textbf{Export PDF} (\texttt{ExportPDFDialogFragment}) : choix format et contenu.
+\end{itemize}
+
+\subsection{Passerelle — Traveling}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+    \item \texttt{GatewayActivity} : sélection de photos TravelShare → génération de parcours TravelPath.
+    \item Navigation globale cohérente (barre inférieure persistante sur toutes les activités).
+\end{itemize}
+
+\subsection{Qualité du code (Audit Phase 23)}
+\begin{itemize}[leftmargin=1.5em, itemsep=2pt]
+    \item \textbf{DRY} : \texttt{WindowInsetsHelper} centralise la gestion des insets système (6 activités refactorisées).
+    \item \textbf{Constantes} : toutes les clés d'Intent remplacées par des constantes typées (\texttt{EXTRA\_GROUP\_ID}).
+    \item \textbf{Null-safety} : guards systématiques, \texttt{Objects.equals()}, \texttt{Stream.anyMatch()}.
+\end{itemize}
+
+% ============================================================
+\section{Lien vers le code source}
+% ============================================================
+
+Le code source complet est disponible sur le dépôt suivant :
+
+\medskip
+\begin{center}
+    \large\url{https://github.com/pixelroll/Projet-mobile}
+\end{center}
+
+\medskip
+\noindent\textbf{Stack technique :} Java Android (API 26+) · Material Design 3 · OSMDroid · Glide · ViewPager2 · Material Components · OkHttp (prévu) · Gson (prévu) · Firebase SDK (prévu) · Cloudinary SDK (prévu).
+
+\end{document}
