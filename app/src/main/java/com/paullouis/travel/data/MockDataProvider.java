@@ -18,7 +18,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MockDataProvider {
+public class MockDataProvider implements DataRepository {
+    private static MockDataProvider instance;
+
+    public static MockDataProvider getInstance() {
+        if (instance == null) {
+            instance = new MockDataProvider();
+        }
+        return instance;
+    }
+
+    private MockDataProvider() {}
+
     private static List<Group> myGroups;
     private static List<Group> discoverGroups;
     private static List<Photo> userPhotos;
@@ -500,5 +511,128 @@ public class MockDataProvider {
             }
         }
         return filtered;
+    }
+
+    // =========================================================================
+    // DataRepository Async Implementation
+    // These methods wrap the synchronous static methods to simulate a real backend API.
+    // =========================================================================
+
+    @Override
+    public void getCurrentUser(DataCallback<User> callback) {
+        callback.onSuccess(getCurrentUser());
+    }
+
+    @Override
+    public void getUserById(String id, DataCallback<User> callback) {
+        callback.onSuccess(getUserById(id));
+    }
+
+    @Override
+    public void getUserPhotos(DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getUserPhotos());
+    }
+
+    @Override
+    public void addPhoto(Photo photo, DataCallback<Void> callback) {
+        addPhoto(photo);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getSimilarPhotos(String location, DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getSimilarPhotos(location));
+    }
+
+    @Override
+    public void getGatewayPhotos(DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getGatewayPhotos());
+    }
+
+    @Override
+    public void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getPhotosByGroup(groupId));
+    }
+
+    @Override
+    public void getComments(String photoId, DataCallback<List<Comment>> callback) {
+        callback.onSuccess(getMockComments(photoId));
+    }
+
+    @Override
+    public void getMyGroups(DataCallback<List<Group>> callback) {
+        callback.onSuccess(getMyGroups());
+    }
+
+    @Override
+    public void getDiscoverGroups(DataCallback<List<Group>> callback) {
+        callback.onSuccess(getDiscoverGroups());
+    }
+
+    @Override
+    public void getGroupById(String id, DataCallback<Group> callback) {
+        callback.onSuccess(getGroupById(id));
+    }
+
+    @Override
+    public void findGroupByCode(String code, DataCallback<Group> callback) {
+        callback.onSuccess(findGroupByCode(code));
+    }
+
+    @Override
+    public void joinGroup(String groupId, DataCallback<Void> callback) {
+        joinGroup(groupId);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void addGroup(Group group, DataCallback<Void> callback) {
+        addGroup(group);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getGroupMembers(String groupId, DataCallback<List<com.paullouis.travel.model.GroupMember>> callback) {
+        callback.onSuccess(getGroupMembers(groupId));
+    }
+
+    @Override
+    public void getReportedPhotos(String groupId, DataCallback<List<com.paullouis.travel.model.ReportedPhoto>> callback) {
+        callback.onSuccess(getReportedPhotos(groupId));
+    }
+
+    @Override
+    public void getGroupStats(String groupId, DataCallback<java.util.Map<String, Integer>> callback) {
+        callback.onSuccess(getGroupStats(groupId));
+    }
+
+    @Override
+    public void getNotifications(DataCallback<List<Notification>> callback) {
+        callback.onSuccess(getNotifications());
+    }
+
+    @Override
+    public void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback) {
+        callback.onSuccess(getNotificationSettings());
+    }
+
+    @Override
+    public void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback) {
+        callback.onSuccess(getGeneratedItineraries());
+    }
+
+    @Override
+    public void getItinerarySteps(DataCallback<List<ItineraryStep>> callback) {
+        callback.onSuccess(getItinerarySteps());
+    }
+
+    @Override
+    public void getProfileItineraries(DataCallback<List<ProfileItinerary>> callback) {
+        callback.onSuccess(getProfileItineraries());
+    }
+
+    @Override
+    public void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback) {
+        callback.onSuccess(getSearchNavigationOptions());
     }
 }
