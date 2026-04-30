@@ -93,14 +93,21 @@
         android:background="#E2E8F0"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvPhotos"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp"
-        android:descendantFocusability="blocksDescendants"
         app:layout_constraintTop_toBottomOf="@id/vDivider"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvPhotos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            android:descendantFocusability="blocksDescendants" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

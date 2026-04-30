@@ -158,12 +158,14 @@
                 android:orientation="horizontal">
 
                 <ImageView
+                    android:id="@+id/ivAudioIcon"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_mic_lucide"
                     app:tint="@color/muted_foreground" />
 
                 <TextView
+                    android:id="@+id/tvAudioLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -171,6 +173,67 @@
                     android:textColor="@color/muted_foreground"
                     android:textSize="14sp" />
             </LinearLayout>
+
+            <!-- Audio Recording Indicator (hidden by default) -->
+            <LinearLayout
+                android:id="@+id/audioRecordingIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_white_border_gray"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <View
+                    android:id="@+id/vRecordingDot"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:background="@color/error" />
+
+                <TextView
+                    android:id="@+id/tvRecordingDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="00:00"
+                    android:textColor="@color/error"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Enregistrement..."
+                    android:textColor="@color/muted_foreground"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Section Lieu -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24sp"
+                android:text="Lieu"
+                android:textColor="@color/on_background"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etLocation"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input_gray"
+                android:drawableStart="@drawable/ic_map_pin"
+                android:drawablePadding="8dp"
+                android:hint="Ex: Paris, France"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/on_background"
+                android:textColorHint="@color/muted_foreground"
+                android:textSize="14sp"
+                android:inputType="textCapWords" />
 
             <!-- Section Date / Période -->
             <TextView

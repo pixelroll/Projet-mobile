@@ -5,16 +5,12 @@ plugins {
 
 android {
     namespace = "com.paullouis.travel"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.paullouis.travel"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -42,6 +38,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.swiperefreshlayout)
     
     // Firebase
     implementation(platform(libs.firebase.bom))
@@ -49,6 +46,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.storage)
     
     // Cloudinary & Glide
     implementation(libs.cloudinary) {

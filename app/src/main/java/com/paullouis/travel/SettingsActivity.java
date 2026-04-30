@@ -14,7 +14,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.User;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -41,10 +42,26 @@ public class SettingsActivity extends AppCompatActivity {
         tvUserEmail = findViewById(R.id.tvUserEmail);
         ivAvatar = findViewById(R.id.ivAvatar);
 
-        User currentUser = MockDataProvider.getCurrentUser();
-        tvUserName.setText(currentUser.getName());
-        tvUserEmail.setText(currentUser.getEmail());
-        // For avatar we rely on XML default profile_sophie for the mock
+        FirebaseRepository.getInstance().getCurrentUser(new DataCallback<User>() {
+            @Override
+            public void onSuccess(User currentUser) {
+                tvUserName.setText(currentUser.getName());
+                tvUserEmail.setText(currentUser.getEmail());
+                if (currentUser.getAvatarUrl() != null && !currentUser.getAvatarUrl().isEmpty()) {
+                    com.bumptech.glide.Glide.with(SettingsActivity.this)
+                            .load(currentUser.getAvatarUrl())
+                            .circleCrop()
+                            .placeholder(R.drawable.profile_sophie)
+                            .into(ivAvatar);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                tvUserName.setText("Utilisateur");
+                tvUserEmail.setText("");
+            }
+        });
 
         setupItem(findViewById(R.id.btnEditProfile), R.drawable.ic_user, "Modifier le profil", null, v -> {
             startActivity(new Intent(this, EditProfileActivity.class));
@@ -81,8 +98,7 @@ public class SettingsActivity extends AppCompatActivity {
                 .setTitle("Se déconnecter ?")
                 .setMessage("Voulez-vous vraiment vous déconnecter de votre compte ?")
                 .setPositiveButton("Confirmer", (dialog, which) -> {
-                    // Simulation of logout
-                    MockDataProvider.setUserLoggedIn(false);
+                    FirebaseRepository.getInstance().logout();
                     Toast.makeText(this, "Déconnexion réussie", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(this, MainActivity.class);
                     // Clear all activities and start fresh in anonymous mode

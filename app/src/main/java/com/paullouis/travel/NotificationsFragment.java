@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,7 +17,8 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.paullouis.travel.adapter.NotificationAdapter;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Notification;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +28,11 @@ public class NotificationsFragment extends Fragment {
 
     private RecyclerView rvNotifications;
     private NotificationAdapter adapter;
-    private List<Notification> allNotifications;
+    private List<Notification> allNotifications = new ArrayList<>();
     private TextView tvUnreadCount, tvTabAllLabel, tvTabUnreadLabel, badgeAll, badgeUnread;
     private View indicatorAll, indicatorUnread;
     private FrameLayout tabAll, tabUnread;
+    private ProgressBar progressBar;
     private boolean showingAll = true;
 
     @Nullable
@@ -42,7 +45,6 @@ public class NotificationsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Handle safe area
         View headerLayout = view.findViewById(R.id.headerLayout);
         ViewCompat.setOnApplyWindowInsetsListener(headerLayout, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -50,7 +52,6 @@ public class NotificationsFragment extends Fragment {
             return insets;
         });
 
-        // Init views
         tvUnreadCount = view.findViewById(R.id.tvUnreadCount);
         tvTabAllLabel = view.findViewById(R.id.tvTabAllLabel);
         tvTabUnreadLabel = view.findViewById(R.id.tvTabUnreadLabel);
@@ -61,26 +62,44 @@ public class NotificationsFragment extends Fragment {
         tabAll = view.findViewById(R.id.tabAll);
         tabUnread = view.findViewById(R.id.tabUnread);
         rvNotifications = view.findViewById(R.id.rvNotifications);
+        progressBar = view.findViewById(R.id.progressBar);
 
-        // Load data
-        allNotifications = MockDataProvider.getNotifications();
-        updateCounts();
-
-        // Setup RV
         adapter = new NotificationAdapter(allNotifications);
         rvNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
         rvNotifications.setAdapter(adapter);
 
-        // Listeners
         view.findViewById(R.id.btnBack).setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         view.findViewById(R.id.btnMarkAll).setOnClickListener(v -> markAllAsRead());
         view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(getActivity(), NotificationSettingsActivity.class);
             startActivity(intent);
         });
-        
+
         tabAll.setOnClickListener(v -> switchTab(true));
         tabUnread.setOnClickListener(v -> switchTab(false));
+
+        loadNotifications();
+    }
+
+    private void loadNotifications() {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        FirebaseRepository.getInstance().getNotifications(new DataCallback<List<Notification>>() {
+            @Override
+            public void onSuccess(List<Notification> notifications) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                allNotifications.clear();
+                allNotifications.addAll(notifications);
+                updateCounts();
+                switchTab(showingAll);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                updateCounts();
+            }
+        });
     }
 
     private void updateCounts() {
@@ -94,10 +113,10 @@ public class NotificationsFragment extends Fragment {
         showingAll = all;
         indicatorAll.setVisibility(all ? View.VISIBLE : View.GONE);
         indicatorUnread.setVisibility(all ? View.GONE : View.VISIBLE);
-        
-        int primary = getContext().getColor(R.color.primary);
-        int muted = getContext().getColor(R.color.muted_foreground);
-        
+
+        int primary = requireContext().getColor(R.color.primary);
+        int muted = requireContext().getColor(R.color.muted_foreground);
+
         tvTabAllLabel.setTextColor(all ? primary : muted);
         tvTabUnreadLabel.setTextColor(all ? muted : primary);
 
@@ -113,7 +132,15 @@ public class NotificationsFragment extends Fragment {
 
     private void markAllAsRead() {
         for (Notification n : allNotifications) {
-            n.setRead(true);
+            if (!n.isRead()) {
+                n.setRead(true);
+                if (n.getNotificationId() != null) {
+                    FirebaseRepository.getInstance().markNotificationRead(n.getNotificationId(), new DataCallback<Void>() {
+                        @Override public void onSuccess(Void r) {}
+                        @Override public void onError(Exception e) {}
+                    });
+                }
+            }
         }
         updateCounts();
         if (showingAll) {

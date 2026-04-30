@@ -30,7 +30,8 @@
                 android:id="@+id/tvHeaderName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sophie Martin"
+                tools:text="Nom d'utilisateur"
+                android:text=""
                 android:textColor="@color/on_background"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -97,7 +98,7 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/profile_sophie"
+                        android:src="@drawable/circle_avatar_bg"
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
                         android:padding="2dp"
                         android:background="@drawable/circle_avatar_bg"/>
@@ -211,7 +212,8 @@
                     android:id="@+id/tvName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sophie Martin"
+                    tools:text="Nom d'utilisateur"
+                    android:text=""
                     android:textColor="@color/on_background"
                     android:textSize="18sp"
                     android:textStyle="bold" />

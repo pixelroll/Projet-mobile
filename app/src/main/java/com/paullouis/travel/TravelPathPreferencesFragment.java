@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.data.MockDataProvider;
 
 public class TravelPathPreferencesFragment extends Fragment {
@@ -59,7 +60,7 @@ public class TravelPathPreferencesFragment extends Fragment {
 
         // Generate button (placeholder)
         view.findViewById(R.id.btnGenerate).setOnClickListener(v -> {
-            if (MockDataProvider.isUserLoggedIn()) {
+            if (FirebaseRepository.getInstance().isUserLoggedIn()) {
                 android.content.Intent intent = new android.content.Intent(getActivity(), GeneratedItinerariesActivity.class);
                 intent.putExtra("LOCATION_NAME", "Paris, France");
                 intent.putExtra("LOCATION_DATE", "17 Mars 2026");
@@ -71,7 +72,7 @@ public class TravelPathPreferencesFragment extends Fragment {
 
         // Try Now button
         view.findViewById(R.id.btnTryNow).setOnClickListener(v -> {
-            if (MockDataProvider.isUserLoggedIn()) {
+            if (FirebaseRepository.getInstance().isUserLoggedIn()) {
                 android.content.Intent intent = new android.content.Intent(getActivity(), GatewayActivity.class);
                 startActivity(intent);
             } else {

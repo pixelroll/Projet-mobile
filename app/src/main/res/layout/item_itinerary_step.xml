@@ -73,7 +73,7 @@
                     android:layout_height="80dp"
                     android:scaleType="centerCrop"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
-                    tools:src="@drawable/profile_sophie" />
+                    tools:src="@drawable/circle_avatar_bg" />
 
                 <!-- Content Column -->
                 <LinearLayout

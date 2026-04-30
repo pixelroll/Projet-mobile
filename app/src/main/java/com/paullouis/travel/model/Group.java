@@ -21,8 +21,11 @@ public class Group {
     private String code;
     private UserRole role;
     private boolean approvalRequired;
+    private java.util.List<String> memberIds; // For efficient Firestore queries
 
-    public Group(String id, String name, String description, int membersCount, int photosCount, 
+    public Group() {}
+
+    public Group(String id, String name, String description, int membersCount, int photosCount,
                  boolean isPrivate, boolean isJoined, boolean isOwner, String coverImage, String code) {
         this.id = id;
         this.name = name;
@@ -81,4 +84,7 @@ public class Group {
     public void setRole(UserRole role) { this.role = role; }
     public boolean isApprovalRequired() { return approvalRequired; }
     public void setApprovalRequired(boolean approvalRequired) { this.approvalRequired = approvalRequired; }
+    public java.util.List<String> getMemberIds() { return memberIds; }
+    public void setMemberIds(java.util.List<String> memberIds) { this.memberIds = memberIds; }
+    public void setPhotosCount(int count) { this.photosCount = count; }
 }

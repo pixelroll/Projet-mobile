@@ -16,7 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Group;
 import java.util.Random;
 
@@ -73,10 +74,7 @@ public class CreateGroupDialogFragment extends DialogFragment {
             }
 
             String desc = etDescription.getText().toString().trim();
-            String code = null;
-            if (isPrivate) {
-                code = generateRandomCode();
-            }
+            final String code = isPrivate ? generateRandomCode() : null;
 
             Group newGroup = new Group(
                 String.valueOf(System.currentTimeMillis()),
@@ -87,18 +85,29 @@ public class CreateGroupDialogFragment extends DialogFragment {
                 code
             );
 
-            MockDataProvider.addGroup(newGroup);
+            view.findViewById(R.id.btnCreate).setEnabled(false);
+            FirebaseRepository.getInstance().addGroup(newGroup, new DataCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    if (!isAdded()) return;
+                    String message = "Groupe créé !";
+                    if (code != null) {
+                        message += "\nCode d'invitation : " + code;
+                    }
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    if (listener != null) {
+                        listener.onGroupCreated();
+                    }
+                    dismiss();
+                }
 
-            String message = "Groupe cree !";
-            if (code != null) {
-                message += " \nCode d'invitation : " + code;
-            }
-            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-
-            if (listener != null) {
-                listener.onGroupCreated();
-            }
-            dismiss();
+                @Override
+                public void onError(Exception e) {
+                    if (!isAdded()) return;
+                    view.findViewById(R.id.btnCreate).setEnabled(true);
+                    Toast.makeText(getActivity(), "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 

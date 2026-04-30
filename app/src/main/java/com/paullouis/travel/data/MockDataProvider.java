@@ -40,25 +40,6 @@ public class MockDataProvider implements DataRepository {
     static {
         myGroups = new ArrayList<>();
         discoverGroups = new ArrayList<>();
-        
-        // Initialize groups
-        Group g1 = new Group("1", "Voyage Paris 2026", "Groupe pour notre voyage a Paris en mars 2026. Partagez vos photos et lieux preferes !", 8, 34, false, true, true, "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=400", "PAR2026", Group.UserRole.OWNER);
-        Group g2 = new Group("2", "Famille Martin", "Photos de voyages en famille", 5, 67, true, true, false, "https://images.unsplash.com/photo-1613278435217-de4e5a91a4ee?w=400", "FAM-MTN", Group.UserRole.MEMBER);
-        Group g3 = new Group("3", "Amis proches", "Nos aventures entre amis", 12, 89, true, true, false, "https://images.unsplash.com/photo-1626946548234-a65fd193db41?w=400", null, Group.UserRole.MEMBER);
-        
-        myGroups.add(g1);
-        myGroups.add(g2);
-        myGroups.add(g3);
-
-        Group g4 = new Group("4", "Backpackers Europe", "Conseils et astuces pour voyager leger en Europe.", 150, 1200, false, false, false, "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400", null, Group.UserRole.MEMBER);
-        Group g5 = new Group("5", "Digital Nomads", "La communaute des nomades digitaux.", 320, 2500, false, false, true, "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400", null, Group.UserRole.MEMBER);
-        Group g6 = new Group("6", "Photographes du monde", "Echangez vos plus beaux clichés.", 85, 900, true, true, false, "https://images.unsplash.com/photo-1452721226468-f9c902774949?w=400", null, Group.UserRole.MEMBER);
-        
-        discoverGroups.add(g4);
-        discoverGroups.add(g5);
-        discoverGroups.add(g6);
-        
-        myGroups.add(g4); // Simulate joined
 
         // Initialize user photos
         userPhotos = generateInitialPhotos();
@@ -78,7 +59,8 @@ public class MockDataProvider implements DataRepository {
         searchNavigationOptions.add(new SearchNavigationOption("similar", "Photos similaires", "Recherche par similarité (IA)", R.drawable.ic_sparkles));
     }
 
-    public static boolean isUserLoggedIn() {
+    @Override
+    public boolean isUserLoggedIn() {
         return userLoggedIn;
     }
 
@@ -534,14 +516,25 @@ public class MockDataProvider implements DataRepository {
     }
 
     @Override
+    public void updateUser(User user, DataCallback<Void> callback) {
+        currentUser = user;
+        callback.onSuccess(null);
+    }
+
+    @Override
     public void addPhoto(Photo photo, DataCallback<Void> callback) {
         addPhoto(photo);
         callback.onSuccess(null);
     }
 
     @Override
-    public void getSimilarPhotos(String location, DataCallback<List<Photo>> callback) {
-        callback.onSuccess(getSimilarPhotos(location));
+    public void toggleLike(String photoId, boolean liked, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void uploadAudio(String photoId, android.net.Uri audioUri, DataCallback<String> callback) {
+        callback.onSuccess(null);
     }
 
     @Override
@@ -557,6 +550,11 @@ public class MockDataProvider implements DataRepository {
     @Override
     public void getComments(String photoId, DataCallback<List<Comment>> callback) {
         callback.onSuccess(getMockComments(photoId));
+    }
+
+    @Override
+    public void addComment(String photoId, Comment comment, DataCallback<Void> callback) {
+        callback.onSuccess(null);
     }
 
     @Override
@@ -634,5 +632,34 @@ public class MockDataProvider implements DataRepository {
     @Override
     public void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback) {
         callback.onSuccess(getSearchNavigationOptions());
+    }
+
+    @Override
+    public void createNotification(com.paullouis.travel.model.Notification notification, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void markNotificationRead(String notificationId, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void reportPhoto(String photoId, String reason, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void searchPhotos(String query, DataCallback<List<Photo>> callback) {
+        List<Photo> results = new ArrayList<>();
+        String lower = query.toLowerCase();
+        for (Photo p : getMockPhotos()) {
+            if ((p.getTitle() != null && p.getTitle().toLowerCase().contains(lower))
+                    || (p.getLocationName() != null && p.getLocationName().toLowerCase().contains(lower))
+                    || (p.getAuthorName() != null && p.getAuthorName().toLowerCase().contains(lower))) {
+                results.add(p);
+            }
+        }
+        callback.onSuccess(results);
     }
 }

@@ -20,7 +20,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.EventBus;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.User;
 
 public class EditProfileActivity extends AppCompatActivity {
@@ -57,9 +59,20 @@ public class EditProfileActivity extends AppCompatActivity {
         tvStatsPhotos = findViewById(R.id.tvStatsPhotos);
         ivAvatar = findViewById(R.id.ivAvatar);
 
-        // Load current user data
-        currentUser = MockDataProvider.getCurrentUser();
-        populateFields();
+        // Load current user data asynchronously
+        FirebaseRepository.getInstance().getCurrentUser(new DataCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                currentUser = user;
+                populateFields();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(EditProfileActivity.this, "Erreur de chargement du profil", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
 
         // Bio character counter
         etBio.addTextChangedListener(new TextWatcher() {
@@ -100,6 +113,14 @@ public class EditProfileActivity extends AppCompatActivity {
         etWebsite.setText("");
 
         tvStatsPhotos.setText(String.valueOf(currentUser.getPostsCount()));
+
+        if (currentUser.getAvatarUrl() != null && !currentUser.getAvatarUrl().isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                    .load(currentUser.getAvatarUrl())
+                    .circleCrop()
+                    .placeholder(R.drawable.profile_sophie)
+                    .into(ivAvatar);
+        }
     }
 
     private void openGallery() {
@@ -114,7 +135,9 @@ public class EditProfileActivity extends AppCompatActivity {
             Uri imageUri = data.getData();
             if (imageUri != null) {
                 ivAvatar.setImageURI(imageUri);
-                // In a real app we would upload this URI to Firebase Storage
+                if (currentUser != null) {
+                    currentUser.setAvatarUrl(imageUri.toString());
+                }
             }
         }
     }
@@ -126,14 +149,27 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Update MockDataProvider
+        // Update the current user model
         currentUser.setName(name);
         currentUser.setBio(etBio.getText().toString().trim());
         currentUser.setEmail(etEmail.getText().toString().trim());
-        // Location and website would be saved here too
-
+        // Optimistic update
+        EventBus.notifyUserUpdated(currentUser);
         Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show();
         finish();
+
+        // Save via FirebaseRepository in background
+        FirebaseRepository.getInstance().updateUser(currentUser, new com.paullouis.travel.data.DataCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                // Background update succeeded
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(getApplicationContext(), "Erreur de synchro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showDeactivateDialog() {

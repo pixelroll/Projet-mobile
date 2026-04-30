@@ -28,6 +28,13 @@ public class Photo implements Parcelable {
     private boolean isLiked;
     private String groupId;
     private String groupName;
+    private String authorAvatarUrl;
+    private boolean isLoading;
+    private String travelInfo;
+    private String momentOfDay;
+    private List<String> likedBy;
+    private List<String> reportedBy;
+    private int reportCount;
 
     public Photo() {}
 
@@ -54,6 +61,13 @@ public class Photo implements Parcelable {
         isLiked = in.readByte() != 0;
         groupId = in.readString();
         groupName = in.readString();
+        authorAvatarUrl = in.readString();
+        isLoading = in.readByte() != 0;
+        travelInfo = in.readString();
+        momentOfDay = in.readString();
+        likedBy = in.createStringArrayList();
+        reportedBy = in.createStringArrayList();
+        reportCount = in.readInt();
     }
 
     @Override
@@ -80,6 +94,13 @@ public class Photo implements Parcelable {
         dest.writeByte((byte) (isLiked ? 1 : 0));
         dest.writeString(groupId);
         dest.writeString(groupName);
+        dest.writeString(authorAvatarUrl);
+        dest.writeByte((byte) (isLoading ? 1 : 0));
+        dest.writeString(travelInfo);
+        dest.writeString(momentOfDay);
+        dest.writeStringList(likedBy);
+        dest.writeStringList(reportedBy);
+        dest.writeInt(reportCount);
     }
 
     @Override
@@ -144,4 +165,20 @@ public class Photo implements Parcelable {
     public void setGroupId(String groupId) { this.groupId = groupId; }
     public String getGroupName() { return groupName; }
     public void setGroupName(String groupName) { this.groupName = groupName; }
+    public String getAuthorAvatarUrl() { return authorAvatarUrl; }
+    public void setAuthorAvatarUrl(String authorAvatarUrl) { this.authorAvatarUrl = authorAvatarUrl; }
+    @com.google.firebase.firestore.Exclude
+    public boolean isLoading() { return isLoading; }
+    @com.google.firebase.firestore.Exclude
+    public void setLoading(boolean loading) { isLoading = loading; }
+    public String getTravelInfo() { return travelInfo; }
+    public void setTravelInfo(String travelInfo) { this.travelInfo = travelInfo; }
+    public String getMomentOfDay() { return momentOfDay; }
+    public void setMomentOfDay(String momentOfDay) { this.momentOfDay = momentOfDay; }
+    public List<String> getLikedBy() { return likedBy; }
+    public void setLikedBy(List<String> likedBy) { this.likedBy = likedBy; }
+    public List<String> getReportedBy() { return reportedBy; }
+    public void setReportedBy(List<String> reportedBy) { this.reportedBy = reportedBy; }
+    public int getReportCount() { return reportCount; }
+    public void setReportCount(int reportCount) { this.reportCount = reportCount; }
 }

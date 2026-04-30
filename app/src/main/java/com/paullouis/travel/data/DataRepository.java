@@ -26,16 +26,19 @@ public interface DataRepository {
     boolean isUserLoggedIn();
     void getCurrentUser(DataCallback<User> callback);
     void getUserById(String id, DataCallback<User> callback);
+    void updateUser(User user, DataCallback<Void> callback);
 
     // --- Photos ---
     void getUserPhotos(DataCallback<List<Photo>> callback);
     void addPhoto(Photo photo, DataCallback<Void> callback);
-    void getSimilarPhotos(String location, DataCallback<List<Photo>> callback);
+    void toggleLike(String photoId, boolean liked, DataCallback<Void> callback);
+    void uploadAudio(String photoId, android.net.Uri audioUri, DataCallback<String> callback);
     void getGatewayPhotos(DataCallback<List<Photo>> callback);
     void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
 
     // --- Comments ---
     void getComments(String photoId, DataCallback<List<Comment>> callback);
+    void addComment(String photoId, Comment comment, DataCallback<Void> callback);
 
     // --- Groups ---
     void getMyGroups(DataCallback<List<Group>> callback);
@@ -51,12 +54,19 @@ public interface DataRepository {
     // --- Notifications ---
     void getNotifications(DataCallback<List<Notification>> callback);
     void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback);
+    void createNotification(Notification notification, DataCallback<Void> callback);
+    void markNotificationRead(String notificationId, DataCallback<Void> callback);
+
+    // --- Photos (extended) ---
+    void reportPhoto(String photoId, String reason, DataCallback<Void> callback);
+
+    // --- Search ---
+    void searchPhotos(String query, DataCallback<List<Photo>> callback);
 
     // --- Itineraries ---
     void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback);
     void getItinerarySteps(DataCallback<List<ItineraryStep>> callback);
     void getProfileItineraries(DataCallback<List<ProfileItinerary>> callback);
 
-    // --- Search ---
     void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback);
 }
