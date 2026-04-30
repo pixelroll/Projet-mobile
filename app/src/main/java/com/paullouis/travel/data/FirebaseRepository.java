@@ -201,6 +201,12 @@ public class FirebaseRepository implements DataRepository {
 
     @Override
     public void getUserPhotos(DataCallback<List<Photo>> callback) {
+        FirebaseUser fUser = auth.getCurrentUser();
+        if (fUser == null) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
         // Check cache first
         List<Photo> cached = (List<Photo>) cache.get("photos:user");
         if (cached != null) {
@@ -209,6 +215,7 @@ public class FirebaseRepository implements DataRepository {
         }
 
         db.collection("photos")
+                .whereEqualTo("userId", fUser.getUid())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Photo> photos = queryDocumentSnapshots.toObjects(Photo.class);
@@ -228,6 +235,32 @@ public class FirebaseRepository implements DataRepository {
                         cache.put("photos:user", photos); // Cache it
                         callback.onSuccess(photos);
                     }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void getFeedPhotos(DataCallback<List<Photo>> callback) {
+        List<Photo> cached = (List<Photo>) cache.get("photos:feed");
+        if (cached != null) {
+            callback.onSuccess(cached);
+            return;
+        }
+
+        db.collection("photos")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Photo> photos = queryDocumentSnapshots.toObjects(Photo.class);
+                    FirebaseUser currentUser = auth.getCurrentUser();
+                    String currentUserId = currentUser != null ? currentUser.getUid() : null;
+                    for (Photo p : photos) {
+                        if (currentUserId != null && p.getLikedBy() != null) {
+                            p.setLiked(p.getLikedBy().contains(currentUserId));
+                        }
+                    }
+                    photos.sort((p1, p2) -> Long.compare(p2.getTimestamp(), p1.getTimestamp()));
+                    cache.put("photos:feed", photos);
+                    callback.onSuccess(photos);
                 })
                 .addOnFailureListener(callback::onError);
     }
@@ -288,7 +321,8 @@ public class FirebaseRepository implements DataRepository {
     private void savePhotoToFirestore(Photo photo, DataCallback<Void> callback) {
         db.collection("photos").document(photo.getId()).set(photo)
                 .addOnSuccessListener(aVoid -> {
-                    cache.remove("photos:user"); // Invalidate photos cache
+                    cache.remove("photos:user");
+                    cache.remove("photos:feed"); // Invalidate photos cache
                     if (photo.getGroupId() != null) {
                         cache.remove("photos:byGroup:" + photo.getGroupId()); // Invalidate group-specific photos
                     }
@@ -376,8 +410,9 @@ public class FirebaseRepository implements DataRepository {
                     "likes", com.google.firebase.firestore.FieldValue.increment(1),
                     "likedBy", com.google.firebase.firestore.FieldValue.arrayUnion(uid)
             ).addOnSuccessListener(aVoid -> {
-                cache.remove("photos:user"); // Invalidate cache
-                EventBus.notifyPhotoLiked(photoId, liked); // Notify all screens
+                cache.remove("photos:user");
+                cache.remove("photos:feed");
+                EventBus.notifyPhotoLiked(photoId, liked);
                 callback.onSuccess(null);
             })
              .addOnFailureListener(callback::onError);
@@ -386,8 +421,9 @@ public class FirebaseRepository implements DataRepository {
                     "likes", com.google.firebase.firestore.FieldValue.increment(-1),
                     "likedBy", com.google.firebase.firestore.FieldValue.arrayRemove(uid)
             ).addOnSuccessListener(aVoid -> {
-                cache.remove("photos:user"); // Invalidate cache
-                EventBus.notifyPhotoLiked(photoId, liked); // Notify all screens
+                cache.remove("photos:user");
+                cache.remove("photos:feed");
+                EventBus.notifyPhotoLiked(photoId, liked);
                 callback.onSuccess(null);
             })
              .addOnFailureListener(callback::onError);

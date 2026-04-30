@@ -13,8 +13,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.paullouis.travel.adapter.DiscoverGroupAdapter;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Group;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DiscoverGroupsFragment extends Fragment {
@@ -35,10 +37,21 @@ public class DiscoverGroupsFragment extends Fragment {
         EditText etSearch = view.findViewById(R.id.etSearch);
 
         rvGroups.setLayoutManager(new LinearLayoutManager(getContext()));
-        List<Group> groups = MockDataProvider.getDiscoverGroups();
-        
-        adapter = new DiscoverGroupAdapter(groups, getParentFragmentManager());
+        adapter = new DiscoverGroupAdapter(new ArrayList<>(), getParentFragmentManager());
         rvGroups.setAdapter(adapter);
+
+        FirebaseRepository.getInstance().getDiscoverGroups(new DataCallback<List<Group>>() {
+            @Override
+            public void onSuccess(List<Group> groups) {
+                if (!isAdded() || getView() == null) return;
+                adapter.setGroups(groups);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                // Leave list empty on error
+            }
+        });
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override

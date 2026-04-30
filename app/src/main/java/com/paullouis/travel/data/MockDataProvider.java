@@ -516,6 +516,11 @@ public class MockDataProvider implements DataRepository {
     }
 
     @Override
+    public void getFeedPhotos(DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getUserPhotos());
+    }
+
+    @Override
     public void updateUser(User user, DataCallback<Void> callback) {
         currentUser = user;
         callback.onSuccess(null);

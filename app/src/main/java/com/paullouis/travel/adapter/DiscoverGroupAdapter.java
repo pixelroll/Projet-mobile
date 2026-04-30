@@ -97,6 +97,12 @@ public class DiscoverGroupAdapter extends RecyclerView.Adapter<DiscoverGroupAdap
         }
     }
 
+    public void setGroups(List<Group> groups) {
+        this.allGroups = new ArrayList<>(groups);
+        this.filteredGroups = new ArrayList<>(groups);
+        notifyDataSetChanged();
+    }
+
     public void filter(String query) {
         filteredGroups.clear();
         if (query.isEmpty()) {

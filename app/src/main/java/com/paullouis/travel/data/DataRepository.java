@@ -30,6 +30,7 @@ public interface DataRepository {
 
     // --- Photos ---
     void getUserPhotos(DataCallback<List<Photo>> callback);
+    void getFeedPhotos(DataCallback<List<Photo>> callback);
     void addPhoto(Photo photo, DataCallback<Void> callback);
     void toggleLike(String photoId, boolean liked, DataCallback<Void> callback);
     void uploadAudio(String photoId, android.net.Uri audioUri, DataCallback<String> callback);

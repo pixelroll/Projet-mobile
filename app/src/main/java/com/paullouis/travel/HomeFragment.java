@@ -76,7 +76,7 @@ public class HomeFragment extends Fragment implements EventBus.PhotoListener, Ev
      * Fetches photos from Firebase. Called on first load and on pull-to-refresh.
      */
     private void loadPhotosFromServer() {
-        FirebaseRepository.getInstance().getUserPhotos(new DataCallback<List<Photo>>() {
+        FirebaseRepository.getInstance().getFeedPhotos(new DataCallback<List<Photo>>() {
             @Override
             public void onSuccess(List<Photo> result) {
                 if (!isAdded() || getView() == null) return;
