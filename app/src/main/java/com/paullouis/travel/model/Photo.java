@@ -32,6 +32,7 @@ public class Photo implements Parcelable {
     private boolean isLoading;
     private String travelInfo;
     private String momentOfDay;
+    private String placeType;
     private List<String> likedBy;
     private List<String> reportedBy;
     private int reportCount;
@@ -65,6 +66,7 @@ public class Photo implements Parcelable {
         isLoading = in.readByte() != 0;
         travelInfo = in.readString();
         momentOfDay = in.readString();
+        placeType = in.readString();
         likedBy = in.createStringArrayList();
         reportedBy = in.createStringArrayList();
         reportCount = in.readInt();
@@ -98,6 +100,7 @@ public class Photo implements Parcelable {
         dest.writeByte((byte) (isLoading ? 1 : 0));
         dest.writeString(travelInfo);
         dest.writeString(momentOfDay);
+        dest.writeString(placeType);
         dest.writeStringList(likedBy);
         dest.writeStringList(reportedBy);
         dest.writeInt(reportCount);
@@ -175,6 +178,8 @@ public class Photo implements Parcelable {
     public void setTravelInfo(String travelInfo) { this.travelInfo = travelInfo; }
     public String getMomentOfDay() { return momentOfDay; }
     public void setMomentOfDay(String momentOfDay) { this.momentOfDay = momentOfDay; }
+    public String getPlaceType() { return placeType; }
+    public void setPlaceType(String placeType) { this.placeType = placeType; }
     public List<String> getLikedBy() { return likedBy; }
     public void setLikedBy(List<String> likedBy) { this.likedBy = likedBy; }
     public List<String> getReportedBy() { return reportedBy; }

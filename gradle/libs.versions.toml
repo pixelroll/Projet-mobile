@@ -7,11 +7,13 @@ appcompat = "1.7.1"
 material = "1.13.0"
 googleServices = "4.4.1"
 navigation = "2.7.7"
-firebaseBom = "32.7.4"
+firebaseBom = "34.12.0"
 cloudinary = "2.4.0"
 constraintlayout = "2.1.4"
 glide = "4.16.0"
 swiperefreshlayout = "1.1.0"
+guava = "31.0.1-android"
+reactiveStreams = "1.0.4"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -27,6 +29,9 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+reactive-streams = { group = "org.reactivestreams", name = "reactive-streams", version.ref = "reactiveStreams" }
 cloudinary = { group = "com.cloudinary", name = "cloudinary-android", version.ref = "cloudinary" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }

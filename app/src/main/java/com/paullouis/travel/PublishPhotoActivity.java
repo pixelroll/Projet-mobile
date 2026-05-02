@@ -43,7 +43,21 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.android.material.card.MaterialCardView;
 import com.paullouis.travel.util.WindowInsetsHelper;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ProgressBar;
+import java.io.InputStream;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.ai.FirebaseAI;
+import com.google.firebase.ai.java.GenerativeModelFutures;
+import com.google.firebase.ai.type.Content;
+import com.google.firebase.ai.type.GenerateContentResponse;
+import com.google.firebase.ai.type.GenerativeBackend;
 
 public class PublishPhotoActivity extends AppCompatActivity {
 
@@ -56,6 +70,10 @@ public class PublishPhotoActivity extends AppCompatActivity {
     private TextView tvDateDisplay, tvMomentDisplay;
     private ChipGroup chipGroupTags;
     private Uri selectedImageUri;
+
+    // Place type selector
+    private String selectedPlaceType = null;
+    private MaterialCardView activePublishPlaceCard = null;
 
     // Destination selector (feed vs. group)
     private List<Group> availableGroups = new ArrayList<>();
@@ -73,6 +91,10 @@ public class PublishPhotoActivity extends AppCompatActivity {
     private ImageView ivAudioIcon;
     private LinearLayout audioRecordingIndicator;
 
+    private ProgressBar pbAiAnalysis;
+    private TextView tvAiAnalysisLabel;
+    private GenerativeModelFutures aiModel;
+
     private final ActivityResultLauncher<String> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             uri -> {
@@ -81,6 +103,7 @@ public class PublishPhotoActivity extends AppCompatActivity {
                     ivSelectedPhoto.setImageURI(uri);
                     ivSelectedPhoto.setVisibility(View.VISIBLE);
                     emptyPhotoContent.setVisibility(View.GONE);
+                    analyzeImageWithGemini(uri);
                 }
             }
     );
@@ -135,6 +158,50 @@ public class PublishPhotoActivity extends AppCompatActivity {
         audioRecordingIndicator = findViewById(R.id.audioRecordingIndicator);
 
         setupDestinationSelector();
+        setupPlaceTypeCards();
+
+        pbAiAnalysis = findViewById(R.id.pbAiAnalysis);
+        tvAiAnalysisLabel = findViewById(R.id.tvAiAnalysisLabel);
+
+        aiModel = GenerativeModelFutures.from(
+            FirebaseAI.getInstance(GenerativeBackend.googleAI())
+                .generativeModel("gemini-3-flash-preview")
+        );
+    }
+
+    private void setupPlaceTypeCards() {
+        int[][] cardAndTypes = {
+            {R.id.cardPublishNature, 0},
+            {R.id.cardPublishMusee, 1},
+            {R.id.cardPublishRue, 2},
+            {R.id.cardPublishMagasin, 3},
+            {R.id.cardPublishRestaurant, 4},
+            {R.id.cardPublishMonument, 5}
+        };
+        String[] types = {"Nature", "Musée", "Rue", "Magasin", "Restaurant", "Monument"};
+
+        for (int[] pair : cardAndTypes) {
+            MaterialCardView card = findViewById(pair[0]);
+            if (card == null) continue;
+            String type = types[pair[1]];
+            card.setOnClickListener(v -> {
+                if (type.equals(selectedPlaceType)) {
+                    selectedPlaceType = null;
+                    card.setStrokeColor(ContextCompat.getColor(this, R.color.muted_foreground));
+                    card.setStrokeWidth(1);
+                    activePublishPlaceCard = null;
+                } else {
+                    if (activePublishPlaceCard != null) {
+                        activePublishPlaceCard.setStrokeColor(ContextCompat.getColor(this, R.color.muted_foreground));
+                        activePublishPlaceCard.setStrokeWidth(1);
+                    }
+                    selectedPlaceType = type;
+                    card.setStrokeColor(ContextCompat.getColor(this, R.color.primary));
+                    card.setStrokeWidth(2);
+                    activePublishPlaceCard = card;
+                }
+            });
+        }
     }
 
     private void setupDestinationSelector() {
@@ -215,7 +282,6 @@ public class PublishPhotoActivity extends AppCompatActivity {
         findViewById(R.id.btnDatePicker).setOnClickListener(v -> showDatePicker());
         findViewById(R.id.btnMomentPicker).setOnClickListener(v -> showMomentPicker());
 
-        findViewById(R.id.btnAiTags).setOnClickListener(v -> generateAiTags());
         findViewById(R.id.btnAddTag).setOnClickListener(v -> addManualTag());
 
         findViewById(R.id.btnPublish).setOnClickListener(v -> validateAndPublish());
@@ -433,21 +499,114 @@ public class PublishPhotoActivity extends AppCompatActivity {
         }
     }
 
-    private void generateAiTags() {
-        String title = etTitle.getText().toString().toLowerCase();
-        if (title.isEmpty()) {
-            Toast.makeText(this, "Saisissez un titre pour générer des tags", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    private void analyzeImageWithGemini(Uri imageUri) {
+        if (pbAiAnalysis != null) pbAiAnalysis.setVisibility(View.VISIBLE);
+        if (tvAiAnalysisLabel != null) tvAiAnalysisLabel.setVisibility(View.VISIBLE);
 
-        if (title.contains("paris") || title.contains("france")) {
-            addTag("Paris");
-            addTag("France");
-            addTag("Voyage");
-            Toast.makeText(this, "Tags IA générés !", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Aucun tag IA trouvé pour ce titre", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            try {
+                Bitmap bitmap = loadBitmapFromUri(imageUri);
+                Bitmap scaled = scaleBitmap(bitmap, 768);
+
+                String prompt = "Analyse cette photo de voyage. Réponds UNIQUEMENT avec un objet JSON valide (sans markdown, sans blocs de code) :\n" +
+                    "{\"type\": \"<un parmi: Nature, Musée, Rue, Magasin, Restaurant, Monument>\", " +
+                    "\"tags\": [\"<tag1>\", \"<tag2>\", \"<tag3>\", \"<tag4>\"]}\n" +
+                    "Règles :\n" +
+                    "- type doit être exactement l'une des six valeurs listées\n" +
+                    "- fournis exactement 4 tags de voyage pertinents en français\n" +
+                    "- les tags décrivent ce que tu vois (ambiance, éléments notables, style du lieu)\n" +
+                    "- réponds avec le JSON uniquement, rien d'autre";
+
+                Content content = new Content.Builder()
+                    .addImage(scaled)
+                    .addText(prompt)
+                    .build();
+
+                ListenableFuture<GenerateContentResponse> future = aiModel.generateContent(content);
+                GenerateContentResponse response = future.get();
+
+                String text = response.getText();
+                if (text == null) throw new Exception("Empty response");
+                text = text.trim().replaceAll("(?s)```[a-z]*\\n?", "").replace("```", "").trim();
+
+                JSONObject json = new JSONObject(text);
+                String type = json.optString("type", null);
+                JSONArray tagsArray = json.optJSONArray("tags");
+
+                List<String> tags = new ArrayList<>();
+                if (tagsArray != null) {
+                    for (int i = 0; i < tagsArray.length(); i++) {
+                        tags.add(tagsArray.getString(i));
+                    }
+                }
+
+                final String finalType = type;
+                final List<String> finalTags = tags;
+
+                runOnUiThread(() -> {
+                    hideAiLoadingIndicator();
+                    if (finalType != null && !finalType.isEmpty()) {
+                        autoSelectPlaceType(finalType);
+                    }
+                    for (String tag : finalTags) {
+                        addTag(tag);
+                    }
+                });
+
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    hideAiLoadingIndicator();
+                    Toast.makeText(getApplicationContext(),
+                        "Analyse IA indisponible — ajoutez vos tags manuellement",
+                        Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
+    private void hideAiLoadingIndicator() {
+        if (pbAiAnalysis != null) pbAiAnalysis.setVisibility(View.GONE);
+        if (tvAiAnalysisLabel != null) tvAiAnalysisLabel.setVisibility(View.GONE);
+    }
+
+    private void autoSelectPlaceType(String type) {
+        int[] cardIds = {
+            R.id.cardPublishNature, R.id.cardPublishMusee, R.id.cardPublishRue,
+            R.id.cardPublishMagasin, R.id.cardPublishRestaurant, R.id.cardPublishMonument
+        };
+        String[] types = {"Nature", "Musée", "Rue", "Magasin", "Restaurant", "Monument"};
+
+        for (int i = 0; i < types.length; i++) {
+            if (types[i].equalsIgnoreCase(type)) {
+                MaterialCardView card = findViewById(cardIds[i]);
+                if (card == null) break;
+                if (activePublishPlaceCard != null) {
+                    activePublishPlaceCard.setStrokeColor(ContextCompat.getColor(this, R.color.muted_foreground));
+                    activePublishPlaceCard.setStrokeWidth(1);
+                }
+                selectedPlaceType = types[i];
+                card.setStrokeColor(ContextCompat.getColor(this, R.color.primary));
+                card.setStrokeWidth(2);
+                activePublishPlaceCard = card;
+                break;
+            }
         }
+    }
+
+    private Bitmap loadBitmapFromUri(Uri uri) throws IOException {
+        InputStream inputStream = getContentResolver().openInputStream(uri);
+        if (inputStream == null) throw new IOException("Cannot open URI");
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+        inputStream.close();
+        return bitmap;
+    }
+
+    private Bitmap scaleBitmap(Bitmap original, int maxDimension) {
+        int w = original.getWidth();
+        int h = original.getHeight();
+        if (w <= maxDimension && h <= maxDimension) return original;
+        float scale = Math.min((float) maxDimension / w, (float) maxDimension / h);
+        return Bitmap.createScaledBitmap(original, (int) (w * scale), (int) (h * scale), true);
     }
 
     // =========================================================================
@@ -517,6 +676,11 @@ public class PublishPhotoActivity extends AppCompatActivity {
                 String moment = tvMomentDisplay.getText().toString();
                 if (!moment.equals("Moment...")) {
                     photo.setMomentOfDay(moment);
+                }
+
+                // Place type
+                if (selectedPlaceType != null) {
+                    photo.setPlaceType(selectedPlaceType);
                 }
 
                 // Tags

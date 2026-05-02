@@ -13,15 +13,20 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.card.MaterialCardView;
 import com.paullouis.travel.adapter.PhotoAdapter;
 import com.paullouis.travel.adapter.SearchNavigationAdapter;
 import com.paullouis.travel.data.DataCallback;
 import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.Photo;
+import com.paullouis.travel.model.SearchFilters;
 import com.paullouis.travel.model.SearchNavigationOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AdvancedSearchFragment extends Fragment {
 
@@ -31,8 +36,28 @@ public class AdvancedSearchFragment extends Fragment {
     private View indicatorFiltres, indicatorNavigation;
     private TextView tvTabFiltres, tvTabNavigation;
     private SearchNavigationOption selectedOption;
-    private EditText etSearchQuery, etAuthorFilter;
+    private EditText etSearchQuery, etAuthorFilter, etLocationFilter, etTagsFilter;
     private PhotoAdapter searchResultsAdapter;
+
+    // Place type filter
+    private String selectedPlaceType = null;
+    private MaterialCardView cardNature, cardMusee, cardRue, cardMagasin, cardRestaurant, cardMonument;
+
+    // Moment of day filter
+    private String selectedMomentOfDay = null;
+    private TextView btnMatin, btnMidi, btnApresmidi, btnSoir, btnNuit;
+
+    // Period filter
+    private String selectedPeriod = null;
+
+    // Group filter
+    private String selectedGroupId = null;
+    private final Map<String, String> groupNameToId = new HashMap<>();
+
+    private static final String COLOR_SELECTED_STROKE = "#0891b2";
+    private static final String COLOR_UNSELECTED_STROKE = "#E2E8F0";
+    private static final String COLOR_SELECTED_TEXT = "#0891b2";
+    private static final String COLOR_UNSELECTED_TEXT = "#0F172A";
 
     @Nullable
     @Override
@@ -48,6 +73,8 @@ public class AdvancedSearchFragment extends Fragment {
         setupTabs(view);
         setupRecyclerView();
         setupSearchResults();
+        setupPlaceTypeCards();
+        setupMomentButtons();
 
         View btnBack = view.findViewById(R.id.btnBack);
         if (btnBack != null) {
@@ -79,7 +106,8 @@ public class AdvancedSearchFragment extends Fragment {
             popup.getMenu().add("Ce mois");
             popup.getMenu().add("Cette année");
             popup.setOnMenuItemClickListener(item -> {
-                tvPeriodValue.setText(item.getTitle());
+                selectedPeriod = item.getTitle().toString();
+                tvPeriodValue.setText(selectedPeriod);
                 tvPeriodValue.setTextColor(Color.parseColor("#0F172A"));
                 return true;
             });
@@ -93,16 +121,24 @@ public class AdvancedSearchFragment extends Fragment {
             FirebaseRepository.getInstance().getMyGroups(new DataCallback<List<com.paullouis.travel.model.Group>>() {
                 @Override
                 public void onSuccess(List<com.paullouis.travel.model.Group> groups) {
+                    groupNameToId.clear();
                     for (com.paullouis.travel.model.Group g : groups) {
                         popup.getMenu().add(g.getName());
+                        groupNameToId.put(g.getName(), g.getId());
                     }
                 }
                 @Override
                 public void onError(Exception e) {}
             });
             popup.setOnMenuItemClickListener(item -> {
-                tvGroupFilter.setText(item.getTitle());
+                String name = item.getTitle().toString();
+                tvGroupFilter.setText(name);
                 tvGroupFilter.setTextColor(Color.parseColor("#0F172A"));
+                if ("Tous mes groupes".equals(name)) {
+                    selectedGroupId = null;
+                } else {
+                    selectedGroupId = groupNameToId.get(name);
+                }
                 return true;
             });
             popup.show();
@@ -119,6 +155,98 @@ public class AdvancedSearchFragment extends Fragment {
         tvTabNavigation = view.findViewById(R.id.tvTabNavigation);
         etSearchQuery = view.findViewById(R.id.etSearchQuery);
         etAuthorFilter = view.findViewById(R.id.etAuthorFilter);
+        etLocationFilter = view.findViewById(R.id.etLocationFilter);
+        etTagsFilter = view.findViewById(R.id.etTagsFilter);
+
+        cardNature = view.findViewById(R.id.cardNature);
+        cardMusee = view.findViewById(R.id.cardMusee);
+        cardRue = view.findViewById(R.id.cardRue);
+        cardMagasin = view.findViewById(R.id.cardMagasin);
+        cardRestaurant = view.findViewById(R.id.cardRestaurant);
+        cardMonument = view.findViewById(R.id.cardMonument);
+
+        btnMatin = view.findViewById(R.id.btnMatin);
+        btnMidi = view.findViewById(R.id.btnMidi);
+        btnApresmidi = view.findViewById(R.id.btnApresmidi);
+        btnSoir = view.findViewById(R.id.btnSoir);
+        btnNuit = view.findViewById(R.id.btnNuit);
+    }
+
+    private void setupPlaceTypeCards() {
+        Map<MaterialCardView, String> cardToType = new HashMap<>();
+        cardToType.put(cardNature, "Nature");
+        cardToType.put(cardMusee, "Musée");
+        cardToType.put(cardRue, "Rue");
+        cardToType.put(cardMagasin, "Magasin");
+        cardToType.put(cardRestaurant, "Restaurant");
+        cardToType.put(cardMonument, "Monument");
+
+        for (Map.Entry<MaterialCardView, String> entry : cardToType.entrySet()) {
+            MaterialCardView card = entry.getKey();
+            String type = entry.getValue();
+            if (card == null) continue;
+            card.setOnClickListener(v -> {
+                if (type.equals(selectedPlaceType)) {
+                    selectedPlaceType = null;
+                    setCardSelected(card, false);
+                } else {
+                    if (selectedPlaceType != null) {
+                        MaterialCardView prev = getCardForType(selectedPlaceType, cardToType);
+                        if (prev != null) setCardSelected(prev, false);
+                    }
+                    selectedPlaceType = type;
+                    setCardSelected(card, true);
+                }
+            });
+        }
+    }
+
+    private MaterialCardView getCardForType(String type, Map<MaterialCardView, String> map) {
+        for (Map.Entry<MaterialCardView, String> e : map.entrySet()) {
+            if (type.equals(e.getValue())) return e.getKey();
+        }
+        return null;
+    }
+
+    private void setCardSelected(MaterialCardView card, boolean selected) {
+        card.setStrokeColor(Color.parseColor(selected ? COLOR_SELECTED_STROKE : COLOR_UNSELECTED_STROKE));
+        card.setStrokeWidth(selected ? 2 : 1);
+    }
+
+    private void setupMomentButtons() {
+        List<TextView> momentBtns = Arrays.asList(btnMatin, btnMidi, btnApresmidi, btnSoir, btnNuit);
+        String[] moments = {"Matin", "Midi", "Après-midi", "Soir", "Nuit"};
+
+        for (int i = 0; i < momentBtns.size(); i++) {
+            TextView btn = momentBtns.get(i);
+            String moment = moments[i];
+            if (btn == null) continue;
+            btn.setOnClickListener(v -> {
+                if (moment.equals(selectedMomentOfDay)) {
+                    selectedMomentOfDay = null;
+                    setMomentSelected(btn, false);
+                } else {
+                    if (selectedMomentOfDay != null) {
+                        TextView prev = getMomentButton(selectedMomentOfDay, momentBtns, moments);
+                        if (prev != null) setMomentSelected(prev, false);
+                    }
+                    selectedMomentOfDay = moment;
+                    setMomentSelected(btn, true);
+                }
+            });
+        }
+    }
+
+    private TextView getMomentButton(String moment, List<TextView> btns, String[] moments) {
+        for (int i = 0; i < moments.length; i++) {
+            if (moment.equals(moments[i])) return btns.get(i);
+        }
+        return null;
+    }
+
+    private void setMomentSelected(TextView btn, boolean selected) {
+        btn.setTextColor(Color.parseColor(selected ? COLOR_SELECTED_TEXT : COLOR_UNSELECTED_TEXT));
+        btn.setTypeface(null, android.graphics.Typeface.BOLD);
     }
 
     private void setupTabs(View view) {
@@ -130,7 +258,6 @@ public class AdvancedSearchFragment extends Fragment {
     }
 
     private void switchTab(boolean showFiltres) {
-        // Hide results when switching tabs
         rvSearchResults.setVisibility(View.GONE);
 
         if (showFiltres) {
@@ -177,16 +304,34 @@ public class AdvancedSearchFragment extends Fragment {
     }
 
     private void handleFilterSearch() {
-        String query = etSearchQuery != null ? etSearchQuery.getText().toString().trim() : "";
-        String author = etAuthorFilter != null ? etAuthorFilter.getText().toString().trim() : "";
+        SearchFilters filters = new SearchFilters();
 
-        String searchTerm = !query.isEmpty() ? query : author;
-        if (searchTerm.isEmpty()) {
-            Toast.makeText(getContext(), "Saisissez un terme de recherche", Toast.LENGTH_SHORT).show();
-            return;
+        String query = etSearchQuery != null ? etSearchQuery.getText().toString().trim() : "";
+        if (!query.isEmpty()) filters.setQuery(query);
+
+        if (selectedPlaceType != null) filters.setPlaceType(selectedPlaceType);
+        if (selectedMomentOfDay != null) filters.setMomentOfDay(selectedMomentOfDay);
+        if (selectedPeriod != null) filters.setPeriod(selectedPeriod);
+
+        String location = etLocationFilter != null ? etLocationFilter.getText().toString().trim() : "";
+        if (!location.isEmpty()) filters.setLocation(location);
+
+        String author = etAuthorFilter != null ? etAuthorFilter.getText().toString().trim() : "";
+        if (!author.isEmpty()) filters.setAuthor(author);
+
+        if (selectedGroupId != null) filters.setGroupId(selectedGroupId);
+
+        String tagsText = etTagsFilter != null ? etTagsFilter.getText().toString().trim() : "";
+        if (!tagsText.isEmpty()) {
+            List<String> tags = new ArrayList<>();
+            for (String t : tagsText.split(",")) {
+                String trimmed = t.trim();
+                if (!trimmed.isEmpty()) tags.add(trimmed);
+            }
+            if (!tags.isEmpty()) filters.setTags(tags);
         }
 
-        FirebaseRepository.getInstance().searchPhotos(searchTerm, new DataCallback<List<Photo>>() {
+        FirebaseRepository.getInstance().searchPhotosWithFilters(filters, new DataCallback<List<Photo>>() {
             @Override
             public void onSuccess(List<Photo> photos) {
                 containerFiltres.setVisibility(View.GONE);
@@ -195,7 +340,7 @@ public class AdvancedSearchFragment extends Fragment {
                 searchResultsAdapter = new PhotoAdapter(new ArrayList<>(photos));
                 rvSearchResults.setAdapter(searchResultsAdapter);
                 if (photos.isEmpty()) {
-                    Toast.makeText(getContext(), "Aucune photo trouvée pour \"" + searchTerm + "\"", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Aucune photo trouvée pour ces critères", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -220,7 +365,6 @@ public class AdvancedSearchFragment extends Fragment {
                         containerFiltres.setVisibility(View.GONE);
                         rvNavigation.setVisibility(View.GONE);
                         rvSearchResults.setVisibility(View.VISIBLE);
-                        // Shuffle for random discovery
                         java.util.Collections.shuffle(photos);
                         searchResultsAdapter = new PhotoAdapter(new ArrayList<>(photos));
                         rvSearchResults.setAdapter(searchResultsAdapter);
@@ -252,7 +396,9 @@ public class AdvancedSearchFragment extends Fragment {
                 .setPositiveButton("Rechercher", (dialog, which) -> {
                     String author = input.getText().toString().trim();
                     if (!author.isEmpty()) {
-                        FirebaseRepository.getInstance().searchPhotos(author, new DataCallback<List<Photo>>() {
+                        SearchFilters filters = new SearchFilters();
+                        filters.setAuthor(author);
+                        FirebaseRepository.getInstance().searchPhotosWithFilters(filters, new DataCallback<List<Photo>>() {
                             @Override
                             public void onSuccess(List<Photo> photos) {
                                 containerFiltres.setVisibility(View.GONE);
@@ -274,4 +420,5 @@ public class AdvancedSearchFragment extends Fragment {
                 .setNegativeButton("Annuler", null)
                 .show();
     }
+
 }

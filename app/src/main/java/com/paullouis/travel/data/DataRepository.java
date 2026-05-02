@@ -10,6 +10,7 @@ import com.paullouis.travel.model.NotificationSettingItem;
 import com.paullouis.travel.model.Photo;
 import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.ReportedPhoto;
+import com.paullouis.travel.model.SearchFilters;
 import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.model.User;
 
@@ -64,6 +65,7 @@ public interface DataRepository {
 
     // --- Search ---
     void searchPhotos(String query, DataCallback<List<Photo>> callback);
+    void searchPhotosWithFilters(SearchFilters filters, DataCallback<List<Photo>> callback);
 
     // --- Itineraries ---
     void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback);

@@ -11,6 +11,7 @@ import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.ItineraryStep;
 import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.StepPhoto;
+import com.paullouis.travel.model.SearchFilters;
 import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.R;
 
@@ -671,5 +672,10 @@ public class MockDataProvider implements DataRepository {
             }
         }
         callback.onSuccess(results);
+    }
+
+    @Override
+    public void searchPhotosWithFilters(SearchFilters filters, DataCallback<List<Photo>> callback) {
+        callback.onSuccess(new ArrayList<>());
     }
 }

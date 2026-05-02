@@ -16,10 +16,12 @@ import com.paullouis.travel.model.NotificationSettingItem;
 import com.paullouis.travel.model.Photo;
 import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.ReportedPhoto;
+import com.paullouis.travel.model.SearchFilters;
 import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.model.User;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1027,4 +1029,96 @@ public class FirebaseRepository implements DataRepository {
 
     @Override
     public void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback) { mockDelegate.getSearchNavigationOptions(callback); }
+
+    @Override
+    public void searchPhotosWithFilters(SearchFilters filters, DataCallback<List<Photo>> callback) {
+        getFeedPhotos(new DataCallback<List<Photo>>() {
+            @Override
+            public void onSuccess(List<Photo> all) {
+                List<Photo> result = new ArrayList<>(all);
+
+                if (filters.getQuery() != null && !filters.getQuery().isEmpty()) {
+                    String q = filters.getQuery().toLowerCase();
+                    result.removeIf(p ->
+                        (p.getTitle() == null || !p.getTitle().toLowerCase().contains(q)) &&
+                        (p.getDescription() == null || !p.getDescription().toLowerCase().contains(q)));
+                }
+
+                if (filters.getPlaceType() != null && !filters.getPlaceType().isEmpty()) {
+                    result.removeIf(p -> !filters.getPlaceType().equals(p.getPlaceType()));
+                }
+
+                if (filters.getMomentOfDay() != null && !filters.getMomentOfDay().isEmpty()) {
+                    result.removeIf(p -> !filters.getMomentOfDay().equals(p.getMomentOfDay()));
+                }
+
+                if (filters.getPeriod() != null && !filters.getPeriod().isEmpty()) {
+                    long cutoff = computePeriodCutoff(filters.getPeriod());
+                    result.removeIf(p -> p.getTimestamp() < cutoff);
+                }
+
+                if (filters.getLocation() != null && !filters.getLocation().isEmpty()) {
+                    String loc = filters.getLocation().toLowerCase();
+                    result.removeIf(p -> p.getLocationName() == null ||
+                        !p.getLocationName().toLowerCase().contains(loc));
+                }
+
+                if (filters.getAuthor() != null && !filters.getAuthor().isEmpty()) {
+                    String auth = filters.getAuthor().toLowerCase();
+                    result.removeIf(p -> p.getAuthorName() == null ||
+                        !p.getAuthorName().toLowerCase().contains(auth));
+                }
+
+                if (filters.getGroupId() != null && !filters.getGroupId().isEmpty()) {
+                    result.removeIf(p -> !filters.getGroupId().equals(p.getGroupId()));
+                }
+
+                if (filters.getTags() != null && !filters.getTags().isEmpty()) {
+                    result.removeIf(p -> {
+                        if (p.getTags() == null) return true;
+                        for (String tag : filters.getTags()) {
+                            if (p.getTags().contains(tag)) return false;
+                        }
+                        return true;
+                    });
+                }
+
+                result.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                callback.onSuccess(result);
+            }
+
+            @Override
+            public void onError(Exception e) { callback.onError(e); }
+        });
+    }
+
+    private long computePeriodCutoff(String period) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        switch (period) {
+            case "Aujourd'hui":
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                break;
+            case "Cette semaine":
+                cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                break;
+            case "Ce mois":
+                cal.set(Calendar.DAY_OF_MONTH, 1);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                break;
+            case "Cette année":
+                cal.set(Calendar.DAY_OF_YEAR, 1);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                break;
+            default:
+                return 0;
+        }
+        return cal.getTimeInMillis();
+    }
 }

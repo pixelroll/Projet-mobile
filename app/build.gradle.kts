@@ -47,6 +47,11 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.ai)
+    
+    // Additional Dependencies
+    implementation(libs.guava)
+    implementation(libs.reactive.streams)
     
     // Cloudinary & Glide
     implementation(libs.cloudinary) {

@@ -225,11 +225,14 @@
 
                 <!-- Nature -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardNature"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_marginEnd="6dp"
                     android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -258,11 +261,14 @@
 
                 <!-- Musée -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMusee"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_marginStart="6dp"
                     android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -291,11 +297,14 @@
 
                 <!-- Rue -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardRue"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_marginEnd="6dp"
                     android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -324,11 +333,14 @@
 
                 <!-- Magasin -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMagasin"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_marginStart="6dp"
                     android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -357,10 +369,13 @@
                 
                 <!-- Restaurant -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardRestaurant"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_marginEnd="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -389,10 +404,13 @@
                 
                 <!-- Monument -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMonument"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
                     android:layout_marginStart="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -435,12 +453,12 @@
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="2"
+                android:columnCount="3"
                 android:useDefaultMargins="false">
-                
+
                 <!-- Matin -->
                 <TextView
+                    android:id="@+id/btnMatin"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_columnWeight="1"
@@ -448,51 +466,78 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/bg_mic_button"
                     android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:text="Matin"
                     android:textColor="#0F172A"
                     android:textSize="14sp"
                     android:textStyle="bold"/>
-                    
-                <!-- Après-midi -->
+
+                <!-- Midi -->
                 <TextView
+                    android:id="@+id/btnMidi"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_columnWeight="1"
-                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/bg_mic_button"
                     android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="Midi"
+                    android:textColor="#0F172A"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <!-- Après-midi -->
+                <TextView
+                    android:id="@+id/btnApresmidi"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_columnWeight="1"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_mic_button"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:text="Après-midi"
                     android:textColor="#0F172A"
                     android:textSize="14sp"
                     android:textStyle="bold"/>
-                    
-                <!-- Soirée -->
+
+                <!-- Soir -->
                 <TextView
+                    android:id="@+id/btnSoir"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_columnWeight="1"
                     android:layout_marginEnd="6dp"
                     android:background="@drawable/bg_mic_button"
                     android:gravity="center"
-                    android:text="Soirée"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="Soir"
                     android:textColor="#0F172A"
                     android:textSize="14sp"
                     android:textStyle="bold"/>
-                    
+
                 <!-- Nuit -->
                 <TextView
+                    android:id="@+id/btnNuit"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_columnWeight="1"
-                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
                     android:background="@drawable/bg_mic_button"
                     android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:text="Nuit"
                     android:textColor="#0F172A"
                     android:textSize="14sp"
                     android:textStyle="bold"/>
-                    
+
             </GridLayout>
 
             <!-- Période -->
@@ -545,6 +590,7 @@
                 android:layout_marginBottom="12dp" />
 
             <EditText
+                android:id="@+id/etLocationFilter"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="@drawable/bg_gray_rounded"
@@ -652,6 +698,7 @@
                 android:layout_marginBottom="12dp" />
                 
             <EditText
+                android:id="@+id/etTagsFilter"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="@drawable/bg_gray_rounded"
