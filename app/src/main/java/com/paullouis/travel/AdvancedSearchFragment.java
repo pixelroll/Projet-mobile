@@ -1,6 +1,9 @@
 package com.paullouis.travel;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,22 +11,32 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.ai.FirebaseAI;
+import com.google.firebase.ai.java.GenerativeModelFutures;
+import com.google.firebase.ai.type.Content;
+import com.google.firebase.ai.type.GenerateContentResponse;
+import com.google.firebase.ai.type.GenerativeBackend;
 import com.paullouis.travel.adapter.PhotoAdapter;
-import com.paullouis.travel.adapter.SearchNavigationAdapter;
 import com.paullouis.travel.data.DataCallback;
 import com.paullouis.travel.data.FirebaseRepository;
-import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.Photo;
 import com.paullouis.travel.model.SearchFilters;
-import com.paullouis.travel.model.SearchNavigationOption;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +44,13 @@ import java.util.Map;
 public class AdvancedSearchFragment extends Fragment {
 
     private View containerFiltres;
-    private RecyclerView rvNavigation;
     private RecyclerView rvSearchResults;
-    private View indicatorFiltres, indicatorNavigation;
-    private TextView tvTabFiltres, tvTabNavigation;
-    private SearchNavigationOption selectedOption;
     private EditText etSearchQuery, etAuthorFilter, etLocationFilter, etTagsFilter;
     private PhotoAdapter searchResultsAdapter;
+    private View containerSimilarLoading;
+    private TextView tvSimilarUploadLabel;
+    private GenerativeModelFutures aiModel;
+    private ActivityResultLauncher<String> imagePickerLauncher;
 
     // Place type filter
     private String selectedPlaceType = null;
@@ -59,6 +72,23 @@ public class AdvancedSearchFragment extends Fragment {
     private static final String COLOR_SELECTED_TEXT = "#0891b2";
     private static final String COLOR_UNSELECTED_TEXT = "#0F172A";
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            uri -> {
+                if (uri != null) analyzeAndSearchSimilar(uri);
+            }
+        );
+
+        aiModel = GenerativeModelFutures.from(
+            FirebaseAI.getInstance(GenerativeBackend.googleAI())
+                .generativeModel("gemini-3-flash-preview")
+        );
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -70,31 +100,22 @@ public class AdvancedSearchFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         initViews(view);
-        setupTabs(view);
-        setupRecyclerView();
         setupSearchResults();
         setupPlaceTypeCards();
         setupMomentButtons();
-
-        View btnBack = view.findViewById(R.id.btnBack);
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> {
-                if (getActivity() != null) getActivity().onBackPressed();
-            });
-        }
-
-        View btnSubmit = view.findViewById(R.id.btnSubmit);
-        if (btnSubmit != null) {
-            btnSubmit.setOnClickListener(v -> {
-                if (rvNavigation.getVisibility() == View.VISIBLE) {
-                    handleNavigationSearch();
-                } else {
-                    handleFilterSearch();
-                }
-            });
-        }
-
         setupDropdowns(view);
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            if (getActivity() != null) getActivity().onBackPressed();
+        });
+
+        view.findViewById(R.id.btnSubmit).setOnClickListener(v -> handleFilterSearch());
+
+        view.findViewById(R.id.btnDice).setOnClickListener(v -> handleRandomSearch());
+
+        view.findViewById(R.id.llSimilarUpload).setOnClickListener(v ->
+            imagePickerLauncher.launch("image/*")
+        );
     }
 
     private void setupDropdowns(View view) {
@@ -147,12 +168,9 @@ public class AdvancedSearchFragment extends Fragment {
 
     private void initViews(View view) {
         containerFiltres = view.findViewById(R.id.containerFiltres);
-        rvNavigation = view.findViewById(R.id.rvNavigation);
         rvSearchResults = view.findViewById(R.id.rvSearchResults);
-        indicatorFiltres = view.findViewById(R.id.indicatorFiltres);
-        indicatorNavigation = view.findViewById(R.id.indicatorNavigation);
-        tvTabFiltres = view.findViewById(R.id.tvTabFiltres);
-        tvTabNavigation = view.findViewById(R.id.tvTabNavigation);
+        containerSimilarLoading = view.findViewById(R.id.containerSimilarLoading);
+        tvSimilarUploadLabel = view.findViewById(R.id.tvSimilarUploadLabel);
         etSearchQuery = view.findViewById(R.id.etSearchQuery);
         etAuthorFilter = view.findViewById(R.id.etAuthorFilter);
         etLocationFilter = view.findViewById(R.id.etLocationFilter);
@@ -249,58 +267,20 @@ public class AdvancedSearchFragment extends Fragment {
         btn.setTypeface(null, android.graphics.Typeface.BOLD);
     }
 
-    private void setupTabs(View view) {
-        View tabFiltres = view.findViewById(R.id.tabFiltres);
-        View tabNavigation = view.findViewById(R.id.tabNavigation);
-        tabFiltres.setOnClickListener(v -> switchTab(true));
-        tabNavigation.setOnClickListener(v -> switchTab(false));
-        switchTab(true);
-    }
-
-    private void switchTab(boolean showFiltres) {
-        rvSearchResults.setVisibility(View.GONE);
-
-        if (showFiltres) {
-            containerFiltres.setVisibility(View.VISIBLE);
-            rvNavigation.setVisibility(View.GONE);
-            tvTabFiltres.setTextColor(Color.parseColor("#002137"));
-            indicatorFiltres.setBackgroundColor(Color.parseColor("#0891b2"));
-            indicatorFiltres.getLayoutParams().height = (int) (2 * getResources().getDisplayMetrics().density);
-            tvTabNavigation.setTextColor(Color.parseColor("#4A5568"));
-            indicatorNavigation.setBackgroundColor(Color.parseColor("#E2E8F0"));
-            indicatorNavigation.getLayoutParams().height = (int) (1 * getResources().getDisplayMetrics().density);
-        } else {
-            containerFiltres.setVisibility(View.GONE);
-            rvNavigation.setVisibility(View.VISIBLE);
-            tvTabNavigation.setTextColor(Color.parseColor("#002137"));
-            indicatorNavigation.setBackgroundColor(Color.parseColor("#0891b2"));
-            indicatorNavigation.getLayoutParams().height = (int) (2 * getResources().getDisplayMetrics().density);
-            tvTabFiltres.setTextColor(Color.parseColor("#4A5568"));
-            indicatorFiltres.setBackgroundColor(Color.parseColor("#E2E8F0"));
-            indicatorFiltres.getLayoutParams().height = (int) (1 * getResources().getDisplayMetrics().density);
-        }
-        indicatorFiltres.requestLayout();
-        indicatorNavigation.requestLayout();
-    }
-
-    private void setupRecyclerView() {
-        List<SearchNavigationOption> options = MockDataProvider.getSearchNavigationOptions();
-        if (options != null && !options.isEmpty()) {
-            boolean hasSelection = false;
-            for (SearchNavigationOption o : options) {
-                if (o.isSelected()) { selectedOption = o; hasSelection = true; break; }
-            }
-            if (!hasSelection) { options.get(0).setSelected(true); selectedOption = options.get(0); }
-        }
-        SearchNavigationAdapter adapter = new SearchNavigationAdapter(options, option -> selectedOption = option);
-        rvNavigation.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvNavigation.setAdapter(adapter);
-    }
-
     private void setupSearchResults() {
         searchResultsAdapter = new PhotoAdapter(new ArrayList<>());
         rvSearchResults.setLayoutManager(new LinearLayoutManager(getContext()));
         rvSearchResults.setAdapter(searchResultsAdapter);
+    }
+
+    private void showResults(List<Photo> photos) {
+        containerFiltres.setVisibility(View.GONE);
+        rvSearchResults.setVisibility(View.VISIBLE);
+        searchResultsAdapter = new PhotoAdapter(new ArrayList<>(photos));
+        rvSearchResults.setAdapter(searchResultsAdapter);
+        if (photos.isEmpty()) {
+            Toast.makeText(getContext(), "Aucune photo trouvée", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void handleFilterSearch() {
@@ -334,14 +314,7 @@ public class AdvancedSearchFragment extends Fragment {
         FirebaseRepository.getInstance().searchPhotosWithFilters(filters, new DataCallback<List<Photo>>() {
             @Override
             public void onSuccess(List<Photo> photos) {
-                containerFiltres.setVisibility(View.GONE);
-                rvNavigation.setVisibility(View.GONE);
-                rvSearchResults.setVisibility(View.VISIBLE);
-                searchResultsAdapter = new PhotoAdapter(new ArrayList<>(photos));
-                rvSearchResults.setAdapter(searchResultsAdapter);
-                if (photos.isEmpty()) {
-                    Toast.makeText(getContext(), "Aucune photo trouvée pour ces critères", Toast.LENGTH_SHORT).show();
-                }
+                showResults(photos);
             }
 
             @Override
@@ -351,74 +324,136 @@ public class AdvancedSearchFragment extends Fragment {
         });
     }
 
-    private void handleNavigationSearch() {
-        if (selectedOption == null) {
-            Toast.makeText(getContext(), "Veuillez choisir une option de navigation", Toast.LENGTH_SHORT).show();
+    private void handleRandomSearch() {
+        FirebaseRepository.getInstance().getUserPhotos(new DataCallback<List<Photo>>() {
+            @Override
+            public void onSuccess(List<Photo> photos) {
+                Collections.shuffle(photos);
+                showResults(photos);
+            }
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(getContext(), "Erreur de chargement", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void analyzeAndSearchSimilar(Uri imageUri) {
+        if (tvSimilarUploadLabel != null) tvSimilarUploadLabel.setText("Photo sélectionnée");
+        if (containerSimilarLoading != null) containerSimilarLoading.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                Bitmap bitmap = loadBitmapFromUri(imageUri);
+                Bitmap scaled = scaleBitmap(bitmap, 768);
+
+                String prompt = "Analyse cette photo de voyage. Réponds UNIQUEMENT avec un objet JSON valide (sans markdown, sans blocs de code) :\n" +
+                    "{\"tags\": [\"<tag1>\", \"<tag2>\", ..., \"<tag10>\"]}\n" +
+                    "Règles :\n" +
+                    "- fournis exactement 10 tags de voyage pertinents en français\n" +
+                    "- les tags décrivent ce que tu vois (ambiance, éléments notables, style du lieu, couleurs, saison, activité)\n" +
+                    "- réponds avec le JSON uniquement, rien d'autre";
+
+                Content content = new Content.Builder()
+                    .addImage(scaled)
+                    .addText(prompt)
+                    .build();
+
+                ListenableFuture<GenerateContentResponse> future = aiModel.generateContent(content);
+                GenerateContentResponse response = future.get();
+
+                String text = response.getText();
+                if (text == null) throw new Exception("Empty response");
+                text = text.trim().replaceAll("(?s)```[a-z]*\\n?", "").replace("```", "").trim();
+
+                JSONObject json = new JSONObject(text);
+                JSONArray tagsArray = json.optJSONArray("tags");
+
+                List<String> tags = new ArrayList<>();
+                if (tagsArray != null) {
+                    for (int i = 0; i < tagsArray.length(); i++) {
+                        tags.add(tagsArray.getString(i).toLowerCase().trim());
+                    }
+                }
+
+                final List<String> finalTags = tags;
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> searchBySimilarTags(finalTags));
+                }
+
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (containerSimilarLoading != null) containerSimilarLoading.setVisibility(View.GONE);
+                        if (tvSimilarUploadLabel != null) tvSimilarUploadLabel.setText("Choisir une photo...");
+                        Toast.makeText(getContext(), "Analyse IA indisponible", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void searchBySimilarTags(List<String> tags) {
+        if (tags.isEmpty()) {
+            if (containerSimilarLoading != null) containerSimilarLoading.setVisibility(View.GONE);
+            Toast.makeText(getContext(), "Aucun tag généré", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        switch (selectedOption.getId()) {
-            case "random":
-                FirebaseRepository.getInstance().getUserPhotos(new DataCallback<List<Photo>>() {
-                    @Override
-                    public void onSuccess(List<Photo> photos) {
-                        containerFiltres.setVisibility(View.GONE);
-                        rvNavigation.setVisibility(View.GONE);
-                        rvSearchResults.setVisibility(View.VISIBLE);
-                        java.util.Collections.shuffle(photos);
-                        searchResultsAdapter = new PhotoAdapter(new ArrayList<>(photos));
-                        rvSearchResults.setAdapter(searchResultsAdapter);
-                    }
-                    @Override
-                    public void onError(Exception e) {
-                        Toast.makeText(getContext(), "Erreur de chargement", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                break;
-            case "author":
-                showAuthorSearchDialog();
-                break;
-            case "similar":
-                Toast.makeText(getContext(), "Recherche par similarité IA : fonctionnalité avancée", Toast.LENGTH_SHORT).show();
-                break;
-            default:
-                Toast.makeText(getContext(), "Utilisez l'onglet Filtres pour filtrer par " + selectedOption.getTitle(), Toast.LENGTH_SHORT).show();
-                break;
-        }
-    }
+        FirebaseRepository.getInstance().getUserPhotos(new DataCallback<List<Photo>>() {
+            @Override
+            public void onSuccess(List<Photo> photos) {
+                Map<String, Integer> scoreMap = new HashMap<>();
+                List<Photo> result = new ArrayList<>();
 
-    private void showAuthorSearchDialog() {
-        EditText input = new EditText(getContext());
-        input.setHint("Nom de l'auteur");
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Rechercher par auteur")
-                .setView(input)
-                .setPositiveButton("Rechercher", (dialog, which) -> {
-                    String author = input.getText().toString().trim();
-                    if (!author.isEmpty()) {
-                        SearchFilters filters = new SearchFilters();
-                        filters.setAuthor(author);
-                        FirebaseRepository.getInstance().searchPhotosWithFilters(filters, new DataCallback<List<Photo>>() {
-                            @Override
-                            public void onSuccess(List<Photo> photos) {
-                                containerFiltres.setVisibility(View.GONE);
-                                rvNavigation.setVisibility(View.GONE);
-                                rvSearchResults.setVisibility(View.VISIBLE);
-                                searchResultsAdapter = new PhotoAdapter(new ArrayList<>(photos));
-                                rvSearchResults.setAdapter(searchResultsAdapter);
-                                if (photos.isEmpty()) {
-                                    Toast.makeText(getContext(), "Aucun auteur trouvé : " + author, Toast.LENGTH_SHORT).show();
+                for (Photo p : photos) {
+                    int score = 0;
+                    if (p.getTags() != null) {
+                        for (String tag : tags) {
+                            for (String photoTag : p.getTags()) {
+                                if (photoTag.toLowerCase().trim().equals(tag)) {
+                                    score++;
+                                    break;
                                 }
                             }
-                            @Override
-                            public void onError(Exception e) {
-                                Toast.makeText(getContext(), "Erreur de recherche", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        }
                     }
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
+                    if (score > 0) {
+                        scoreMap.put(p.getId(), score);
+                        result.add(p);
+                    }
+                }
+
+                result.sort((a, b) -> Integer.compare(
+                    scoreMap.getOrDefault(b.getId(), 0),
+                    scoreMap.getOrDefault(a.getId(), 0)
+                ));
+
+                if (containerSimilarLoading != null) containerSimilarLoading.setVisibility(View.GONE);
+                showResults(result);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (containerSimilarLoading != null) containerSimilarLoading.setVisibility(View.GONE);
+                Toast.makeText(getContext(), "Erreur de chargement", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
+    private Bitmap loadBitmapFromUri(Uri uri) throws IOException {
+        InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+        if (inputStream == null) throw new IOException("Cannot open URI");
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+        inputStream.close();
+        return bitmap;
+    }
+
+    private Bitmap scaleBitmap(Bitmap original, int maxDimension) {
+        int w = original.getWidth();
+        int h = original.getHeight();
+        if (w <= maxDimension && h <= maxDimension) return original;
+        float scale = Math.min((float) maxDimension / w, (float) maxDimension / h);
+        return Bitmap.createScaledBitmap(original, (int) (w * scale), (int) (h * scale), true);
+    }
 }
