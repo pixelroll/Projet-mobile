@@ -1,6 +1,5 @@
 package com.paullouis.travel.util;
 
-import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.Group;
 
 public class GroupPermissionHelper {

@@ -8,9 +8,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,6 +56,11 @@ public class PublishPhotoActivity extends AppCompatActivity {
     private TextView tvDateDisplay, tvMomentDisplay;
     private ChipGroup chipGroupTags;
     private Uri selectedImageUri;
+
+    // Destination selector (feed vs. group)
+    private List<Group> availableGroups = new ArrayList<>();
+    private Group selectedGroup = null;
+    private boolean postToGroup = false;
 
     // Audio recording
     private MediaRecorder mediaRecorder;
@@ -126,6 +133,68 @@ public class PublishPhotoActivity extends AppCompatActivity {
         ivAudioIcon = findViewById(R.id.ivAudioIcon);
         tvRecordingDuration = findViewById(R.id.tvRecordingDuration);
         audioRecordingIndicator = findViewById(R.id.audioRecordingIndicator);
+
+        setupDestinationSelector();
+    }
+
+    private void setupDestinationSelector() {
+        View sectionDestination = findViewById(R.id.sectionDestination);
+        if (sectionDestination == null) return;
+        sectionDestination.setVisibility(View.VISIBLE);
+
+        Spinner spDestination = findViewById(R.id.spDestination);
+        String intentGroupId = getIntent().getStringExtra(EXTRA_GROUP_ID);
+
+        List<String> items = new ArrayList<>();
+        items.add("Fil public (général)");
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spDestination.setAdapter(adapter);
+
+        FirebaseRepository.getInstance().getMyGroups(new DataCallback<List<Group>>() {
+            @Override
+            public void onSuccess(List<Group> groups) {
+                availableGroups = groups;
+                int preSelectedIndex = 0;
+                for (int i = 0; i < groups.size(); i++) {
+                    items.add("Groupe : " + groups.get(i).getName());
+                    if (intentGroupId != null && groups.get(i).getId().equals(intentGroupId)) {
+                        preSelectedIndex = i + 1;
+                        selectedGroup = groups.get(i);
+                        postToGroup = true;
+                    }
+                }
+                adapter.notifyDataSetChanged();
+                if (preSelectedIndex > 0) {
+                    spDestination.setSelection(preSelectedIndex);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) { /* keep Fil public as only option */ }
+        });
+
+        spDestination.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    postToGroup = false;
+                    selectedGroup = null;
+                } else {
+                    int groupIndex = position - 1;
+                    if (groupIndex < availableGroups.size()) {
+                        postToGroup = true;
+                        selectedGroup = availableGroups.get(groupIndex);
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                postToGroup = false;
+                selectedGroup = null;
+            }
+        });
     }
 
     private void setupToolbar() {
@@ -398,6 +467,11 @@ public class PublishPhotoActivity extends AppCompatActivity {
             return;
         }
 
+        if (postToGroup && selectedGroup == null && getIntent().getStringExtra(EXTRA_GROUP_ID) == null) {
+            Toast.makeText(this, "Veuillez sélectionner un groupe", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Stop recording if still active
         if (isRecording) {
             stopAudioRecording();
@@ -453,11 +527,18 @@ public class PublishPhotoActivity extends AppCompatActivity {
                 photo.setTags(tags);
 
                 // Group
-                String groupId = getIntent().getStringExtra(EXTRA_GROUP_ID);
-                String groupName = getIntent().getStringExtra(EXTRA_GROUP_NAME);
-                if (groupId != null) {
-                    photo.setGroupId(groupId);
-                    photo.setGroupName(groupName);
+                if (postToGroup) {
+                    if (selectedGroup != null) {
+                        photo.setGroupId(selectedGroup.getId());
+                        photo.setGroupName(selectedGroup.getName());
+                    } else {
+                        // Fallback: groups hadn't finished loading, use intent extras
+                        String fallbackId = getIntent().getStringExtra(EXTRA_GROUP_ID);
+                        if (fallbackId != null) {
+                            photo.setGroupId(fallbackId);
+                            photo.setGroupName(getIntent().getStringExtra(EXTRA_GROUP_NAME));
+                        }
+                    }
                 }
 
                 photo.setLoading(true);

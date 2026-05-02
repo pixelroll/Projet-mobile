@@ -11,10 +11,9 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.paullouis.travel.admin.AdminMembersFragment;
-import com.paullouis.travel.admin.AdminModerationFragment;
 import com.paullouis.travel.admin.AdminSettingsFragment;
-import com.paullouis.travel.admin.AdminStatsFragment;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Group;
 import com.paullouis.travel.util.WindowInsetsHelper;
 
@@ -30,9 +29,26 @@ public class GroupAdminActivity extends AppCompatActivity {
 
         groupId = getIntent().getStringExtra(EXTRA_GROUP_ID);
 
-        initToolbar();
-        initViewPager();
-        WindowInsetsHelper.applyStatusBarPadding(findViewById(R.id.llToolbarContainer));
+        // Check permissions before showing admin panel
+        FirebaseRepository.getInstance().getGroupById(groupId, new DataCallback<Group>() {
+            @Override
+            public void onSuccess(Group group) {
+                if (group.getRole() == Group.UserRole.ADMIN || group.getRole() == Group.UserRole.OWNER) {
+                    initToolbar();
+                    initViewPager();
+                    WindowInsetsHelper.applyStatusBarPadding(findViewById(R.id.llToolbarContainer));
+                } else {
+                    android.widget.Toast.makeText(GroupAdminActivity.this, "Vous n'avez pas les permissions nécessaires", android.widget.Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                android.widget.Toast.makeText(GroupAdminActivity.this, "Impossible de vérifier les permissions", android.widget.Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
     }
 
     private void initToolbar() {
@@ -44,10 +60,18 @@ public class GroupAdminActivity extends AppCompatActivity {
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        Group group = MockDataProvider.getGroupById(groupId);
-        if (group != null) {
-            ((android.widget.TextView) findViewById(R.id.tvAdminSubtitle)).setText(group.getName());
-        }
+        FirebaseRepository.getInstance().getGroupById(groupId, new DataCallback<Group>() {
+            @Override
+            public void onSuccess(Group group) {
+                android.widget.TextView subtitle = findViewById(R.id.tvAdminSubtitle);
+                if (subtitle != null && group != null) {
+                    subtitle.setText(group.getName());
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {}
+        });
     }
 
     private void initViewPager() {
@@ -55,7 +79,7 @@ public class GroupAdminActivity extends AppCompatActivity {
         ViewPager2 viewPager = findViewById(R.id.viewPager);
 
         viewPager.setAdapter(new AdminPagerAdapter(this, groupId));
-        viewPager.setOffscreenPageLimit(3); // Keep tabs in memory for smooth transitions
+        viewPager.setOffscreenPageLimit(1);
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             switch (position) {
@@ -64,16 +88,8 @@ public class GroupAdminActivity extends AppCompatActivity {
                     tab.setIcon(R.drawable.ic_user);
                     break;
                 case 1:
-                    tab.setText("Modération");
-                    tab.setIcon(R.drawable.ic_shield);
-                    break;
-                case 2:
                     tab.setText("Paramètres");
                     tab.setIcon(R.drawable.ic_settings);
-                    break;
-                case 3:
-                    tab.setText("Stats");
-                    tab.setIcon(R.drawable.ic_trending_up);
                     break;
             }
         }).attach();
@@ -92,16 +108,14 @@ public class GroupAdminActivity extends AppCompatActivity {
         public Fragment createFragment(int position) {
             switch (position) {
                 case 0: return AdminMembersFragment.newInstance(groupId);
-                case 1: return AdminModerationFragment.newInstance(groupId);
-                case 2: return AdminSettingsFragment.newInstance(groupId);
-                case 3: return AdminStatsFragment.newInstance(groupId);
+                case 1: return AdminSettingsFragment.newInstance(groupId);
                 default: return new Fragment();
             }
         }
 
         @Override
         public int getItemCount() {
-            return 4;
+            return 2;
         }
     }
 }

@@ -49,18 +49,13 @@ public class GroupFeedActivity extends AppCompatActivity implements EventBus.Pho
         initToolbar();
         initViews();
         WindowInsetsHelper.applyStatusBarPadding(findViewById(R.id.appBar));
+        EventBus.registerPhotoListener(this);
         loadData();
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        EventBus.registerPhotoListener(this);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
         EventBus.unregisterPhotoListener(this);
     }
 
@@ -129,14 +124,23 @@ public class GroupFeedActivity extends AppCompatActivity implements EventBus.Pho
                     RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
                     if (rvPhotos != null) rvPhotos.setAdapter(photoAdapter);
                 }
+                updateEmptyState(photos.isEmpty());
             }
 
             @Override
             public void onError(Exception e) {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
+                updateEmptyState(true);
                 Toast.makeText(GroupFeedActivity.this, "Impossible de charger les photos", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateEmptyState(boolean isEmpty) {
+        View emptyState = findViewById(R.id.emptyState);
+        RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
+        if (emptyState != null) emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        if (rvPhotos != null) rvPhotos.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
     // --- EventBus.PhotoListener ---
@@ -147,6 +151,7 @@ public class GroupFeedActivity extends AppCompatActivity implements EventBus.Pho
             photoAdapter.addPhoto(photo);
             RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
             if (rvPhotos != null) rvPhotos.scrollToPosition(0);
+            updateEmptyState(false);
         }
     }
 

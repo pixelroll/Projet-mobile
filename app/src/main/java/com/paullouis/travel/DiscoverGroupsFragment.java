@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -22,6 +24,11 @@ import java.util.List;
 public class DiscoverGroupsFragment extends Fragment {
 
     private DiscoverGroupAdapter adapter;
+    private View emptyState;
+    private TextView tvEmptyTitle;
+    private TextView tvEmptySubtitle;
+    private ProgressBar progressBar;
+    private String currentQuery = "";
 
     @Nullable
     @Override
@@ -35,35 +42,71 @@ public class DiscoverGroupsFragment extends Fragment {
 
         RecyclerView rvGroups = view.findViewById(R.id.rvDiscoverGroups);
         EditText etSearch = view.findViewById(R.id.etSearch);
+        emptyState = view.findViewById(R.id.emptyState);
+        tvEmptyTitle = view.findViewById(R.id.tvEmptyTitle);
+        tvEmptySubtitle = view.findViewById(R.id.tvEmptySubtitle);
+        progressBar = view.findViewById(R.id.progressBar);
 
         rvGroups.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new DiscoverGroupAdapter(new ArrayList<>(), getParentFragmentManager());
+        adapter = new DiscoverGroupAdapter(new ArrayList<>(), getParentFragmentManager(), this::onGroupJoined);
         rvGroups.setAdapter(adapter);
+
+        loadGroups();
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                currentQuery = s.toString();
+                adapter.filter(currentQuery);
+                updateEmptyState(adapter.getItemCount() == 0);
+            }
+
+            @Override public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void loadGroups() {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        if (emptyState != null) emptyState.setVisibility(View.GONE);
 
         FirebaseRepository.getInstance().getDiscoverGroups(new DataCallback<List<Group>>() {
             @Override
             public void onSuccess(List<Group> groups) {
                 if (!isAdded() || getView() == null) return;
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
                 adapter.setGroups(groups);
+                updateEmptyState(groups.isEmpty());
             }
 
             @Override
             public void onError(Exception e) {
-                // Leave list empty on error
+                if (!isAdded() || getView() == null) return;
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                updateEmptyState(true);
             }
         });
+    }
 
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    private void onGroupJoined(String groupId) {
+        // Group was joined from dialog; adapter already removed it — just check empty state
+        updateEmptyState(adapter.getItemCount() == 0);
+    }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.filter(s.toString());
+    private void updateEmptyState(boolean isEmpty) {
+        if (emptyState == null) return;
+        if (isEmpty) {
+            if (!currentQuery.isEmpty()) {
+                tvEmptyTitle.setText("Aucun résultat");
+                tvEmptySubtitle.setText("Aucun groupe ne correspond à \"" + currentQuery + "\"");
+            } else {
+                tvEmptyTitle.setText("Aucun groupe disponible");
+                tvEmptySubtitle.setText("Il n'y a pas encore de groupes publics à rejoindre");
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
+            emptyState.setVisibility(View.VISIBLE);
+        } else {
+            emptyState.setVisibility(View.GONE);
+        }
     }
 }

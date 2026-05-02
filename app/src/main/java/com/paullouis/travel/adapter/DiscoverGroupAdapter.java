@@ -6,29 +6,32 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.paullouis.travel.GroupDetailDialogFragment;
 import com.paullouis.travel.R;
-import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.Group;
-import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DiscoverGroupAdapter extends RecyclerView.Adapter<DiscoverGroupAdapter.ViewHolder> {
 
+    public interface OnGroupJoinedCallback {
+        void onGroupJoined(String groupId);
+    }
+
     private List<Group> allGroups;
     private List<Group> filteredGroups;
-    private FragmentManager fragmentManager;
+    private final FragmentManager fragmentManager;
+    private final OnGroupJoinedCallback joinCallback;
 
-    public DiscoverGroupAdapter(List<Group> groups, FragmentManager fragmentManager) {
+    public DiscoverGroupAdapter(List<Group> groups, FragmentManager fragmentManager, OnGroupJoinedCallback joinCallback) {
         this.allGroups = new ArrayList<>(groups);
         this.filteredGroups = new ArrayList<>(groups);
         this.fragmentManager = fragmentManager;
+        this.joinCallback = joinCallback;
     }
 
     @NonNull
@@ -47,54 +50,32 @@ public class DiscoverGroupAdapter extends RecyclerView.Adapter<DiscoverGroupAdap
         holder.tvMembers.setText(group.getMembersCount() + " membres");
         holder.tvPhotos.setText(group.getPhotosCount() + " photos");
 
-        Glide.with(holder.itemView.getContext())
-                .load(group.getCoverImage())
-                .placeholder(R.drawable.bg_group_placeholder)
-                .into(holder.ivBanner);
-
-        updateActionButton(holder.btnAction, group);
-
-        holder.btnAction.setOnClickListener(v -> {
-            if (!group.isJoined()) {
-                MockDataProvider.joinGroup(group.getId());
-                updateActionButton(holder.btnAction, group);
-                holder.tvMembers.setText(group.getMembersCount() + " membres");
-                Toast.makeText(holder.itemView.getContext(), "Vous avez rejoint " + group.getName() + " !", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        holder.itemView.setOnClickListener(v -> {
-            GroupDetailDialogFragment dialog = GroupDetailDialogFragment.newInstance(group.getId());
-            dialog.show(fragmentManager, "GroupDetailDialog");
-        });
-    }
-
-    private void updateActionButton(Button btn, Group group) {
-        MaterialButton mBtn = (MaterialButton) btn;
-        if (group.isJoined()) {
-            mBtn.setText("Rejoint");
-            mBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(btn.getContext().getColor(android.R.color.transparent)));
-            mBtn.setTextColor(btn.getContext().getColor(R.color.muted_foreground));
-            mBtn.setIconResource(R.drawable.ic_check);
-            mBtn.setIconTint(android.content.res.ColorStateList.valueOf(btn.getContext().getColor(R.color.muted_foreground)));
-            mBtn.setAlpha(0.7f);
-            mBtn.setEnabled(false);
-            // Manual border
-            android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
-            gd.setCornerRadius(18 * btn.getContext().getResources().getDisplayMetrics().density);
-            gd.setStroke((int)(1 * btn.getContext().getResources().getDisplayMetrics().density), 0xFFBDBDBD);
-            mBtn.setBackground(gd);
+        if (group.getCoverImage() != null && !group.getCoverImage().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(group.getCoverImage())
+                    .into(holder.ivBanner);
         } else {
-            mBtn.setText("Rejoindre");
-            mBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(btn.getContext().getColor(R.color.primary)));
-            mBtn.setTextColor(btn.getContext().getColor(R.color.white));
-            mBtn.setIconResource(R.drawable.ic_user_plus);
-            mBtn.setIconTint(android.content.res.ColorStateList.valueOf(btn.getContext().getColor(R.color.white)));
-            mBtn.setAlpha(1.0f);
-            mBtn.setEnabled(true);
-            mBtn.setBackgroundResource(R.drawable.btn_turquoise_rounded);
-            mBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(btn.getContext().getColor(R.color.primary)));
+            String groupName = group.getName();
+            String initial = groupName != null && !groupName.isEmpty() ? groupName.substring(0, 1).toUpperCase() : "G";
+            holder.ivBanner.setImageDrawable(createGroupInitialDrawable(holder.itemView.getContext(), initial, groupName));
         }
+
+        View.OnClickListener openDialog = v -> {
+            GroupDetailDialogFragment dialog = GroupDetailDialogFragment.newInstance(group.getId(), true);
+            dialog.setOnGroupJoinedListener(groupId -> {
+                // Remove from both lists so discover no longer shows this group
+                allGroups.remove(group);
+                int filteredPos = filteredGroups.indexOf(group);
+                if (filteredPos >= 0) {
+                    filteredGroups.remove(filteredPos);
+                    notifyItemRemoved(filteredPos);
+                }
+                if (joinCallback != null) joinCallback.onGroupJoined(groupId);
+            });
+            dialog.show(fragmentManager, "GroupDetailDialog");
+        };
+        holder.itemView.setOnClickListener(openDialog);
+        if (holder.btnAction != null) holder.btnAction.setOnClickListener(openDialog);
     }
 
     public void setGroups(List<Group> groups) {
@@ -110,7 +91,7 @@ public class DiscoverGroupAdapter extends RecyclerView.Adapter<DiscoverGroupAdap
         } else {
             String lowerCaseQuery = query.toLowerCase().trim();
             for (Group group : allGroups) {
-                if (group.getName().toLowerCase().contains(lowerCaseQuery) || 
+                if (group.getName().toLowerCase().contains(lowerCaseQuery) ||
                     group.getDescription().toLowerCase().contains(lowerCaseQuery)) {
                     filteredGroups.add(group);
                 }
@@ -122,6 +103,25 @@ public class DiscoverGroupAdapter extends RecyclerView.Adapter<DiscoverGroupAdap
     @Override
     public int getItemCount() {
         return filteredGroups.size();
+    }
+
+    private android.graphics.drawable.Drawable createGroupInitialDrawable(android.content.Context context, String initial, String groupName) {
+        int[] colors = {0xFF6366F1, 0xFF8B5CF6, 0xFFEC4899, 0xFFF59E0B, 0xFF10B981, 0xFF3B82F6};
+        int colorIndex = (groupName != null ? groupName.hashCode() : 0) % colors.length;
+        if (colorIndex < 0) colorIndex = -colorIndex;
+
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(300, 150, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        canvas.drawColor(colors[colorIndex]);
+
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setColor(android.graphics.Color.WHITE);
+        paint.setTextSize(100);
+        paint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        canvas.drawText(initial, 150, 100, paint);
+
+        return new android.graphics.drawable.BitmapDrawable(context.getResources(), bitmap);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

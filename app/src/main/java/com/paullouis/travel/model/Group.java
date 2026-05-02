@@ -1,5 +1,7 @@
 package com.paullouis.travel.model;
 
+import com.google.firebase.firestore.PropertyName;
+
 public class Group {
     public enum UserRole {
         OWNER,
@@ -71,13 +73,17 @@ public class Group {
     public void setDescription(String description) { this.description = description; }
     public int getMembersCount() { return membersCount; }
     public int getPhotosCount() { return photosCount; }
+    @PropertyName("isPrivate")
     public boolean isPrivate() { return isPrivate; }
+
+    @PropertyName("isPrivate")
     public void setPrivate(boolean aPrivate) { isPrivate = aPrivate; }
     public boolean isJoined() { return isJoined; }
     public boolean isOwner() { return isOwner; }
     public String getCoverImage() { return coverImage; }
     public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
     public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
     public void setJoined(boolean joined) { this.isJoined = joined; }
     public void setMembersCount(int count) { this.membersCount = count; }
     public UserRole getRole() { return role; }

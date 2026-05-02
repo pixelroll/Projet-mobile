@@ -35,15 +35,18 @@ public class TopContributorAdapter extends RecyclerView.Adapter<TopContributorAd
         holder.tvRank.setText("#" + (position + 1));
         holder.tvName.setText(member.getUser().getName());
         holder.tvPhotoCount.setText(member.getPhotosCount() + " photos");
-        
-        // Avatar
-        if (member.getUser().getAvatarUrl() != null) {
+
+        // Avatar - use real profile picture or show initial
+        String avatarUrl = member.getUser().getAvatarUrl();
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
             Glide.with(holder.itemView.getContext())
-                .load(member.getUser().getAvatarUrl())
-                .placeholder(R.drawable.profile_sophie)
+                .load(avatarUrl)
+                .circleCrop()
                 .into(holder.ivAvatar);
         } else {
-            holder.ivAvatar.setImageResource(R.drawable.profile_sophie);
+            String userName = member.getUser().getName();
+            String initial = userName != null && !userName.isEmpty() ? userName.substring(0, 1).toUpperCase() : "?";
+            holder.ivAvatar.setImageDrawable(createInitialDrawable(holder.itemView.getContext(), initial, userName));
         }
 
         // Role Badge Styling (same as GroupMemberAdapter)
@@ -89,6 +92,30 @@ public class TopContributorAdapter extends RecyclerView.Adapter<TopContributorAd
     @Override
     public int getItemCount() {
         return contributors.size();
+    }
+
+    private android.graphics.drawable.Drawable createInitialDrawable(android.content.Context context, String initial, String userName) {
+        android.graphics.drawable.ShapeDrawable drawable = new android.graphics.drawable.ShapeDrawable(new android.graphics.drawable.shapes.OvalShape());
+        int[] colors = {0xFF6366F1, 0xFF8B5CF6, 0xFFEC4899, 0xFFF59E0B, 0xFF10B981, 0xFF3B82F6};
+        int colorIndex = (userName != null ? userName.hashCode() : 0) % colors.length;
+        if (colorIndex < 0) colorIndex = -colorIndex;
+        drawable.getPaint().setColor(colors[colorIndex]);
+
+        android.graphics.drawable.LayerDrawable layerDrawable = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{drawable});
+
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(200, 200, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        layerDrawable.setBounds(0, 0, 200, 200);
+        layerDrawable.draw(canvas);
+
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setColor(android.graphics.Color.WHITE);
+        paint.setTextSize(80);
+        paint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        canvas.drawText(initial, 100, 130, paint);
+
+        return new android.graphics.drawable.BitmapDrawable(context.getResources(), bitmap);
     }
 
     static class ContributorViewHolder extends RecyclerView.ViewHolder {

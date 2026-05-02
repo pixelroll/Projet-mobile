@@ -74,7 +74,7 @@ public class CreateGroupDialogFragment extends DialogFragment {
             }
 
             String desc = etDescription.getText().toString().trim();
-            final String code = isPrivate ? generateRandomCode() : null;
+            final String code = generateRandomCode();
 
             Group newGroup = new Group(
                 String.valueOf(System.currentTimeMillis()),
@@ -90,11 +90,7 @@ public class CreateGroupDialogFragment extends DialogFragment {
                 @Override
                 public void onSuccess(Void result) {
                     if (!isAdded()) return;
-                    String message = "Groupe créé !";
-                    if (code != null) {
-                        message += "\nCode d'invitation : " + code;
-                    }
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), "Groupe créé ! Code d'invitation : " + code, Toast.LENGTH_LONG).show();
                     if (listener != null) {
                         listener.onGroupCreated();
                     }

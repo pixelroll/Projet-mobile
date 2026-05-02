@@ -51,6 +51,7 @@ public interface DataRepository {
     void getGroupMembers(String groupId, DataCallback<List<GroupMember>> callback);
     void getReportedPhotos(String groupId, DataCallback<List<ReportedPhoto>> callback);
     void getGroupStats(String groupId, DataCallback<Map<String, Integer>> callback);
+    void updateGroup(Group group, DataCallback<Void> callback);
 
     // --- Notifications ---
     void getNotifications(DataCallback<List<Notification>> callback);

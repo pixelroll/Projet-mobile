@@ -610,6 +610,11 @@ public class MockDataProvider implements DataRepository {
     }
 
     @Override
+    public void updateGroup(Group group, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
     public void getNotifications(DataCallback<List<Notification>> callback) {
         callback.onSuccess(getNotifications());
     }

@@ -123,12 +123,18 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
         tvStatFollowing.setText(String.valueOf(user.getFollowingCount()));
         
         ImageView ivProfile = view.findViewById(R.id.ivProfile);
-        if (ivProfile != null && user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
-            com.bumptech.glide.Glide.with(this)
-                    .load(user.getAvatarUrl())
-                    .circleCrop()
-                    .placeholder(R.drawable.profile_sophie)
-                    .into(ivProfile);
+        if (ivProfile != null) {
+            String avatarUrl = user.getAvatarUrl();
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(avatarUrl)
+                        .circleCrop()
+                        .into(ivProfile);
+            } else {
+                String userName = user.getName();
+                String initial = userName != null && !userName.isEmpty() ? userName.substring(0, 1).toUpperCase() : "?";
+                ivProfile.setImageDrawable(createInitialDrawable(initial, userName));
+            }
         }
     }
 
@@ -193,6 +199,30 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
             rvProfilePhotos.setVisibility(View.GONE);
             if (rvProfileTrips != null) rvProfileTrips.setVisibility(View.VISIBLE);
         }
+    }
+
+    private android.graphics.drawable.Drawable createInitialDrawable(String initial, String userName) {
+        android.graphics.drawable.ShapeDrawable drawable = new android.graphics.drawable.ShapeDrawable(new android.graphics.drawable.shapes.OvalShape());
+        int[] colors = {0xFF6366F1, 0xFF8B5CF6, 0xFFEC4899, 0xFFF59E0B, 0xFF10B981, 0xFF3B82F6};
+        int colorIndex = (userName != null ? userName.hashCode() : 0) % colors.length;
+        if (colorIndex < 0) colorIndex = -colorIndex;
+        drawable.getPaint().setColor(colors[colorIndex]);
+
+        android.graphics.drawable.LayerDrawable layerDrawable = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{drawable});
+
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(200, 200, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        layerDrawable.setBounds(0, 0, 200, 200);
+        layerDrawable.draw(canvas);
+
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setColor(android.graphics.Color.WHITE);
+        paint.setTextSize(80);
+        paint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        canvas.drawText(initial, 100, 130, paint);
+
+        return new android.graphics.drawable.BitmapDrawable(getResources(), bitmap);
     }
 
     @Override

@@ -473,7 +473,6 @@ public class FirebaseRepository implements DataRepository {
 
         db.collection("photos")
             .whereEqualTo("groupId", groupId)
-            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 List<Photo> photos = querySnapshot.toObjects(Photo.class);
@@ -485,6 +484,8 @@ public class FirebaseRepository implements DataRepository {
                         p.setLiked(p.getLikedBy().contains(currentUserId));
                     }
                 }
+                // Sort locally by timestamp descending
+                photos.sort((p1, p2) -> Long.compare(p2.getTimestamp(), p1.getTimestamp()));
                 cache.put(cacheKey, photos);
                 callback.onSuccess(photos);
             })
@@ -554,7 +555,14 @@ public class FirebaseRepository implements DataRepository {
             return;
         }
 
-        String cacheKey = "groups:" + id;
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError(new Exception("User not authenticated"));
+            return;
+        }
+
+        String uid = currentUser.getUid();
+        String cacheKey = "groups:" + id + ":" + uid;
         Group cached = (Group) cache.get(cacheKey);
         if (cached != null) {
             callback.onSuccess(cached);
@@ -565,8 +573,23 @@ public class FirebaseRepository implements DataRepository {
             .addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
                     Group group = documentSnapshot.toObject(Group.class);
-                    cache.put(cacheKey, group);
-                    callback.onSuccess(group);
+                    // Fetch the current user's role from the members subcollection
+                    db.collection("groups").document(id).collection("members").document(uid).get()
+                        .addOnSuccessListener(memberSnapshot -> {
+                            if (memberSnapshot.exists()) {
+                                GroupMember member = memberSnapshot.toObject(GroupMember.class);
+                                if (member != null) {
+                                    group.setRole(member.getRole());
+                                    group.setJoined(true);
+                                }
+                            }
+                            cache.put(cacheKey, group);
+                            callback.onSuccess(group);
+                        })
+                        .addOnFailureListener(e -> {
+                            cache.put(cacheKey, group);
+                            callback.onSuccess(group);
+                        });
                 } else {
                     callback.onError(new Exception("Group not found"));
                 }
@@ -638,7 +661,7 @@ public class FirebaseRepository implements DataRepository {
                     .addOnSuccessListener(aVoid -> {
                         cache.remove("groups:my");
                         cache.remove("groups:discover");
-                        cache.remove("groups:" + groupId);
+                        cache.remove("groups:" + groupId + ":" + uid);
                         callback.onSuccess(null);
                     })
                     .addOnFailureListener(callback::onError);
@@ -693,6 +716,7 @@ public class FirebaseRepository implements DataRepository {
                 batch.commit()
                     .addOnSuccessListener(aVoid -> {
                         cache.remove("groups:my");
+                        cache.remove("groups:" + group.getId() + ":" + currentUser.getUid());
                         callback.onSuccess(null);
                     })
                     .addOnFailureListener(callback::onError);
@@ -726,6 +750,50 @@ public class FirebaseRepository implements DataRepository {
                 List<GroupMember> members = querySnapshot.toObjects(GroupMember.class);
                 cache.put(cacheKey, members);
                 callback.onSuccess(members);
+            })
+            .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void updateGroup(Group group, DataCallback<Void> callback) {
+        if (group == null || group.getId() == null) {
+            callback.onError(new Exception("Invalid group"));
+            return;
+        }
+
+        String coverImage = group.getCoverImage();
+        if (coverImage != null && (coverImage.startsWith("content://") || coverImage.startsWith("file://"))) {
+            StorageReference ref = storage.getReference().child("group_covers/" + group.getId() + ".jpg");
+            ref.putFile(android.net.Uri.parse(coverImage))
+                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl()
+                    .addOnSuccessListener(uri -> {
+                        group.setCoverImage(uri.toString());
+                        saveGroupFields(group, callback);
+                    })
+                    .addOnFailureListener(callback::onError))
+                .addOnFailureListener(callback::onError);
+        } else {
+            saveGroupFields(group, callback);
+        }
+    }
+
+    private void saveGroupFields(Group group, DataCallback<Void> callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("name", group.getName());
+        updates.put("description", group.getDescription());
+        updates.put("isPrivate", group.isPrivate());
+        updates.put("code", group.getCode());
+        if (group.getCoverImage() != null) {
+            updates.put("coverImage", group.getCoverImage());
+        }
+
+        String uid = getCurrentUserId();
+        db.collection("groups").document(group.getId()).update(updates)
+            .addOnSuccessListener(aVoid -> {
+                cache.remove("groups:" + group.getId() + ":" + uid);
+                cache.remove("groups:my");
+                cache.remove("groups:discover");
+                callback.onSuccess(null);
             })
             .addOnFailureListener(callback::onError);
     }
