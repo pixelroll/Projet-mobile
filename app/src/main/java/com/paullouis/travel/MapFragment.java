@@ -42,11 +42,12 @@ public class MapFragment extends Fragment {
 
     private MapView map;
     private View cardPreview;
-    private ImageView ivPreview, btnCloseCard;
+    private ImageView ivPreview, btnCloseCard, btnRefresh;
     private TextView tvPreviewTitle, tvPreviewLocation, tvPreviewAuthor, tvPreviewLikes;
 
     // Loaded photos indexed by ID for fast lookup on marker click
     private final Map<String, Photo> photoIndex = new HashMap<>();
+    private boolean isRefreshing = false;
 
     @Nullable
     @Override
@@ -74,6 +75,9 @@ public class MapFragment extends Fragment {
         tvPreviewLikes = view.findViewById(R.id.tvPreviewLikes);
         btnCloseCard = view.findViewById(R.id.btnCloseCard);
         btnCloseCard.setOnClickListener(v -> cardPreview.setVisibility(View.GONE));
+
+        btnRefresh = view.findViewById(R.id.btnRefresh);
+        btnRefresh.setOnClickListener(v -> refreshPhotos());
 
         // Default center: Europe
         map.getController().setZoom(5.0);
@@ -198,5 +202,16 @@ public class MapFragment extends Fragment {
     public void onPause() {
         super.onPause();
         if (map != null) map.onPause();
+    }
+
+    private void refreshPhotos() {
+        if (isRefreshing) return;
+        isRefreshing = true;
+        btnRefresh.setAlpha(0.5f);
+        map.getOverlays().clear();
+        photoIndex.clear();
+        loadPhotosOnMap();
+        btnRefresh.setAlpha(1.0f);
+        isRefreshing = false;
     }
 }

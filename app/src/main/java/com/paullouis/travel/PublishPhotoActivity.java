@@ -67,9 +67,14 @@ public class PublishPhotoActivity extends AppCompatActivity {
     private ImageView ivSelectedPhoto;
     private View photoUploadZone, emptyPhotoContent;
     private EditText etTitle, etDescription, etTravelInfo, etNewTag, etLocation;
-    private TextView tvDateDisplay, tvMomentDisplay;
+    private TextView tvDateDisplay, tvMomentDisplay, tvLocationDisplay;
     private ChipGroup chipGroupTags;
     private Uri selectedImageUri;
+
+    // Location data
+    private double selectedLat = 0.0;
+    private double selectedLng = 0.0;
+    private String selectedLocationName = "";
 
     // Place type selector
     private String selectedPlaceType = null;
@@ -284,7 +289,19 @@ public class PublishPhotoActivity extends AppCompatActivity {
 
         findViewById(R.id.btnAddTag).setOnClickListener(v -> addManualTag());
 
+        findViewById(R.id.llLocation).setOnClickListener(v -> showLocationPicker());
+
         findViewById(R.id.btnPublish).setOnClickListener(v -> validateAndPublish());
+    }
+
+    private void showLocationPicker() {
+        LocationPickerDialogFragment dialog = LocationPickerDialogFragment.newInstance((locationName, lat, lng) -> {
+            selectedLocationName = locationName;
+            selectedLat = lat;
+            selectedLng = lng;
+            etLocation.setText(locationName);
+        });
+        dialog.show(getSupportFragmentManager(), "location_picker");
     }
 
     private void sendGroupNotifications(Photo photo) {
@@ -664,6 +681,10 @@ public class PublishPhotoActivity extends AppCompatActivity {
                 String location = etLocation.getText().toString().trim();
                 if (!location.isEmpty()) {
                     photo.setLocationName(location);
+                    if (selectedLat != 0.0 && selectedLng != 0.0) {
+                        photo.setLat(selectedLat);
+                        photo.setLng(selectedLng);
+                    }
                 }
 
                 // Travel info

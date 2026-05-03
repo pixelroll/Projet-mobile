@@ -247,20 +247,41 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/etLocation"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_input_gray"
-                android:drawableStart="@drawable/ic_map_pin"
-                android:drawablePadding="8dp"
-                android:hint="Ex: Paris, France"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:paddingHorizontal="12dp"
-                android:textColor="@color/on_background"
-                android:textColorHint="@color/muted_foreground"
-                android:textSize="14sp"
-                android:inputType="textCapWords" />
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/llLocation">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_map_pin"
+                    android:contentDescription="Lieu"
+                    app:tint="@color/primary"
+                    android:pointerIcon="hand" />
+
+                <EditText
+                    android:id="@+id/etLocation"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Cliquez pour chercher un lieu"
+                    android:textColor="@color/on_background"
+                    android:textColorHint="@color/muted_foreground"
+                    android:textSize="14sp"
+                    android:inputType="none"
+                    android:editable="false" />
+
+            </LinearLayout>
 
             <!-- Section Date / Période -->
             <TextView

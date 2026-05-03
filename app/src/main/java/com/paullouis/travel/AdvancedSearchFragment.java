@@ -1,23 +1,30 @@
 package com.paullouis.travel;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.material.card.MaterialCardView;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.ai.FirebaseAI;
@@ -45,12 +52,13 @@ public class AdvancedSearchFragment extends Fragment {
 
     private View containerFiltres;
     private RecyclerView rvSearchResults;
-    private EditText etSearchQuery, etAuthorFilter, etLocationFilter, etTagsFilter;
+    private EditText etSearchQuery, etAuthorFilter, etTagsFilter;
     private PhotoAdapter searchResultsAdapter;
     private View containerSimilarLoading;
     private TextView tvSimilarUploadLabel;
     private GenerativeModelFutures aiModel;
     private ActivityResultLauncher<String> imagePickerLauncher;
+    private FusedLocationProviderClient fusedLocationClient;
 
     // Place type filter
     private String selectedPlaceType = null;
@@ -62,6 +70,15 @@ public class AdvancedSearchFragment extends Fragment {
 
     // Period filter
     private String selectedPeriod = null;
+
+    // Location filter
+    private Double selectedLocationLat = null;
+    private Double selectedLocationLng = null;
+    private String selectedLocationName = null;
+    private Integer selectedRadius = null;
+    private TextView tvLocationValue, tvCustomRadius;
+    private TextView btnRadius1km, btnRadius3km, btnRadius5km, btnRadius10km;
+    private LinearLayout btnRadiusCustom, btnAroundMe;
 
     // Group filter
     private String selectedGroupId = null;
@@ -87,6 +104,8 @@ public class AdvancedSearchFragment extends Fragment {
             FirebaseAI.getInstance(GenerativeBackend.googleAI())
                 .generativeModel("gemini-3-flash-preview")
         );
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
     }
 
     @Nullable
@@ -104,6 +123,9 @@ public class AdvancedSearchFragment extends Fragment {
         setupPlaceTypeCards();
         setupMomentButtons();
         setupDropdowns(view);
+        setupLocationPicker(view);
+        setupRadiusSelector();
+        setupAroundMeButton();
 
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
             if (getActivity() != null) getActivity().onBackPressed();
@@ -166,6 +188,118 @@ public class AdvancedSearchFragment extends Fragment {
         });
     }
 
+    private void setupLocationPicker(View view) {
+        view.findViewById(R.id.btnLocationPicker).setOnClickListener(v -> {
+            LocationPickerDialogFragment picker = LocationPickerDialogFragment.newInstance((name, lat, lng) -> {
+                selectedLocationName = name;
+                selectedLocationLat = lat;
+                selectedLocationLng = lng;
+                tvLocationValue.setText(name);
+                tvLocationValue.setTextColor(Color.parseColor("#0F172A"));
+            });
+            picker.show(getChildFragmentManager(), "location_picker");
+        });
+    }
+
+    private void setupRadiusSelector() {
+        List<TextView> radiusButtons = Arrays.asList(btnRadius1km, btnRadius3km, btnRadius5km, btnRadius10km);
+        int[] radiusValues = {1, 3, 5, 10};
+
+        for (int i = 0; i < radiusButtons.size(); i++) {
+            TextView btn = radiusButtons.get(i);
+            int radius = radiusValues[i];
+            if (btn == null) continue;
+            btn.setOnClickListener(v -> {
+                if (selectedRadius != null && selectedRadius == radius) {
+                    selectedRadius = null;
+                    setRadiusButtonSelected(btn, false);
+                    tvCustomRadius.setText("Personnalisé");
+                } else {
+                    if (selectedRadius != null) {
+                        TextView prev = getRadiusButton(selectedRadius, radiusButtons, radiusValues);
+                        if (prev != null) setRadiusButtonSelected(prev, false);
+                    }
+                    selectedRadius = radius;
+                    setRadiusButtonSelected(btn, true);
+                    tvCustomRadius.setText("Personnalisé");
+                }
+            });
+        }
+
+        btnRadiusCustom.setOnClickListener(v -> showCustomRadiusDialog());
+    }
+
+    private TextView getRadiusButton(int radius, List<TextView> buttons, int[] values) {
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == radius) return buttons.get(i);
+        }
+        return null;
+    }
+
+    private void setRadiusButtonSelected(TextView btn, boolean selected) {
+        btn.setTextColor(Color.parseColor(selected ? COLOR_SELECTED_TEXT : COLOR_UNSELECTED_TEXT));
+    }
+
+    private void showCustomRadiusDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Rayon personnalisé");
+
+        EditText input = new EditText(getContext());
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        if (selectedRadius != null && !Arrays.asList(1, 3, 5, 10).contains(selectedRadius)) {
+            input.setText(String.valueOf(selectedRadius));
+        }
+        input.setHint("Entrez le rayon en km");
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String value = input.getText().toString().trim();
+            if (!value.isEmpty()) {
+                try {
+                    int radius = Integer.parseInt(value);
+                    if (radius > 0) {
+                        selectedRadius = radius;
+                        tvCustomRadius.setText(radius + " km");
+                    } else {
+                        Toast.makeText(getContext(), "Veuillez entrer un nombre positif", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Valeur invalide", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Annuler", null);
+        builder.show();
+    }
+
+    private void setupAroundMeButton() {
+        btnAroundMe.setOnClickListener(v -> getCurrentLocation());
+    }
+
+    private void getCurrentLocation() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
+                if (location != null) {
+                    selectedLocationLat = location.getLatitude();
+                    selectedLocationLng = location.getLongitude();
+                    selectedLocationName = "Ma position actuelle";
+                    tvLocationValue.setText(selectedLocationName);
+                    tvLocationValue.setTextColor(Color.parseColor("#0F172A"));
+                    if (selectedRadius == null) {
+                        selectedRadius = 5;
+                        setRadiusButtonSelected(btnRadius5km, true);
+                    }
+                    Toast.makeText(getContext(), "Position détectée", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Localisation non disponible", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(getContext(), "Permission de localisation requise", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void initViews(View view) {
         containerFiltres = view.findViewById(R.id.containerFiltres);
         rvSearchResults = view.findViewById(R.id.rvSearchResults);
@@ -173,7 +307,6 @@ public class AdvancedSearchFragment extends Fragment {
         tvSimilarUploadLabel = view.findViewById(R.id.tvSimilarUploadLabel);
         etSearchQuery = view.findViewById(R.id.etSearchQuery);
         etAuthorFilter = view.findViewById(R.id.etAuthorFilter);
-        etLocationFilter = view.findViewById(R.id.etLocationFilter);
         etTagsFilter = view.findViewById(R.id.etTagsFilter);
 
         cardNature = view.findViewById(R.id.cardNature);
@@ -188,6 +321,15 @@ public class AdvancedSearchFragment extends Fragment {
         btnApresmidi = view.findViewById(R.id.btnApresmidi);
         btnSoir = view.findViewById(R.id.btnSoir);
         btnNuit = view.findViewById(R.id.btnNuit);
+
+        tvLocationValue = view.findViewById(R.id.tvLocationValue);
+        tvCustomRadius = view.findViewById(R.id.tvCustomRadius);
+        btnRadius1km = view.findViewById(R.id.btnRadius1km);
+        btnRadius3km = view.findViewById(R.id.btnRadius3km);
+        btnRadius5km = view.findViewById(R.id.btnRadius5km);
+        btnRadius10km = view.findViewById(R.id.btnRadius10km);
+        btnRadiusCustom = view.findViewById(R.id.btnRadiusCustom);
+        btnAroundMe = view.findViewById(R.id.btnAroundMe);
     }
 
     private void setupPlaceTypeCards() {
@@ -293,8 +435,12 @@ public class AdvancedSearchFragment extends Fragment {
         if (selectedMomentOfDay != null) filters.setMomentOfDay(selectedMomentOfDay);
         if (selectedPeriod != null) filters.setPeriod(selectedPeriod);
 
-        String location = etLocationFilter != null ? etLocationFilter.getText().toString().trim() : "";
-        if (!location.isEmpty()) filters.setLocation(location);
+        if (selectedLocationLat != null && selectedLocationLng != null) {
+            filters.setLatitude(selectedLocationLat);
+            filters.setLongitude(selectedLocationLng);
+            if (selectedLocationName != null) filters.setLocation(selectedLocationName);
+            if (selectedRadius != null) filters.setRadiusKm(selectedRadius);
+        }
 
         String author = etAuthorFilter != null ? etAuthorFilter.getText().toString().trim() : "";
         if (!author.isEmpty()) filters.setAuthor(author);
