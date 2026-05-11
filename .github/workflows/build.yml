@@ -1,0 +1,36 @@
+name: Build Android APK
+
+# Déclencheurs : lancement manuel et à chaque push sur main
+on:
+  workflow_dispatch: 
+  push:
+    branches:
+      - main # (Change par 'master' si besoin)
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17' 
+
+      - name: Rendre gradlew exécutable
+        run: chmod +x ./gradlew
+
+      - name: Compiler l'APK
+        run: ./gradlew assembleDebug
+
+      - name: Sauvegarder l'APK en Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Traveling-APK # Le fichier téléchargé s'appellera Traveling-APK.zip
+          path: app/build/outputs/apk/debug/app-debug.apk 
+          
