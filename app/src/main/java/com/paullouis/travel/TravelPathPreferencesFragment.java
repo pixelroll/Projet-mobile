@@ -109,10 +109,10 @@ public class TravelPathPreferencesFragment extends Fragment {
             }
         });
 
-        // Try Now button
+        // Try Now button — opens liked photos selection for AI-powered parcours generation
         view.findViewById(R.id.btnTryNow).setOnClickListener(v -> {
             if (FirebaseRepository.getInstance().isUserLoggedIn()) {
-                android.content.Intent intent = new android.content.Intent(getActivity(), GatewayActivity.class);
+                android.content.Intent intent = new android.content.Intent(getActivity(), LikedPhotosSelectionActivity.class);
                 startActivity(intent);
             } else {
                 LoginRequiredDialogFragment.newInstance().show(getChildFragmentManager(), "login_required");

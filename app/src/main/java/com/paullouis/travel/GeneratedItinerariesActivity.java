@@ -50,6 +50,7 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
     private String prefDuration;
     private String prefProfile;
     private String prefRequiredPlaces;
+    private String prefPhotoContext;
     private int prefBudget;
 
     @Override
@@ -77,6 +78,7 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
         }
 
         prefRequiredPlaces = getIntent().getStringExtra("PREF_REQUIRED_PLACES");
+        prefPhotoContext = getIntent().getStringExtra("PHOTO_CONTEXT");
 
         if (prefLocation == null) prefLocation = "";
         if (prefDate == null) {
@@ -86,6 +88,7 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
         if (prefDuration == null) prefDuration = "1 jour";
         if (prefProfile == null) prefProfile = "Famille";
         if (prefRequiredPlaces == null) prefRequiredPlaces = "";
+        if (prefPhotoContext == null) prefPhotoContext = "";
 
         // Initialize AI model
         aiModel = GenerativeModelFutures.from(
@@ -191,6 +194,12 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
             ? "- Destination : à toi de choisir une ville intéressante en accord avec les préférences ci-dessous (indique la ville choisie dans les descriptions)\n"
             : "- Destination : " + prefLocation + "\n";
 
+        String photoContextSection = "";
+        if (!prefPhotoContext.isEmpty()) {
+            photoContextSection = "\nPhotos aimées par le voyageur (utilise ces lieux et trouve des endroits similaires qui correspondent aux mêmes goûts) :\n"
+                + prefPhotoContext + "\n";
+        }
+
         return "Tu es un expert en voyages. Génère exactement 3 variantes d'itinéraire de voyage.\n\n" +
             "Préférences du voyageur :\n" +
             locationLine +
@@ -200,6 +209,7 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
             "- Durée : " + prefDuration + "\n" +
             "- Profil voyageur : " + prefProfile + "\n" +
             (prefRequiredPlaces.isEmpty() ? "" : "- Lieux obligatoires : " + prefRequiredPlaces + "\n") +
+            photoContextSection +
             "\nRéponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après :\n" +
             "{\n" +
             "  \"itineraries\": [\n" +

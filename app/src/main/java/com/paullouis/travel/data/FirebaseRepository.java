@@ -1169,6 +1169,25 @@ public class FirebaseRepository implements DataRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    public void getLikedPhotos(DataCallback<List<Photo>> callback) {
+        FirebaseUser fUser = auth.getCurrentUser();
+        if (fUser == null) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        String uid = fUser.getUid();
+        db.collection("photos")
+                .whereArrayContains("likedBy", uid)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<Photo> photos = querySnapshot.toObjects(Photo.class);
+                    for (Photo p : photos) p.setLiked(true);
+                    photos.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                    callback.onSuccess(photos);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
     public void getPhotosByItineraryStep(String itineraryId, int stepOrder, DataCallback<List<Photo>> callback) {
         db.collection("photos")
                 .whereEqualTo("itineraryId", itineraryId)

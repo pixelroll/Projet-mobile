@@ -115,7 +115,13 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Travel" />
-            
+
+        <activity
+            android:name=".LikedPhotosSelectionActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Travel" />
+
     </application>
 
 </manifest>
