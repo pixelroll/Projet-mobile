@@ -325,33 +325,37 @@ public class MockDataProvider implements DataRepository {
 
     public static List<GeneratedItinerary> getGeneratedItineraries() {
         List<GeneratedItinerary> itineraries = new ArrayList<>();
-        itineraries.add(new GeneratedItinerary(
-            "Économique",
-            "Découverte des essentiels avec un budget limité",
-            "45€",
-            "6h30",
-            "Modéré",
-            "8 arrêts",
-            false
-        ));
-        itineraries.add(new GeneratedItinerary(
-            "Équilibré",
-            "Un mélange parfait de culture, gastronomie et détente",
-            "95€",
-            "8h",
-            "Modéré",
-            "10 arrêts",
-            false
-        ));
-        itineraries.add(new GeneratedItinerary(
-            "Confort",
-            "Expérience premium avec des pauses régulières",
-            "180€",
-            "7h30",
-            "Facile",
-            "7 arrêts",
-            false
-        ));
+
+        GeneratedItinerary eco = new GeneratedItinerary();
+        eco.setType("ECO");
+        eco.setDescription("Découverte des essentiels avec un budget limité");
+        eco.setTotalBudget(45);
+        eco.setEstimatedDurationHours(6.5f);
+        eco.setEffort("MEDIUM");
+        eco.setNumberOfSteps(8);
+        eco.setDestinations(new ArrayList<>());
+        itineraries.add(eco);
+
+        GeneratedItinerary balanced = new GeneratedItinerary();
+        balanced.setType("BALANCED");
+        balanced.setDescription("Un mélange parfait de culture, gastronomie et détente");
+        balanced.setTotalBudget(95);
+        balanced.setEstimatedDurationHours(8.0f);
+        balanced.setEffort("MEDIUM");
+        balanced.setNumberOfSteps(10);
+        balanced.setDestinations(new ArrayList<>());
+        itineraries.add(balanced);
+
+        GeneratedItinerary comfort = new GeneratedItinerary();
+        comfort.setType("COMFORT");
+        comfort.setDescription("Expérience premium avec des pauses régulières");
+        comfort.setTotalBudget(180);
+        comfort.setEstimatedDurationHours(7.5f);
+        comfort.setEffort("LOW");
+        comfort.setNumberOfSteps(7);
+        comfort.setDestinations(new ArrayList<>());
+        itineraries.add(comfort);
+
         return itineraries;
     }
 

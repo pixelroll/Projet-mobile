@@ -1,5 +1,6 @@
 package com.paullouis.travel.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.paullouis.travel.ItineraryDetailActivity;
 import com.paullouis.travel.R;
+import com.paullouis.travel.data.ItineraryCache;
 import com.paullouis.travel.model.GeneratedItinerary;
 
 import java.util.List;
@@ -23,10 +25,15 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
 
     private List<GeneratedItinerary> items;
     private Context context;
+    private String locationName;
+    private String locationDate;
 
-    public GeneratedItineraryAdapter(List<GeneratedItinerary> items, Context context) {
+    public GeneratedItineraryAdapter(List<GeneratedItinerary> items, Context context,
+            String locationName, String locationDate) {
         this.items = items;
         this.context = context;
+        this.locationName = locationName;
+        this.locationDate = locationDate;
     }
 
     @NonNull
@@ -82,9 +89,11 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
 
         // Detail button
         holder.btnDetail.setOnClickListener(v -> {
+            ItineraryCache.setSelectedIndex(holder.getAdapterPosition());
             Intent intent = new Intent(context, ItineraryDetailActivity.class);
-            intent.putExtra("ITINERARY_TITLE", item.getTitle());
-            context.startActivity(intent);
+            intent.putExtra("LOCATION_NAME", locationName);
+            intent.putExtra("LOCATION_DATE", locationDate);
+            ((Activity) context).startActivityForResult(intent, 1);
         });
     }
 

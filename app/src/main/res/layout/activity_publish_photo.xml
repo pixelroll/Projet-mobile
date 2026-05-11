@@ -689,6 +689,50 @@
                     app:iconSize="20dp" />
             </LinearLayout>
 
+            <!-- Section Lier à un parcours -->
+            <LinearLayout
+                android:id="@+id/sectionItinerary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lier à un parcours (optionnel)"
+                    android:textColor="@color/on_background"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Associez cette photo à l'une de vos étapes de parcours"
+                    android:textColor="@color/muted_foreground"
+                    android:textSize="12sp" />
+
+                <Spinner
+                    android:id="@+id/spItinerary"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_input_gray"
+                    android:paddingHorizontal="12dp" />
+
+                <Spinner
+                    android:id="@+id/spItineraryStep"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_input_gray"
+                    android:paddingHorizontal="12dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

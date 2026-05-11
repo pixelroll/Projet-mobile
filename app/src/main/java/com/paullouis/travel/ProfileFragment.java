@@ -22,7 +22,7 @@ import com.paullouis.travel.adapter.ProfileItineraryAdapter;
 import com.paullouis.travel.data.DataCallback;
 import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.data.EventBus;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.model.SavedItinerary;
 import com.paullouis.travel.model.User;
 import com.paullouis.travel.model.Photo;
 
@@ -104,10 +104,23 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
             }
         });
 
-        // Setup Trips List
+        // Setup Trips List with real Firebase data
         rvProfileTrips.setLayoutManager(new LinearLayoutManager(getContext()));
-        ProfileItineraryAdapter tripAdapter = new ProfileItineraryAdapter(MockDataProvider.getProfileItineraries(), getContext());
+        ProfileItineraryAdapter tripAdapter = new ProfileItineraryAdapter(new java.util.ArrayList<>(), getContext());
         rvProfileTrips.setAdapter(tripAdapter);
+
+        FirebaseRepository.getInstance().getUserItineraries(new DataCallback<java.util.List<SavedItinerary>>() {
+            @Override
+            public void onSuccess(java.util.List<SavedItinerary> result) {
+                if (!isAdded() || getView() == null) return;
+                tripAdapter.setItineraries(result);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                android.util.Log.e("ProfileFragment", "Failed to load itineraries", e);
+            }
+        });
 
         // Setup Click Listeners
         setupListeners(view);

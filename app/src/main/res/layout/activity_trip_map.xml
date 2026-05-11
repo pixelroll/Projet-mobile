@@ -178,7 +178,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Photos prises"
+                    android:text="Budget total"
                     android:textColor="#64748B"
                     android:textSize="10sp" />
                 <TextView

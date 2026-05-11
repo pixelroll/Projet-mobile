@@ -25,6 +25,7 @@ import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Comment;
 import com.paullouis.travel.data.EventBus;
 import com.paullouis.travel.model.Photo;
+import com.paullouis.travel.ItineraryDetailActivity;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -160,6 +161,27 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
             tvTravelInfo.setText(photo.getTravelInfo());
         } else {
             travelInfoSection.setVisibility(View.GONE);
+        }
+
+        // Parcours Section
+        LinearLayout parcoursSection = findViewById(R.id.parcoursSection);
+        if (photo.getItineraryId() != null && !photo.getItineraryId().isEmpty()) {
+            parcoursSection.setVisibility(View.VISIBLE);
+            TextView tvParcoursInfo = findViewById(R.id.tvParcoursInfo);
+            StringBuilder sb = new StringBuilder("Prise dans le parcours \"");
+            sb.append(photo.getItineraryTitle() != null ? photo.getItineraryTitle() : "");
+            sb.append("\"");
+            if (photo.getStepName() != null && !photo.getStepName().isEmpty()) {
+                sb.append(", étape : ").append(photo.getStepName());
+            }
+            tvParcoursInfo.setText(sb.toString());
+            findViewById(R.id.btnVoirParcours).setOnClickListener(v -> {
+                Intent intent = new Intent(this, ItineraryDetailActivity.class);
+                intent.putExtra(ItineraryDetailActivity.EXTRA_SAVED_ITINERARY_ID, photo.getItineraryId());
+                startActivity(intent);
+            });
+        } else {
+            parcoursSection.setVisibility(View.GONE);
         }
 
         // Audio Note Section

@@ -35,6 +35,8 @@ import com.paullouis.travel.data.EventBus;
 import com.paullouis.travel.model.Group;
 import com.paullouis.travel.model.Notification;
 import com.paullouis.travel.model.Photo;
+import com.paullouis.travel.model.SavedItinerary;
+import com.paullouis.travel.model.TravelDestination;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +86,12 @@ public class PublishPhotoActivity extends AppCompatActivity {
     private List<Group> availableGroups = new ArrayList<>();
     private Group selectedGroup = null;
     private boolean postToGroup = false;
+
+    // Parcours link
+    private List<SavedItinerary> userItineraries = new ArrayList<>();
+    private SavedItinerary selectedItinerary = null;
+    private int selectedStepOrder = -1;
+    private String selectedStepName = null;
 
     // Audio recording
     private MediaRecorder mediaRecorder;
@@ -167,6 +175,8 @@ public class PublishPhotoActivity extends AppCompatActivity {
 
         pbAiAnalysis = findViewById(R.id.pbAiAnalysis);
         tvAiAnalysisLabel = findViewById(R.id.tvAiAnalysisLabel);
+
+        setupItinerarySelector();
 
         aiModel = GenerativeModelFutures.from(
             FirebaseAI.getInstance(GenerativeBackend.googleAI())
@@ -265,6 +275,96 @@ public class PublishPhotoActivity extends AppCompatActivity {
             public void onNothingSelected(android.widget.AdapterView<?> parent) {
                 postToGroup = false;
                 selectedGroup = null;
+            }
+        });
+    }
+
+    private void setupItinerarySelector() {
+        View sectionItinerary = findViewById(R.id.sectionItinerary);
+        if (sectionItinerary == null) return;
+
+        if (!FirebaseRepository.getInstance().isUserLoggedIn()) return;
+        sectionItinerary.setVisibility(View.VISIBLE);
+
+        Spinner spItinerary = findViewById(R.id.spItinerary);
+        Spinner spItineraryStep = findViewById(R.id.spItineraryStep);
+
+        List<String> itinItems = new ArrayList<>();
+        itinItems.add("Aucun parcours");
+        ArrayAdapter<String> itinAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, itinItems);
+        itinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spItinerary.setAdapter(itinAdapter);
+
+        FirebaseRepository.getInstance().getUserItineraries(new DataCallback<List<SavedItinerary>>() {
+            @Override
+            public void onSuccess(List<SavedItinerary> itineraries) {
+                userItineraries = itineraries;
+                for (SavedItinerary itin : itineraries) {
+                    itinItems.add(itin.getTitle());
+                }
+                itinAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(Exception e) { /* keep "Aucun parcours" */ }
+        });
+
+        spItinerary.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    selectedItinerary = null;
+                    selectedStepOrder = -1;
+                    selectedStepName = null;
+                    spItineraryStep.setVisibility(View.GONE);
+                    return;
+                }
+                int idx = position - 1;
+                if (idx < userItineraries.size()) {
+                    selectedItinerary = userItineraries.get(idx);
+                    List<String> stepItems = new ArrayList<>();
+                    stepItems.add("Choisir une étape...");
+                    if (selectedItinerary.getSteps() != null) {
+                        for (TravelDestination step : selectedItinerary.getSteps()) {
+                            stepItems.add(step.getOrder() + ". " + step.getName());
+                        }
+                    }
+                    ArrayAdapter<String> stepAdapter = new ArrayAdapter<>(
+                            PublishPhotoActivity.this, android.R.layout.simple_spinner_item, stepItems);
+                    stepAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spItineraryStep.setAdapter(stepAdapter);
+                    spItineraryStep.setVisibility(View.VISIBLE);
+                    selectedStepOrder = -1;
+                    selectedStepName = null;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                selectedItinerary = null;
+            }
+        });
+
+        spItineraryStep.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0 || selectedItinerary == null || selectedItinerary.getSteps() == null) {
+                    selectedStepOrder = -1;
+                    selectedStepName = null;
+                    return;
+                }
+                int stepIdx = position - 1;
+                if (stepIdx < selectedItinerary.getSteps().size()) {
+                    TravelDestination step = selectedItinerary.getSteps().get(stepIdx);
+                    selectedStepOrder = step.getOrder();
+                    selectedStepName = step.getName();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                selectedStepOrder = -1;
+                selectedStepName = null;
             }
         });
     }
@@ -710,6 +810,14 @@ public class PublishPhotoActivity extends AppCompatActivity {
                     tags.add(((Chip) chipGroupTags.getChildAt(i)).getText().toString());
                 }
                 photo.setTags(tags);
+
+                // Parcours link
+                if (selectedItinerary != null && selectedStepOrder >= 0) {
+                    photo.setItineraryId(selectedItinerary.getId());
+                    photo.setStepOrder(selectedStepOrder);
+                    photo.setStepName(selectedStepName);
+                    photo.setItineraryTitle(selectedItinerary.getTitle());
+                }
 
                 // Group
                 if (postToGroup) {

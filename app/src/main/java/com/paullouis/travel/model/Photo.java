@@ -36,6 +36,10 @@ public class Photo implements Parcelable {
     private List<String> likedBy;
     private List<String> reportedBy;
     private int reportCount;
+    private String itineraryId;
+    private int stepOrder = -1;
+    private String stepName;
+    private String itineraryTitle;
 
     public Photo() {}
 
@@ -70,6 +74,10 @@ public class Photo implements Parcelable {
         likedBy = in.createStringArrayList();
         reportedBy = in.createStringArrayList();
         reportCount = in.readInt();
+        itineraryId = in.readString();
+        stepOrder = in.readInt();
+        stepName = in.readString();
+        itineraryTitle = in.readString();
     }
 
     @Override
@@ -104,6 +112,10 @@ public class Photo implements Parcelable {
         dest.writeStringList(likedBy);
         dest.writeStringList(reportedBy);
         dest.writeInt(reportCount);
+        dest.writeString(itineraryId);
+        dest.writeInt(stepOrder);
+        dest.writeString(stepName);
+        dest.writeString(itineraryTitle);
     }
 
     @Override
@@ -186,4 +198,12 @@ public class Photo implements Parcelable {
     public void setReportedBy(List<String> reportedBy) { this.reportedBy = reportedBy; }
     public int getReportCount() { return reportCount; }
     public void setReportCount(int reportCount) { this.reportCount = reportCount; }
+    public String getItineraryId() { return itineraryId; }
+    public void setItineraryId(String itineraryId) { this.itineraryId = itineraryId; }
+    public int getStepOrder() { return stepOrder; }
+    public void setStepOrder(int stepOrder) { this.stepOrder = stepOrder; }
+    public String getStepName() { return stepName; }
+    public void setStepName(String stepName) { this.stepName = stepName; }
+    public String getItineraryTitle() { return itineraryTitle; }
+    public void setItineraryTitle(String itineraryTitle) { this.itineraryTitle = itineraryTitle; }
 }

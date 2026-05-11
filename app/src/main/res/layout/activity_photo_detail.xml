@@ -306,6 +306,64 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Parcours Section -->
+        <LinearLayout
+            android:id="@+id/parcoursSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/cardCTAVisit">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_icon_primary_10"
+                android:padding="12dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_route"
+                        app:tint="@color/primary" />
+
+                    <TextView
+                        android:id="@+id/tvParcoursInfo"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textColor="@color/on_background"
+                        android:textSize="13sp"
+                        tools:text="Prise dans le parcours Visite de Paris, étape : Tour Eiffel" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVoirParcours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Voir le parcours"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="12dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    app:backgroundTint="@color/primary"
+                    app:cornerRadius="6dp" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- Description -->
         <TextView
             android:id="@+id/tvDescriptionDetail"
@@ -316,7 +374,7 @@
             android:lineSpacingMultiplier="1.4"
             android:textColor="@color/on_background"
             android:textSize="15sp"
-            app:layout_constraintTop_toBottomOf="@id/cardCTAVisit"
+            app:layout_constraintTop_toBottomOf="@id/parcoursSection"
             tools:text="Une vue magnifique au coucher du soleil depuis le Champ de Mars..." />
 
         <!-- Tags -->

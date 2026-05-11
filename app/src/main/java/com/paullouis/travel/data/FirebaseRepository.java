@@ -1092,6 +1092,96 @@ public class FirebaseRepository implements DataRepository {
         });
     }
 
+    // =========================================================================
+    // SAVED ITINERARIES
+    // =========================================================================
+
+    public void saveItinerary(com.paullouis.travel.model.SavedItinerary itinerary, DataCallback<String> callback) {
+        FirebaseUser fUser = auth.getCurrentUser();
+        if (fUser == null) {
+            callback.onError(new Exception("Not authenticated"));
+            return;
+        }
+        String id = db.collection("itineraries").document().getId();
+        itinerary.setId(id);
+        itinerary.setUserId(fUser.getUid());
+        db.collection("itineraries").document(id).set(itinerary)
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("FirebaseRepo", "Itinerary saved: " + id);
+                    cache.remove("itineraries:user:" + fUser.getUid());
+                    callback.onSuccess(id);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("FirebaseRepo", "Failed to save itinerary", e);
+                    callback.onError(e);
+                });
+    }
+
+    public void getUserItineraries(DataCallback<List<com.paullouis.travel.model.SavedItinerary>> callback) {
+        FirebaseUser fUser = auth.getCurrentUser();
+        if (fUser == null) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        String uid = fUser.getUid();
+        String cacheKey = "itineraries:user:" + uid;
+        List<com.paullouis.travel.model.SavedItinerary> cached =
+                (List<com.paullouis.travel.model.SavedItinerary>) cache.get(cacheKey);
+        if (cached != null) {
+            callback.onSuccess(cached);
+            return;
+        }
+        db.collection("itineraries")
+                .whereEqualTo("userId", uid)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<com.paullouis.travel.model.SavedItinerary> itineraries =
+                            querySnapshot.toObjects(com.paullouis.travel.model.SavedItinerary.class);
+                    itineraries.sort((a, b) -> Long.compare(b.getCreatedAt(), a.getCreatedAt()));
+                    android.util.Log.d("FirebaseRepo", "Loaded " + itineraries.size() + " itineraries for " + uid);
+                    cache.put(cacheKey, itineraries);
+                    callback.onSuccess(itineraries);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("FirebaseRepo", "Failed to load itineraries", e);
+                    callback.onError(e);
+                });
+    }
+
+    public void getItineraryById(String id, DataCallback<com.paullouis.travel.model.SavedItinerary> callback) {
+        db.collection("itineraries").document(id).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        callback.onSuccess(doc.toObject(com.paullouis.travel.model.SavedItinerary.class));
+                    } else {
+                        callback.onError(new Exception("Itinerary not found"));
+                    }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    public void updateItinerary(com.paullouis.travel.model.SavedItinerary itinerary, DataCallback<Void> callback) {
+        db.collection("itineraries").document(itinerary.getId()).set(itinerary)
+                .addOnSuccessListener(aVoid -> {
+                    cache.remove("itineraries:user:" + itinerary.getUserId());
+                    callback.onSuccess(null);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    public void getPhotosByItineraryStep(String itineraryId, int stepOrder, DataCallback<List<Photo>> callback) {
+        db.collection("photos")
+                .whereEqualTo("itineraryId", itineraryId)
+                .whereEqualTo("stepOrder", stepOrder)
+                .limit(5)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<Photo> photos = querySnapshot.toObjects(Photo.class);
+                    callback.onSuccess(photos);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
     private long computePeriodCutoff(String period) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.SECOND, 0);
