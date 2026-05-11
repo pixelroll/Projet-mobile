@@ -37,19 +37,7 @@
             app:layout_constraintStart_toEndOf="@id/btnBack"
             app:layout_constraintTop_toTopOf="@id/btnBack" />
 
-        <ImageButton
-            android:id="@+id/btnBookmark"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_bookmark_border"
-            app:layout_constraintBottom_toBottomOf="@id/btnBack"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/btnBack"
-            app:tint="@color/on_background" />
-
-        <!-- Banner Image -->
+<!-- Banner Image -->
         <ImageView
             android:id="@+id/ivPhotoDetail"
             android:layout_width="match_parent"
@@ -180,30 +168,6 @@
                     android:textColor="@color/on_background"
                     android:textSize="15sp"
                     tools:text="Champ de Mars, Paris, France" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_navigation"
-                    app:tint="@color/primary" />
-
-                <TextView
-                    android:id="@+id/btnViewOnMap"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="Voir sur la carte"
-                    android:textColor="@color/primary"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
@@ -432,14 +396,6 @@
                 android:textSize="14sp"
                 android:textStyle="bold"
                 tools:text="3" />
-
-            <ImageView
-                android:id="@+id/ivShareDetail"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="24dp"
-                android:src="@drawable/ic_share_2"
-                app:tint="@color/on_background" />
 
             <View
                 android:layout_width="0dp"

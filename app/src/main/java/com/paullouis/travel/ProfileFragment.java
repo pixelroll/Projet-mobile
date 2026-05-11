@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.paullouis.travel.adapter.ProfilePhotoAdapter;
 import com.paullouis.travel.adapter.ProfileItineraryAdapter;
 import com.paullouis.travel.data.DataCallback;
@@ -28,11 +29,12 @@ import com.paullouis.travel.model.Photo;
 
 public class ProfileFragment extends Fragment implements EventBus.PhotoListener, EventBus.UserListener {
 
-    private TextView tvHeaderName, tvName, tvCountries, tvBio;
-    private TextView tvStatPosts, tvStatFollowers, tvStatFollowing;
+    private TextView tvHeaderName, tvName, tvBio, tvLocation, tvWebsite;
+    private TextView tvStatPosts;
     private RecyclerView rvProfilePhotos, rvProfileTrips;
-    private LinearLayout tabPhotos, tabTrips;
+    private LinearLayout tabPhotos, tabTrips, locationContainer, websiteContainer;
     private ProfilePhotoAdapter profilePhotoAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Nullable
     @Override
@@ -58,16 +60,22 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
         // Initialize views
         tvHeaderName = view.findViewById(R.id.tvHeaderName);
         tvName = view.findViewById(R.id.tvName);
-        tvCountries = view.findViewById(R.id.tvCountries);
         tvBio = view.findViewById(R.id.tvBio);
+        tvLocation = view.findViewById(R.id.tvLocation);
+        tvWebsite = view.findViewById(R.id.tvWebsite);
         tvStatPosts = view.findViewById(R.id.tvStatPosts);
-        tvStatFollowers = view.findViewById(R.id.tvStatFollowers);
-        tvStatFollowing = view.findViewById(R.id.tvStatFollowing);
-        ImageView ivProfile = view.findViewById(R.id.ivProfile); // Assuming it's ivProfile
+        locationContainer = view.findViewById(R.id.locationContainer);
+        websiteContainer = view.findViewById(R.id.websiteContainer);
+        ImageView ivProfile = view.findViewById(R.id.ivProfile);
         rvProfilePhotos = view.findViewById(R.id.rvProfilePhotos);
         rvProfileTrips = view.findViewById(R.id.rvProfileTrips);
         tabPhotos = view.findViewById(R.id.tabPhotos);
         tabTrips = view.findViewById(R.id.tabTrips);
+
+        // Setup pull-to-refresh
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setColorSchemeResources(R.color.primary);
+        swipeRefreshLayout.setOnRefreshListener(this::refreshProfileData);
 
         // Load Data asynchronously from Repository
         FirebaseRepository.getInstance().getCurrentUser(new DataCallback<User>() {
@@ -95,6 +103,7 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
             public void onSuccess(java.util.List<Photo> result) {
                 if (!isAdded() || getView() == null) return;
                 profilePhotoAdapter.setPhotos(result);
+                updatePublicationCount();
             }
 
             @Override
@@ -129,11 +138,33 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
     private void bindUserData(View view, User user) {
         tvHeaderName.setText(user.getName());
         tvName.setText(user.getName());
-        tvCountries.setText(user.getCountriesVisited() + " pays visités");
-        tvBio.setText(user.getBio());
-        tvStatPosts.setText(String.valueOf(user.getPostsCount()));
-        tvStatFollowers.setText(String.valueOf(user.getFollowersCount()));
-        tvStatFollowing.setText(String.valueOf(user.getFollowingCount()));
+
+        // Handle bio with null safety
+        if (user.getBio() != null && !user.getBio().isEmpty()) {
+            tvBio.setText(user.getBio());
+            tvBio.setVisibility(View.VISIBLE);
+        } else {
+            tvBio.setVisibility(View.GONE);
+        }
+
+        // Handle location with null safety
+        if (user.getLocation() != null && !user.getLocation().isEmpty()) {
+            tvLocation.setText(user.getLocation());
+            locationContainer.setVisibility(View.VISIBLE);
+        } else {
+            locationContainer.setVisibility(View.GONE);
+        }
+
+        // Setup website if available
+        if (user.getWebsite() != null && !user.getWebsite().isEmpty()) {
+            tvWebsite.setText(user.getWebsite());
+            websiteContainer.setVisibility(View.VISIBLE);
+            websiteContainer.setOnClickListener(v -> openWebsite(user.getWebsite()));
+        } else {
+            websiteContainer.setVisibility(View.GONE);
+        }
+
+        updatePublicationCount();
         
         ImageView ivProfile = view.findViewById(R.id.ivProfile);
         if (ivProfile != null) {
@@ -151,6 +182,13 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
         }
     }
 
+    private void updatePublicationCount() {
+        if (tvStatPosts != null && profilePhotoAdapter != null) {
+            int count = profilePhotoAdapter.getItemCount();
+            tvStatPosts.setText(String.valueOf(count));
+        }
+    }
+
     private void setupListeners(View view) {
         // Account Switcher
         view.findViewById(R.id.llTitle).setOnClickListener(v -> 
@@ -160,9 +198,6 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
             android.content.Intent intent = new android.content.Intent(getActivity(), EditProfileActivity.class);
             startActivity(intent);
         });
-        
-        view.findViewById(R.id.btnShareProfile).setOnClickListener(v -> 
-            ShareProfileDialogFragment.newInstance().show(getChildFragmentManager(), "share_profile"));
 
         view.findViewById(R.id.ivAdd).setOnClickListener(v -> {
             if (FirebaseRepository.getInstance().isUserLoggedIn()) {
@@ -189,9 +224,71 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
 
         view.findViewById(R.id.btnExplore).setOnClickListener(v -> {
             // Navigate to Home
-            com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = 
+            com.google.android.material.bottomnavigation.BottomNavigationView bottomNav =
                 getActivity().findViewById(R.id.bottom_navigation);
             bottomNav.setSelectedItemId(R.id.homeFragment);
+        });
+    }
+
+    private void refreshProfileData() {
+        // Reload user profile
+        FirebaseRepository.getInstance().getCurrentUser(new DataCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                if (!isAdded() || getView() == null) {
+                    swipeRefreshLayout.setRefreshing(false);
+                    return;
+                }
+                bindUserData(getView(), user);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (!isAdded() || getView() == null) return;
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+
+        // Reload photos
+        FirebaseRepository.getInstance().getUserPhotos(new DataCallback<java.util.List<Photo>>() {
+            @Override
+            public void onSuccess(java.util.List<Photo> result) {
+                if (!isAdded() || getView() == null) {
+                    swipeRefreshLayout.setRefreshing(false);
+                    return;
+                }
+                profilePhotoAdapter.setPhotos(result);
+                updatePublicationCount();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (!isAdded() || getView() == null) return;
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+
+        // Reload itineraries
+        FirebaseRepository.getInstance().getUserItineraries(new DataCallback<java.util.List<SavedItinerary>>() {
+            @Override
+            public void onSuccess(java.util.List<SavedItinerary> result) {
+                if (!isAdded() || getView() == null) {
+                    swipeRefreshLayout.setRefreshing(false);
+                    return;
+                }
+                ProfileItineraryAdapter tripAdapter = (ProfileItineraryAdapter) rvProfileTrips.getAdapter();
+                if (tripAdapter != null) {
+                    tripAdapter.setItineraries(result);
+                }
+                swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (!isAdded() || getView() == null) return;
+                swipeRefreshLayout.setRefreshing(false);
+            }
         });
     }
 
@@ -212,6 +309,15 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
             rvProfilePhotos.setVisibility(View.GONE);
             if (rvProfileTrips != null) rvProfileTrips.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void openWebsite(String website) {
+        String url = website;
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://" + url;
+        }
+        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+        startActivity(intent);
     }
 
     private android.graphics.drawable.Drawable createInitialDrawable(String initial, String userName) {
@@ -256,6 +362,7 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
     public void onPhotoAdded(Photo photo) {
         if (profilePhotoAdapter != null) {
             profilePhotoAdapter.addPhoto(photo);
+            updatePublicationCount();
             if (rvProfilePhotos != null) {
                 rvProfilePhotos.scrollToPosition(0);
             }
@@ -273,6 +380,7 @@ public class ProfileFragment extends Fragment implements EventBus.PhotoListener,
     public void onPhotoRemoved(String photoId) {
         if (profilePhotoAdapter != null) {
             profilePhotoAdapter.removePhoto(photoId);
+            updatePublicationCount();
         }
     }
 

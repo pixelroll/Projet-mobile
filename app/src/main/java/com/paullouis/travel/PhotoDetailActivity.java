@@ -38,7 +38,6 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
 
     private Photo photo;
     private boolean isLiked;
-    private boolean isBookmarked;
     private int likesCount;
     private int commentsCount;
 
@@ -71,8 +70,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
         }
 
         isLiked = photo.isLiked();
-        isBookmarked = photo.isBookmarked();
-        likesCount = photo.getLikes();
+likesCount = photo.getLikes();
         commentsCount = photo.getComments();
 
         initViews();
@@ -100,15 +98,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
     private void initViews() {
         // Toolbar
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
-        ImageView btnBookmark = findViewById(R.id.btnBookmark);
-        updateBookmarkUI(btnBookmark);
-        btnBookmark.setOnClickListener(v -> {
-            isBookmarked = !isBookmarked;
-            updateBookmarkUI(btnBookmark);
-            Toast.makeText(this, isBookmarked ? "Ajouté aux favoris" : "Retiré des favoris", Toast.LENGTH_SHORT).show();
-        });
-
-        // Banner Image
+// Banner Image
         ImageView ivPhoto = findViewById(R.id.ivPhotoDetail);
         if (photo.getImageResId() != 0) {
             Glide.with(this).load(photo.getImageResId()).centerCrop().into(ivPhoto);
@@ -144,14 +134,20 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
         TextView tvLocation = findViewById(R.id.tvLocationNameDetail);
         TextView tvDescription = findViewById(R.id.tvDescriptionDetail);
         TextView tvCTASubtitle = findViewById(R.id.tvCTASubtitle);
+        LinearLayout locationSection = findViewById(R.id.locationSection);
 
         tvTitle.setText(photo.getTitle());
-        tvLocation.setText(photo.getLocationName());
         tvDescription.setText(photo.getDescription());
-        
-        String locationForCTA = (photo.getLocationName() != null && !photo.getLocationName().isEmpty()) 
-            ? photo.getLocationName() : "ce lieu";
-        tvCTASubtitle.setText("Générez un parcours de visite autour de " + locationForCTA);
+
+        // Location section - show only if location exists
+        if (photo.getLocationName() != null && !photo.getLocationName().isEmpty()) {
+            locationSection.setVisibility(View.VISIBLE);
+            tvLocation.setText(photo.getLocationName());
+            tvCTASubtitle.setText("Générez un parcours de visite autour de " + photo.getLocationName());
+        } else {
+            locationSection.setVisibility(View.GONE);
+            tvCTASubtitle.setText("Générez un parcours de visite autour de ce lieu");
+        }
 
         // Travel Info Section
         TextView tvTravelInfo = findViewById(R.id.tvTravelInfoDetail);
@@ -194,20 +190,22 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
         }
 
         // Buttons
-        findViewById(R.id.btnViewOnMap).setOnClickListener(v -> {
-            Toast.makeText(this, "Redirection vers la carte...", Toast.LENGTH_SHORT).show();
-        });
-
-        findViewById(R.id.btnGetDirections).setOnClickListener(v -> {
-            Uri gmmIntentUri = Uri.parse("geo:" + photo.getLat() + "," + photo.getLng() + "?q=" + Uri.encode(photo.getLocationName()));
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-            if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                startActivity(mapIntent);
-            } else {
-                startActivity(new Intent(Intent.ACTION_VIEW, gmmIntentUri));
-            }
-        });
+        View btnGetDirections = findViewById(R.id.btnGetDirections);
+        if (photo.getLat() != 0 && photo.getLng() != 0 && photo.getLocationName() != null && !photo.getLocationName().isEmpty()) {
+            btnGetDirections.setVisibility(View.VISIBLE);
+            btnGetDirections.setOnClickListener(v -> {
+                Uri gmmIntentUri = Uri.parse("geo:" + photo.getLat() + "," + photo.getLng() + "?q=" + Uri.encode(photo.getLocationName()));
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                } else {
+                    startActivity(new Intent(Intent.ACTION_VIEW, gmmIntentUri));
+                }
+            });
+        } else {
+            btnGetDirections.setVisibility(View.GONE);
+        }
 
         findViewById(R.id.btnCreatePathDetail).setOnClickListener(v -> {
             if (FirebaseRepository.getInstance().isUserLoggedIn()) {
@@ -289,14 +287,6 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
                     Toast.makeText(PhotoDetailActivity.this, "Erreur de mise à jour", Toast.LENGTH_SHORT).show();
                 }
             });
-        });
-
-        findViewById(R.id.ivShareDetail).setOnClickListener(v -> {
-            Intent sendIntent = new Intent();
-            sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, "Regardez cette superbe photo : " + photo.getTitle() + " à " + photo.getLocationName());
-            sendIntent.setType("text/plain");
-            startActivity(Intent.createChooser(sendIntent, "Partager via"));
         });
 
         findViewById(R.id.ivReportDetail).setOnClickListener(v -> {
@@ -403,7 +393,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
                     public void onSuccess(com.paullouis.travel.model.User user) {
                         String name = (user.getName() != null && !user.getName().isEmpty()) ? user.getName() : "Utilisateur";
                         String initial = name.substring(0, 1).toUpperCase();
-                        Comment newComment = new Comment(name, initial, "À l'instant", text);
+                        Comment newComment = new Comment(name, initial, "", text);
                         newComment.setTimestamp(System.currentTimeMillis());
                         newComment.setUserAvatarUrl(user.getAvatarUrl());
                         newComment.setLoading(true);
@@ -467,17 +457,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
         }
     }
 
-    private void updateBookmarkUI(ImageView iv) {
-        if (isBookmarked) {
-            iv.setImageResource(R.drawable.ic_bookmark_filled);
-            iv.setColorFilter(ContextCompat.getColor(this, R.color.primary));
-        } else {
-            iv.setImageResource(R.drawable.ic_bookmark_border);
-            iv.setColorFilter(ContextCompat.getColor(this, R.color.on_background));
-        }
-    }
-
-    // --- CommentListener Implementation ---
+// --- CommentListener Implementation ---
 
     @Override
     public void onCommentAdded(String photoId, Comment comment) {

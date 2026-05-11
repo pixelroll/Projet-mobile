@@ -75,37 +75,50 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         
         holder.tvUserName.setText(authorName);
         holder.tvAvatarInitials.setText(initial);
-        holder.tvLocationHeader.setText(photo.getLocationName());
-        
+
+        // Location header - hide if no location
+        if (photo.getLocationName() != null && !photo.getLocationName().isEmpty()) {
+            holder.tvLocationHeader.setVisibility(View.VISIBLE);
+            holder.tvLocationHeader.setText(photo.getLocationName());
+        } else {
+            holder.tvLocationHeader.setVisibility(View.GONE);
+        }
+
         // Relative time formatting
         CharSequence relativeTime = DateUtils.getRelativeTimeSpanString(
-                photo.getTimestamp(), 
-                System.currentTimeMillis(), 
+                photo.getTimestamp(),
+                System.currentTimeMillis(),
                 DateUtils.MINUTE_IN_MILLIS);
         holder.tvDate.setText(relativeTime);
-        
+
         holder.tvLikesCount.setText(String.valueOf(photo.getLikes()));
         holder.tvCommentsCount.setText(String.valueOf(photo.getComments()));
-        holder.tvLocationChip.setText(photo.getLocationName());
 
-        // Inline description with bold author name and bold title
+        // Title with author name and title (bolded)
         String title = (photo.getTitle() != null) ? photo.getTitle() : "";
         String desc = (photo.getDescription() != null) ? photo.getDescription() : "";
-        
-        String fullText = authorName + " " + title + " - " + desc;
-        SpannableString spannable = new SpannableString(fullText);
-        
+
+        String titleText = authorName + " " + title;
+        SpannableString spannable = new SpannableString(titleText);
+
         // Bold Author
         spannable.setSpan(new StyleSpan(Typeface.BOLD), 0, authorName.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        
+
         // Bold Title
         if (!title.isEmpty()) {
             int titleStart = authorName.length() + 1;
             int titleEnd = titleStart + title.length();
             spannable.setSpan(new StyleSpan(Typeface.BOLD), titleStart, titleEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        
+
         holder.tvInlineDesc.setText(spannable);
+
+        if (!desc.isEmpty()) {
+            holder.tvDescriptionFeed.setVisibility(View.VISIBLE);
+            holder.tvDescriptionFeed.setText(desc);
+        } else {
+            holder.tvDescriptionFeed.setVisibility(View.GONE);
+        }
 
         // Group Badge (Disabled as per user request)
         holder.tvGroupBadge.setVisibility(View.GONE);
@@ -216,8 +229,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
     }
 
     static class PhotoViewHolder extends RecyclerView.ViewHolder {
-        TextView tvAvatarInitials, tvUserName, tvLocationHeader, tvDate, tvLikesCount, tvCommentsCount, tvLocationChip, tvInlineDesc, tvGroupBadge;
-        ImageView ivPhoto, ivLike, ivComment, ivShare, ivBookmark, ivUserAvatar, ivAudioMic;
+        TextView tvAvatarInitials, tvUserName, tvLocationHeader, tvDate, tvLikesCount, tvCommentsCount, tvInlineDesc, tvDescriptionFeed, tvGroupBadge;
+        ImageView ivPhoto, ivLike, ivComment, ivUserAvatar, ivAudioMic;
         android.widget.ProgressBar pbLoading;
         View vLoadingOverlay;
 
@@ -230,13 +243,11 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             tvDate = itemView.findViewById(R.id.tvDate);
             tvLikesCount = itemView.findViewById(R.id.tvLikesCount);
             tvCommentsCount = itemView.findViewById(R.id.tvCommentsCount);
-            tvLocationChip = itemView.findViewById(R.id.tvLocationChip);
             tvInlineDesc = itemView.findViewById(R.id.tvInlineDesc);
+            tvDescriptionFeed = itemView.findViewById(R.id.tvDescriptionFeed);
             ivPhoto = itemView.findViewById(R.id.ivPhoto);
             ivLike = itemView.findViewById(R.id.ivLike);
             ivComment = itemView.findViewById(R.id.ivComment);
-            ivShare = itemView.findViewById(R.id.ivShare);
-            ivBookmark = itemView.findViewById(R.id.ivBookmark);
             ivUserAvatar = itemView.findViewById(R.id.ivUserAvatar);
             ivAudioMic = itemView.findViewById(R.id.ivAudioMic);
             pbLoading = itemView.findViewById(R.id.pbLoading);

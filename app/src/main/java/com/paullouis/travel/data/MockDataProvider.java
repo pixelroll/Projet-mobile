@@ -77,8 +77,6 @@ public class MockDataProvider implements DataRepository {
             currentUser.setEmail("sophie.martin@email.com"); // Matched with mockup
             currentUser.setBio("🌍 Voyageur passionné | 🎞 Photographe amateur");
             currentUser.setPostsCount(47);
-            currentUser.setFollowersCount(1248);
-            currentUser.setFollowingCount(532);
             currentUser.setCountriesVisited(12);
         }
         return currentUser;

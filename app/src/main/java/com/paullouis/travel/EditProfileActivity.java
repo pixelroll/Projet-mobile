@@ -104,13 +104,12 @@ public class EditProfileActivity extends AppCompatActivity {
         if (currentUser.getBio() != null) {
             etBio.setText(currentUser.getBio());
             tvBioCount.setText(currentUser.getBio().length() + " / 150 caractères");
+        } else {
+            tvBioCount.setText("0 / 150 caractères");
         }
         if (currentUser.getEmail() != null) etEmail.setText(currentUser.getEmail());
-        
-        // Mocking location and website since User model doesn't have them yet
-        // In a real scenario, these would come from currentUser
-        etLocation.setText("Paris, France");
-        etWebsite.setText("");
+        if (currentUser.getLocation() != null) etLocation.setText(currentUser.getLocation());
+        if (currentUser.getWebsite() != null) etWebsite.setText(currentUser.getWebsite());
 
         tvStatsPhotos.setText(String.valueOf(currentUser.getPostsCount()));
 
@@ -156,6 +155,8 @@ public class EditProfileActivity extends AppCompatActivity {
         currentUser.setName(name);
         currentUser.setBio(etBio.getText().toString().trim());
         currentUser.setEmail(etEmail.getText().toString().trim());
+        currentUser.setLocation(etLocation.getText().toString().trim());
+        currentUser.setWebsite(etWebsite.getText().toString().trim());
         // Optimistic update
         EventBus.notifyUserUpdated(currentUser);
         Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show();

@@ -61,9 +61,6 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         View section = findViewById(sectionId);
         ((ImageView) section.findViewById(R.id.ivSectionIcon)).setImageResource(iconRes);
         ((TextView) section.findViewById(R.id.tvSectionTitle)).setText(title);
-        section.findViewById(R.id.btnAdd).setOnClickListener(v -> {
-            Toast.makeText(this, "Ajouter " + title + " (à implémenter)", Toast.LENGTH_SHORT).show();
-        });
     }
 
     private void refreshUi() {

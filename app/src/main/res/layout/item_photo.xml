@@ -191,63 +191,21 @@
             tools:text="28" />
 
         <ImageView
-            android:id="@+id/ivShare"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:layout_marginStart="16dp"
-            android:padding="4dp"
-            android:src="@drawable/ic_share"
-            app:layout_constraintStart_toEndOf="@id/tvCommentsCount"
-            app:layout_constraintTop_toTopOf="@id/ivLike" />
-
-        <ImageView
-            android:id="@+id/ivBookmark"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:layout_marginEnd="16dp"
-            android:padding="4dp"
-            android:src="@drawable/ic_bookmark_border"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/ivLike" />
-
-        <!-- Location Chip -->
-        <!-- We use a custom background for rounded chip -->
-        <TextView
-            android:id="@+id/tvLocationChip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/chip_bg"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:textColor="#0891b2"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            app:drawableStartCompat="@drawable/ic_location_on"
-            app:drawableTint="#0891b2"
-            android:drawablePadding="6dp"
-            android:gravity="center_vertical"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivLike"
-            tools:text="Tour Eiffel" />
-
-        <ImageView
             android:id="@+id/ivAudioMic"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
             android:padding="4dp"
             android:src="@drawable/ic_mic_lucide"
             app:tint="@color/primary"
             android:background="@drawable/bg_icon_primary_10"
             android:visibility="gone"
-            app:layout_constraintStart_toEndOf="@id/tvLocationChip"
-            app:layout_constraintTop_toTopOf="@id/tvLocationChip"
-            app:layout_constraintBottom_toBottomOf="@id/tvLocationChip"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivLike"
             tools:visibility="visible" />
 
-        <!-- Name & Description Inline -->
+        <!-- Title -->
         <TextView
             android:id="@+id/tvInlineDesc"
             android:layout_width="0dp"
@@ -256,11 +214,28 @@
             android:layout_marginTop="12dp"
             android:textSize="14sp"
             android:textColor="#1A202C"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivAudioMic"
+            tools:text="Author Name Titre" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/tvDescriptionFeed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="4dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textSize="13sp"
+            android:textColor="#475569"
             android:lineSpacingExtra="2dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvLocationChip"
-            tools:text="@tools:sample/lorem/random" />
+            app:layout_constraintTop_toBottomOf="@id/tvInlineDesc"
+            tools:text="Description de la photo qui peut s'étendre sur deux lignes maximum" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

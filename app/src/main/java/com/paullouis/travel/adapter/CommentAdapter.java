@@ -9,7 +9,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.paullouis.travel.R;
 import com.paullouis.travel.model.Comment;
 import com.bumptech.glide.Glide;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import android.widget.ImageView;
 
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
@@ -58,7 +61,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         Comment comment = commentList.get(position);
         holder.tvInitial.setText(comment.getUserInitial());
         holder.tvAuthor.setText(comment.getUserName());
-        holder.tvDate.setText(comment.getDate());
+        holder.tvDate.setText(formatRelativeTime(comment.getTimestamp()));
         holder.tvText.setText(comment.getText());
 
         if (comment.getUserAvatarUrl() != null && !comment.getUserAvatarUrl().isEmpty()) {
@@ -78,6 +81,23 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             holder.itemView.setAlpha(1.0f);
             holder.pbCommentLoading.setVisibility(View.GONE);
         }
+    }
+
+    private static String formatRelativeTime(long timestamp) {
+        if (timestamp <= 0) return "à l'instant";
+        long diff = System.currentTimeMillis() - timestamp;
+        if (diff < 60_000) return "à l'instant";
+        if (diff < 3_600_000) {
+            long minutes = diff / 60_000;
+            return "il y a " + minutes + " min";
+        }
+        if (diff < 86_400_000) {
+            long hours = diff / 3_600_000;
+            return "il y a " + hours + " h";
+        }
+        long days = diff / 86_400_000;
+        if (days < 7) return "il y a " + days + " j";
+        return new SimpleDateFormat("d MMM yyyy, HH:mm", Locale.FRENCH).format(new Date(timestamp));
     }
 
     @Override

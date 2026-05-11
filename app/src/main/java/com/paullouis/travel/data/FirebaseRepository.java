@@ -103,6 +103,9 @@ public class FirebaseRepository implements DataRepository {
                     FirebaseUser fUser = authResult.getUser();
                     if (fUser != null) {
                         User newUser = new User(fUser.getUid(), name, email);
+                        newUser.setBio("");
+                        newUser.setLocation("");
+                        newUser.setWebsite("");
                         if (avatarUri != null && !avatarUri.isEmpty()) {
                             newUser.setAvatarUrl(avatarUri);
                         }
@@ -141,6 +144,9 @@ public class FirebaseRepository implements DataRepository {
                             public void onError(Exception e) {
                                 // User does not exist, create new profile
                                 User newUser = new User(fUser.getUid(), fUser.getDisplayName(), fUser.getEmail());
+                                newUser.setBio("");
+                                newUser.setLocation("");
+                                newUser.setWebsite("");
                                 newUser.setAvatarUrl(fUser.getPhotoUrl() != null ? fUser.getPhotoUrl().toString() : null);
                                 createUserInDatabase(newUser, new DataCallback<Void>() {
                                     @Override
