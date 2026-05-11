@@ -8,6 +8,13 @@ public class Comment implements Parcelable {
     private String userInitial;
     private String date;
     private String text;
+    private long timestamp;
+    private String userAvatarUrl;
+    private boolean isLoading;
+
+    public Comment() {
+        // Required for Firebase
+    }
 
     public Comment(String userName, String userInitial, String date, String text) {
         this.userName = userName;
@@ -21,6 +28,9 @@ public class Comment implements Parcelable {
         userInitial = in.readString();
         date = in.readString();
         text = in.readString();
+        timestamp = in.readLong();
+        userAvatarUrl = in.readString();
+        isLoading = in.readByte() != 0;
     }
 
     @Override
@@ -29,6 +39,9 @@ public class Comment implements Parcelable {
         dest.writeString(userInitial);
         dest.writeString(date);
         dest.writeString(text);
+        dest.writeLong(timestamp);
+        dest.writeString(userAvatarUrl);
+        dest.writeByte((byte) (isLoading ? 1 : 0));
     }
 
     @Override
@@ -49,7 +62,25 @@ public class Comment implements Parcelable {
     };
 
     public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
     public String getUserInitial() { return userInitial; }
+    public void setUserInitial(String userInitial) { this.userInitial = userInitial; }
+
     public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
+
     public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+
+    public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+    public String getUserAvatarUrl() { return userAvatarUrl; }
+    public void setUserAvatarUrl(String userAvatarUrl) { this.userAvatarUrl = userAvatarUrl; }
+
+    @com.google.firebase.firestore.Exclude
+    public boolean isLoading() { return isLoading; }
+    @com.google.firebase.firestore.Exclude
+    public void setLoading(boolean loading) { isLoading = loading; }
 }

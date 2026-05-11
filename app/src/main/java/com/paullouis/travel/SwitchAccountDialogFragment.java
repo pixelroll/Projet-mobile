@@ -12,7 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.User;
 
 public class SwitchAccountDialogFragment extends DialogFragment {
@@ -31,15 +32,25 @@ public class SwitchAccountDialogFragment extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        User user = MockDataProvider.getCurrentUser();
-        ((TextView) view.findViewById(R.id.tvAccountName)).setText(user.getName());
-        ((TextView) view.findViewById(R.id.tvEmail)).setText(user.getEmail());
+        FirebaseRepository.getInstance().getCurrentUser(new DataCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                ((TextView) view.findViewById(R.id.tvAccountName)).setText(user.getName());
+                ((TextView) view.findViewById(R.id.tvEmail)).setText(user.getEmail());
+            }
+
+            @Override
+            public void onError(Exception e) {
+                ((TextView) view.findViewById(R.id.tvAccountName)).setText("Unknown");
+                ((TextView) view.findViewById(R.id.tvEmail)).setText("");
+            }
+        });
 
         view.findViewById(R.id.btnClose).setOnClickListener(v -> dismiss());
         
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
             // Logique de déconnexion : retour au mode anonyme
-            MockDataProvider.setUserLoggedIn(false);
+            FirebaseRepository.getInstance().logout();
             
             // Redémarrer l'activité principale pour rafraîchir l'UI
             android.content.Intent intent = new android.content.Intent(getActivity(), MainActivity.class);

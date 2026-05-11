@@ -20,7 +20,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.EventBus;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.User;
 
 public class EditProfileActivity extends AppCompatActivity {
@@ -57,9 +59,20 @@ public class EditProfileActivity extends AppCompatActivity {
         tvStatsPhotos = findViewById(R.id.tvStatsPhotos);
         ivAvatar = findViewById(R.id.ivAvatar);
 
-        // Load current user data
-        currentUser = MockDataProvider.getCurrentUser();
-        populateFields();
+        // Load current user data asynchronously
+        FirebaseRepository.getInstance().getCurrentUser(new DataCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                currentUser = user;
+                populateFields();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(EditProfileActivity.this, "Erreur de chargement du profil", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
 
         // Bio character counter
         etBio.addTextChangedListener(new TextWatcher() {
@@ -91,15 +104,25 @@ public class EditProfileActivity extends AppCompatActivity {
         if (currentUser.getBio() != null) {
             etBio.setText(currentUser.getBio());
             tvBioCount.setText(currentUser.getBio().length() + " / 150 caractères");
+        } else {
+            tvBioCount.setText("0 / 150 caractères");
         }
         if (currentUser.getEmail() != null) etEmail.setText(currentUser.getEmail());
-        
-        // Mocking location and website since User model doesn't have them yet
-        // In a real scenario, these would come from currentUser
-        etLocation.setText("Paris, France");
-        etWebsite.setText("");
+        if (currentUser.getLocation() != null) etLocation.setText(currentUser.getLocation());
+        if (currentUser.getWebsite() != null) etWebsite.setText(currentUser.getWebsite());
 
         tvStatsPhotos.setText(String.valueOf(currentUser.getPostsCount()));
+
+        if (currentUser.getAvatarUrl() != null && !currentUser.getAvatarUrl().isEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                    .load(currentUser.getAvatarUrl())
+                    .circleCrop()
+                    .into(ivAvatar);
+        } else {
+            String userName = currentUser.getName();
+            String initial = userName != null && !userName.isEmpty() ? userName.substring(0, 1).toUpperCase() : "?";
+            ivAvatar.setImageDrawable(createInitialDrawable(initial, userName));
+        }
     }
 
     private void openGallery() {
@@ -114,7 +137,9 @@ public class EditProfileActivity extends AppCompatActivity {
             Uri imageUri = data.getData();
             if (imageUri != null) {
                 ivAvatar.setImageURI(imageUri);
-                // In a real app we would upload this URI to Firebase Storage
+                if (currentUser != null) {
+                    currentUser.setAvatarUrl(imageUri.toString());
+                }
             }
         }
     }
@@ -126,14 +151,53 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Update MockDataProvider
+        // Update the current user model
         currentUser.setName(name);
         currentUser.setBio(etBio.getText().toString().trim());
         currentUser.setEmail(etEmail.getText().toString().trim());
-        // Location and website would be saved here too
-
+        currentUser.setLocation(etLocation.getText().toString().trim());
+        currentUser.setWebsite(etWebsite.getText().toString().trim());
+        // Optimistic update
+        EventBus.notifyUserUpdated(currentUser);
         Toast.makeText(this, "Profil mis à jour", Toast.LENGTH_SHORT).show();
         finish();
+
+        // Save via FirebaseRepository in background
+        FirebaseRepository.getInstance().updateUser(currentUser, new com.paullouis.travel.data.DataCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                // Background update succeeded
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(getApplicationContext(), "Erreur de synchro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private android.graphics.drawable.Drawable createInitialDrawable(String initial, String userName) {
+        android.graphics.drawable.ShapeDrawable drawable = new android.graphics.drawable.ShapeDrawable(new android.graphics.drawable.shapes.OvalShape());
+        int[] colors = {0xFF6366F1, 0xFF8B5CF6, 0xFFEC4899, 0xFFF59E0B, 0xFF10B981, 0xFF3B82F6};
+        int colorIndex = (userName != null ? userName.hashCode() : 0) % colors.length;
+        if (colorIndex < 0) colorIndex = -colorIndex;
+        drawable.getPaint().setColor(colors[colorIndex]);
+
+        android.graphics.drawable.LayerDrawable layerDrawable = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{drawable});
+
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(200, 200, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        layerDrawable.setBounds(0, 0, 200, 200);
+        layerDrawable.draw(canvas);
+
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setColor(android.graphics.Color.WHITE);
+        paint.setTextSize(80);
+        paint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        canvas.drawText(initial, 100, 130, paint);
+
+        return new android.graphics.drawable.BitmapDrawable(getResources(), bitmap);
     }
 
     private void showDeactivateDialog() {

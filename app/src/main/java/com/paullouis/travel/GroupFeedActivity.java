@@ -3,7 +3,7 @@ package com.paullouis.travel;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
@@ -11,22 +11,26 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
 import com.paullouis.travel.adapter.PhotoAdapter;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.EventBus;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Group;
 import com.paullouis.travel.model.Photo;
 import com.paullouis.travel.util.GroupPermissionHelper;
 import com.paullouis.travel.util.WindowInsetsHelper;
+import java.util.ArrayList;
 import java.util.List;
 
-public class GroupFeedActivity extends AppCompatActivity {
+public class GroupFeedActivity extends AppCompatActivity implements EventBus.PhotoListener {
 
     public static final String EXTRA_GROUP_ID = "group_id";
     public static final String EXTRA_GROUP_NAME = "group_name";
 
     private String groupId;
     private String groupName;
+    private PhotoAdapter photoAdapter;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,9 +49,15 @@ public class GroupFeedActivity extends AppCompatActivity {
         initToolbar();
         initViews();
         WindowInsetsHelper.applyStatusBarPadding(findViewById(R.id.appBar));
+        EventBus.registerPhotoListener(this);
         loadData();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.unregisterPhotoListener(this);
+    }
 
     private void initToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -62,6 +72,8 @@ public class GroupFeedActivity extends AppCompatActivity {
         TextView tvName = findViewById(R.id.tvGroupNameToolbar);
         tvName.setText(groupName);
 
+        progressBar = findViewById(R.id.progressBar);
+
         findViewById(R.id.btnPublish).setOnClickListener(v -> {
             Intent intent = new Intent(this, PublishPhotoActivity.class);
             intent.putExtra(PublishPhotoActivity.EXTRA_GROUP_ID, groupId);
@@ -74,20 +86,82 @@ public class GroupFeedActivity extends AppCompatActivity {
             intent.putExtra(GroupAdminActivity.EXTRA_GROUP_ID, groupId);
             startActivity(intent);
         });
-    }
-
-    private void loadData() {
-        Group group = MockDataProvider.getGroupById(groupId);
-
-        if (group != null) {
-            findViewById(R.id.btnSettings).setVisibility(
-                GroupPermissionHelper.canEditSettings(group) ? View.VISIBLE : View.GONE
-            );
-        }
 
         RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
         rvPhotos.setLayoutManager(new LinearLayoutManager(this));
-        List<Photo> photos = MockDataProvider.getPhotosByGroup(groupId);
-        rvPhotos.setAdapter(new PhotoAdapter(photos));
+        photoAdapter = new PhotoAdapter(new ArrayList<>());
+        rvPhotos.setAdapter(photoAdapter);
+    }
+
+    private void loadData() {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        // Load group info to check permissions
+        FirebaseRepository.getInstance().getGroupById(groupId, new DataCallback<Group>() {
+            @Override
+            public void onSuccess(Group group) {
+                boolean canEdit = GroupPermissionHelper.canEditSettings(group);
+                View btnSettings = findViewById(R.id.btnSettings);
+                if (btnSettings != null) {
+                    btnSettings.setVisibility(canEdit ? View.VISIBLE : View.GONE);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                View btnSettings = findViewById(R.id.btnSettings);
+                if (btnSettings != null) btnSettings.setVisibility(View.GONE);
+            }
+        });
+
+        // Load group photos from Firebase
+        FirebaseRepository.getInstance().getPhotosByGroup(groupId, new DataCallback<List<Photo>>() {
+            @Override
+            public void onSuccess(List<Photo> photos) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                if (photoAdapter != null) {
+                    photoAdapter = new PhotoAdapter(new ArrayList<>(photos));
+                    RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
+                    if (rvPhotos != null) rvPhotos.setAdapter(photoAdapter);
+                }
+                updateEmptyState(photos.isEmpty());
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                updateEmptyState(true);
+                Toast.makeText(GroupFeedActivity.this, "Impossible de charger les photos", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateEmptyState(boolean isEmpty) {
+        View emptyState = findViewById(R.id.emptyState);
+        RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
+        if (emptyState != null) emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        if (rvPhotos != null) rvPhotos.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+    }
+
+    // --- EventBus.PhotoListener ---
+
+    @Override
+    public void onPhotoAdded(Photo photo) {
+        if (photoAdapter != null && groupId != null && groupId.equals(photo.getGroupId())) {
+            photoAdapter.addPhoto(photo);
+            RecyclerView rvPhotos = findViewById(R.id.rvPhotos);
+            if (rvPhotos != null) rvPhotos.scrollToPosition(0);
+            updateEmptyState(false);
+        }
+    }
+
+    @Override
+    public void onPhotoUpdated(Photo photo) {
+        if (photoAdapter != null) photoAdapter.updatePhoto(photo);
+    }
+
+    @Override
+    public void onPhotoRemoved(String photoId) {
+        if (photoAdapter != null) photoAdapter.removePhoto(photoId);
     }
 }

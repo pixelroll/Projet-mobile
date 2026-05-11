@@ -83,6 +83,12 @@
                 android:layout_height="72dp"
                 android:background="@drawable/bg_upload_placeholder">
                 <ImageView
+                    android:id="@+id/ivGroupCoverPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+                <ImageView
+                    android:id="@+id/ivCoverUploadIcon"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center"

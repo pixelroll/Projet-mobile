@@ -12,12 +12,13 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import com.paullouis.travel.data.MockDataProvider;
+import com.paullouis.travel.data.DataCallback;
+import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.model.Group;
 
 public class JoinGroupDialogFragment extends DialogFragment {
@@ -25,6 +26,7 @@ public class JoinGroupDialogFragment extends DialogFragment {
     private EditText etJoinCode;
     private Button btnJoin;
     private TextView tvError;
+    private ProgressBar progressBar;
 
     @Nullable
     @Override
@@ -43,6 +45,7 @@ public class JoinGroupDialogFragment extends DialogFragment {
         etJoinCode = view.findViewById(R.id.etJoinCode);
         btnJoin = view.findViewById(R.id.btnJoin);
         tvError = view.findViewById(R.id.tvError);
+        progressBar = view.findViewById(R.id.progressBar);
 
         view.findViewById(R.id.btnClose).setOnClickListener(v -> dismiss());
         view.findViewById(R.id.btnCancel).setOnClickListener(v -> dismiss());
@@ -69,18 +72,47 @@ public class JoinGroupDialogFragment extends DialogFragment {
 
         btnJoin.setOnClickListener(v -> {
             String code = etJoinCode.getText().toString().trim();
-            Group group = MockDataProvider.findGroupByCode(code);
-            
-            if (group != null) {
-                Toast.makeText(getActivity(), "Groupe " + group.getName() + " rejoint !", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getActivity(), GroupDetailActivity.class);
-                intent.putExtra("GROUP_ID", group.getId());
-                startActivity(intent);
-                dismiss();
-            } else {
-                tvError.setVisibility(View.VISIBLE);
-            }
+            setLoading(true);
+
+            FirebaseRepository.getInstance().findGroupByCode(code, new DataCallback<Group>() {
+                @Override
+                public void onSuccess(Group group) {
+                    FirebaseRepository.getInstance().joinGroup(group.getId(), new DataCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            if (!isAdded()) return;
+                            setLoading(false);
+                            Intent intent = new Intent(getActivity(), GroupFeedActivity.class);
+                            intent.putExtra(GroupFeedActivity.EXTRA_GROUP_ID, group.getId());
+                            intent.putExtra(GroupFeedActivity.EXTRA_GROUP_NAME, group.getName());
+                            startActivity(intent);
+                            dismiss();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            if (!isAdded()) return;
+                            setLoading(false);
+                            tvError.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    if (!isAdded()) return;
+                    setLoading(false);
+                    tvError.setVisibility(View.VISIBLE);
+                }
+            });
         });
+    }
+
+    private void setLoading(boolean loading) {
+        btnJoin.setEnabled(!loading);
+        if (progressBar != null) {
+            progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override

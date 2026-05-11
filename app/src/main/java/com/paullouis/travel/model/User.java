@@ -7,11 +7,11 @@ public class User {
     private String name;
     private String email;
     private String bio;
+    private String location;
+    private String website;
     private String avatarUrl;
     private int profileImageResId; // drawable resource id for local image
     private int postsCount;
-    private int followersCount;
-    private int followingCount;
     private int countriesVisited;
     private List<String> groupIds;
 
@@ -35,6 +35,12 @@ public class User {
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
 
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
+
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 
@@ -43,12 +49,6 @@ public class User {
 
     public int getPostsCount() { return postsCount; }
     public void setPostsCount(int postsCount) { this.postsCount = postsCount; }
-
-    public int getFollowersCount() { return followersCount; }
-    public void setFollowersCount(int followersCount) { this.followersCount = followersCount; }
-
-    public int getFollowingCount() { return followingCount; }
-    public void setFollowingCount(int followingCount) { this.followingCount = followingCount; }
 
     public int getCountriesVisited() { return countriesVisited; }
     public void setCountriesVisited(int countriesVisited) { this.countriesVisited = countriesVisited; }

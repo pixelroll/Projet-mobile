@@ -33,12 +33,20 @@ public class StepPhotoAdapter extends RecyclerView.Adapter<StepPhotoAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         StepPhoto photo = photos.get(position);
-        holder.ivThumbnail.setImageResource(photo.getDrawableRes());
         holder.tvLabel.setText(photo.getLabel());
         holder.videoOverlay.setVisibility(photo.isVideo() ? View.VISIBLE : View.GONE);
 
+        if (photo.getImageUrl() != null && !photo.getImageUrl().isEmpty()) {
+            com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                    .load(photo.getImageUrl())
+                    .centerCrop()
+                    .into(holder.ivThumbnail);
+        } else if (photo.getDrawableRes() != 0) {
+            holder.ivThumbnail.setImageResource(photo.getDrawableRes());
+        }
+
         holder.itemView.setOnClickListener(v -> {
-            if (v.getContext() instanceof androidx.appcompat.app.AppCompatActivity) {
+            if (photo.getDrawableRes() != 0 && v.getContext() instanceof androidx.appcompat.app.AppCompatActivity) {
                 androidx.appcompat.app.AppCompatActivity activity = (androidx.appcompat.app.AppCompatActivity) v.getContext();
                 com.paullouis.travel.MediaViewerDialogFragment dialog = com.paullouis.travel.MediaViewerDialogFragment.newInstance(
                         photo.getDrawableRes(), photo.getLabel(), photo.isVideo()

@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.imageview.ShapeableImageView;
 import com.paullouis.travel.R;
 import com.paullouis.travel.model.ItineraryStep;
 
@@ -21,12 +20,24 @@ import java.util.List;
 
 public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdapter.ViewHolder> {
 
+    public interface OnStepDeleteListener {
+        void onDelete(int position);
+    }
+
     private List<ItineraryStep> steps;
     private Context context;
+    private boolean editMode = false;
+    private OnStepDeleteListener deleteListener;
 
     public ItineraryStepAdapter(List<ItineraryStep> steps, Context context) {
         this.steps = steps;
         this.context = context;
+    }
+
+    public void setEditMode(boolean editMode, OnStepDeleteListener listener) {
+        this.editMode = editMode;
+        this.deleteListener = listener;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -39,27 +50,17 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ItineraryStep step = steps.get(position);
+        boolean isLast = position == steps.size() - 1;
 
         holder.tvTimeBubble.setText(step.getTime());
-        holder.ivStepImage.setImageResource(step.getImageRes());
         holder.ivTypeIcon.setImageResource(step.getTypeIconRes());
         holder.tvTitle.setText(step.getTitle());
         holder.tvDescription.setText(step.getDescription());
-        holder.tvHours.setText(step.getHours());
-        holder.tvStatus.setText(step.getStatus());
         holder.tvDuration.setText(step.getDuration());
         holder.tvPrice.setText(step.getPrice());
         holder.tvPeriod.setText(step.getPeriod());
-        holder.tvMediaInfo.setText(step.getMediaInfo());
 
-        // Hide the last timeline line
-        if (position == steps.size() - 1) {
-            holder.timelineLine.setVisibility(View.INVISIBLE);
-        } else {
-            holder.timelineLine.setVisibility(View.VISIBLE);
-        }
-
-        // Period Badge coloring
+        // Period badge coloring
         if ("Matin".equals(step.getPeriod())) {
             holder.tvPeriod.setBackgroundResource(R.drawable.bg_badge_primary);
             holder.tvPeriod.setTextColor(Color.parseColor("#1565C0"));
@@ -71,11 +72,32 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             holder.tvPeriod.setTextColor(Color.parseColor("#4527A0"));
         }
 
-        // Expanded photos grid
+        // Travel connector between steps
+        if (isLast || (step.getTravelDurationMinutes() <= 0 && (step.getTransportationMode() == null || step.getTransportationMode().isEmpty()))) {
+            holder.llTravelConnector.setVisibility(View.GONE);
+        } else {
+            holder.llTravelConnector.setVisibility(View.VISIBLE);
+            String travelText = step.getTravelDurationMinutes() + " min";
+            if (step.getTransportationMode() != null && !step.getTransportationMode().isEmpty()) {
+                travelText += " · " + step.getTransportationMode();
+            }
+            holder.tvTravelInfo.setText(travelText);
+        }
+
+        // Edit mode: delete button
+        if (holder.btnDeleteStep != null) {
+            holder.btnDeleteStep.setVisibility(editMode ? View.VISIBLE : View.GONE);
+            holder.btnDeleteStep.setOnClickListener(v -> {
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_ID && deleteListener != null) {
+                    deleteListener.onDelete(pos);
+                }
+            });
+        }
+
+        // Photos section
         if (step.getPhotos() != null && !step.getPhotos().isEmpty()) {
             holder.llMediaInfoToggle.setVisibility(View.VISIBLE);
-            
-            // Setup horizontal recyclerview
             holder.rvStepPhotos.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
             StepPhotoAdapter photoAdapter = new StepPhotoAdapter(step.getPhotos());
             holder.rvStepPhotos.setAdapter(photoAdapter);
@@ -97,11 +119,9 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTimeBubble, tvTitle, tvDescription, tvHours, tvStatus, tvDuration, tvPrice, tvPeriod, tvMediaInfo;
-        ShapeableImageView ivStepImage;
-        ImageView ivTypeIcon, ivChevron;
-        View timelineLine;
-        LinearLayout llMediaInfoToggle;
+        TextView tvTimeBubble, tvTitle, tvDescription, tvDuration, tvPrice, tvPeriod, tvMediaInfo, tvTravelInfo;
+        ImageView ivTypeIcon, ivChevron, btnDeleteStep;
+        LinearLayout llTravelConnector, llMediaInfoToggle;
         RecyclerView rvStepPhotos;
 
         public ViewHolder(@NonNull View itemView) {
@@ -109,16 +129,15 @@ public class ItineraryStepAdapter extends RecyclerView.Adapter<ItineraryStepAdap
             tvTimeBubble = itemView.findViewById(R.id.tvTimeBubble);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvDescription = itemView.findViewById(R.id.tvDescription);
-            tvHours = itemView.findViewById(R.id.tvHours);
-            tvStatus = itemView.findViewById(R.id.tvStatus);
             tvDuration = itemView.findViewById(R.id.tvDuration);
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvPeriod = itemView.findViewById(R.id.tvPeriod);
             tvMediaInfo = itemView.findViewById(R.id.tvMediaInfo);
-            ivStepImage = itemView.findViewById(R.id.ivStepImage);
+            tvTravelInfo = itemView.findViewById(R.id.tvTravelInfo);
             ivTypeIcon = itemView.findViewById(R.id.ivTypeIcon);
             ivChevron = itemView.findViewById(R.id.ivChevron);
-            timelineLine = itemView.findViewById(R.id.timelineLine);
+            btnDeleteStep = itemView.findViewById(R.id.btnDeleteStep);
+            llTravelConnector = itemView.findViewById(R.id.llTravelConnector);
             llMediaInfoToggle = itemView.findViewById(R.id.llMediaInfoToggle);
             rvStepPhotos = itemView.findViewById(R.id.rvStepPhotos);
         }

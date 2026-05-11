@@ -22,7 +22,7 @@
             android:layout_height="180dp"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.MediumComponent.TopRounded"
-            tools:src="@drawable/profile_sophie" />
+            tools:src="@drawable/circle_avatar_bg" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"

@@ -58,9 +58,6 @@ public class MediaViewerDialogFragment extends DialogFragment {
 
         if (isVideo) {
             ivVideoPlay.setVisibility(View.VISIBLE);
-            ivVideoPlay.setOnClickListener(v -> {
-                // TODO: Implémenter le lecteur vidéo
-            });
         }
 
         view.findViewById(R.id.btnClose).setOnClickListener(v -> dismiss());

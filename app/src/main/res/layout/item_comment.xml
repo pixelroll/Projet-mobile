@@ -20,6 +20,11 @@
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="M" />
+        <ImageView
+            android:id="@+id/ivCommentAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
     </FrameLayout>
 
     <LinearLayout
@@ -50,14 +55,29 @@
                 tools:text="Il y a 2 jours" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvCommentText"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="#212121"
-            android:textSize="14sp"
-            tools:text="Magnifique photo ! J'y étais la semaine dernière." />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tvCommentText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#212121"
+                android:textSize="14sp"
+                tools:text="Magnifique photo ! J'y étais la semaine dernière." />
+                
+            <ProgressBar
+                android:id="@+id/pbCommentLoading"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="8dp"
+                android:visibility="gone"
+                android:indeterminateTint="@color/primary" />
+        </LinearLayout>
 
     </LinearLayout>
 </LinearLayout>

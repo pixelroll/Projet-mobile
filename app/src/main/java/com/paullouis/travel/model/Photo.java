@@ -28,6 +28,18 @@ public class Photo implements Parcelable {
     private boolean isLiked;
     private String groupId;
     private String groupName;
+    private String authorAvatarUrl;
+    private boolean isLoading;
+    private String travelInfo;
+    private String momentOfDay;
+    private String placeType;
+    private List<String> likedBy;
+    private List<String> reportedBy;
+    private int reportCount;
+    private String itineraryId;
+    private int stepOrder = -1;
+    private String stepName;
+    private String itineraryTitle;
 
     public Photo() {}
 
@@ -54,6 +66,18 @@ public class Photo implements Parcelable {
         isLiked = in.readByte() != 0;
         groupId = in.readString();
         groupName = in.readString();
+        authorAvatarUrl = in.readString();
+        isLoading = in.readByte() != 0;
+        travelInfo = in.readString();
+        momentOfDay = in.readString();
+        placeType = in.readString();
+        likedBy = in.createStringArrayList();
+        reportedBy = in.createStringArrayList();
+        reportCount = in.readInt();
+        itineraryId = in.readString();
+        stepOrder = in.readInt();
+        stepName = in.readString();
+        itineraryTitle = in.readString();
     }
 
     @Override
@@ -80,6 +104,18 @@ public class Photo implements Parcelable {
         dest.writeByte((byte) (isLiked ? 1 : 0));
         dest.writeString(groupId);
         dest.writeString(groupName);
+        dest.writeString(authorAvatarUrl);
+        dest.writeByte((byte) (isLoading ? 1 : 0));
+        dest.writeString(travelInfo);
+        dest.writeString(momentOfDay);
+        dest.writeString(placeType);
+        dest.writeStringList(likedBy);
+        dest.writeStringList(reportedBy);
+        dest.writeInt(reportCount);
+        dest.writeString(itineraryId);
+        dest.writeInt(stepOrder);
+        dest.writeString(stepName);
+        dest.writeString(itineraryTitle);
     }
 
     @Override
@@ -144,4 +180,30 @@ public class Photo implements Parcelable {
     public void setGroupId(String groupId) { this.groupId = groupId; }
     public String getGroupName() { return groupName; }
     public void setGroupName(String groupName) { this.groupName = groupName; }
+    public String getAuthorAvatarUrl() { return authorAvatarUrl; }
+    public void setAuthorAvatarUrl(String authorAvatarUrl) { this.authorAvatarUrl = authorAvatarUrl; }
+    @com.google.firebase.firestore.Exclude
+    public boolean isLoading() { return isLoading; }
+    @com.google.firebase.firestore.Exclude
+    public void setLoading(boolean loading) { isLoading = loading; }
+    public String getTravelInfo() { return travelInfo; }
+    public void setTravelInfo(String travelInfo) { this.travelInfo = travelInfo; }
+    public String getMomentOfDay() { return momentOfDay; }
+    public void setMomentOfDay(String momentOfDay) { this.momentOfDay = momentOfDay; }
+    public String getPlaceType() { return placeType; }
+    public void setPlaceType(String placeType) { this.placeType = placeType; }
+    public List<String> getLikedBy() { return likedBy; }
+    public void setLikedBy(List<String> likedBy) { this.likedBy = likedBy; }
+    public List<String> getReportedBy() { return reportedBy; }
+    public void setReportedBy(List<String> reportedBy) { this.reportedBy = reportedBy; }
+    public int getReportCount() { return reportCount; }
+    public void setReportCount(int reportCount) { this.reportCount = reportCount; }
+    public String getItineraryId() { return itineraryId; }
+    public void setItineraryId(String itineraryId) { this.itineraryId = itineraryId; }
+    public int getStepOrder() { return stepOrder; }
+    public void setStepOrder(int stepOrder) { this.stepOrder = stepOrder; }
+    public String getStepName() { return stepName; }
+    public void setStepName(String stepName) { this.stepName = stepName; }
+    public String getItineraryTitle() { return itineraryTitle; }
+    public void setItineraryTitle(String itineraryTitle) { this.itineraryTitle = itineraryTitle; }
 }

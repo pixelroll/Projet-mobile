@@ -59,11 +59,16 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.tvBadgeText.setTextColor(holder.itemView.getContext().getColor(R.color.primary));
         }
 
-        Glide.with(holder.itemView.getContext())
-                .load(group.getCoverImage())
-                .centerCrop()
-                .placeholder(R.drawable.bg_gray_rounded)
-                .into(holder.ivCover);
+        if (group.getCoverImage() != null && !group.getCoverImage().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(group.getCoverImage())
+                    .centerCrop()
+                    .into(holder.ivCover);
+        } else {
+            String groupName = group.getName();
+            String initial = groupName != null && !groupName.isEmpty() ? groupName.substring(0, 1).toUpperCase() : "G";
+            holder.ivCover.setImageDrawable(createGroupInitialDrawable(initial, groupName));
+        }
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), com.paullouis.travel.GroupFeedActivity.class);
@@ -105,6 +110,25 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     @Override
     public int getItemCount() {
         return groups.size();
+    }
+
+    private android.graphics.drawable.Drawable createGroupInitialDrawable(String initial, String groupName) {
+        int[] colors = {0xFF6366F1, 0xFF8B5CF6, 0xFFEC4899, 0xFFF59E0B, 0xFF10B981, 0xFF3B82F6};
+        int colorIndex = (groupName != null ? groupName.hashCode() : 0) % colors.length;
+        if (colorIndex < 0) colorIndex = -colorIndex;
+
+        android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(300, 150, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        canvas.drawColor(colors[colorIndex]);
+
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setColor(android.graphics.Color.WHITE);
+        paint.setTextSize(100);
+        paint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD));
+        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        canvas.drawText(initial, 150, 100, paint);
+
+        return new android.graphics.drawable.BitmapDrawable(null, bitmap);
     }
 
     static class GroupViewHolder extends RecyclerView.ViewHolder {

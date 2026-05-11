@@ -11,6 +11,7 @@ import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.ItineraryStep;
 import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.StepPhoto;
+import com.paullouis.travel.model.SearchFilters;
 import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.R;
 
@@ -18,7 +19,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MockDataProvider {
+public class MockDataProvider implements DataRepository {
+    private static MockDataProvider instance;
+
+    public static MockDataProvider getInstance() {
+        if (instance == null) {
+            instance = new MockDataProvider();
+        }
+        return instance;
+    }
+
+    private MockDataProvider() {}
+
     private static List<Group> myGroups;
     private static List<Group> discoverGroups;
     private static List<Photo> userPhotos;
@@ -29,25 +41,6 @@ public class MockDataProvider {
     static {
         myGroups = new ArrayList<>();
         discoverGroups = new ArrayList<>();
-        
-        // Initialize groups
-        Group g1 = new Group("1", "Voyage Paris 2026", "Groupe pour notre voyage a Paris en mars 2026. Partagez vos photos et lieux preferes !", 8, 34, false, true, true, "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=400", "PAR2026", Group.UserRole.OWNER);
-        Group g2 = new Group("2", "Famille Martin", "Photos de voyages en famille", 5, 67, true, true, false, "https://images.unsplash.com/photo-1613278435217-de4e5a91a4ee?w=400", "FAM-MTN", Group.UserRole.MEMBER);
-        Group g3 = new Group("3", "Amis proches", "Nos aventures entre amis", 12, 89, true, true, false, "https://images.unsplash.com/photo-1626946548234-a65fd193db41?w=400", null, Group.UserRole.MEMBER);
-        
-        myGroups.add(g1);
-        myGroups.add(g2);
-        myGroups.add(g3);
-
-        Group g4 = new Group("4", "Backpackers Europe", "Conseils et astuces pour voyager leger en Europe.", 150, 1200, false, false, false, "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400", null, Group.UserRole.MEMBER);
-        Group g5 = new Group("5", "Digital Nomads", "La communaute des nomades digitaux.", 320, 2500, false, false, true, "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400", null, Group.UserRole.MEMBER);
-        Group g6 = new Group("6", "Photographes du monde", "Echangez vos plus beaux clichés.", 85, 900, true, true, false, "https://images.unsplash.com/photo-1452721226468-f9c902774949?w=400", null, Group.UserRole.MEMBER);
-        
-        discoverGroups.add(g4);
-        discoverGroups.add(g5);
-        discoverGroups.add(g6);
-        
-        myGroups.add(g4); // Simulate joined
 
         // Initialize user photos
         userPhotos = generateInitialPhotos();
@@ -67,7 +60,8 @@ public class MockDataProvider {
         searchNavigationOptions.add(new SearchNavigationOption("similar", "Photos similaires", "Recherche par similarité (IA)", R.drawable.ic_sparkles));
     }
 
-    public static boolean isUserLoggedIn() {
+    @Override
+    public boolean isUserLoggedIn() {
         return userLoggedIn;
     }
 
@@ -83,8 +77,6 @@ public class MockDataProvider {
             currentUser.setEmail("sophie.martin@email.com"); // Matched with mockup
             currentUser.setBio("🌍 Voyageur passionné | 🎞 Photographe amateur");
             currentUser.setPostsCount(47);
-            currentUser.setFollowersCount(1248);
-            currentUser.setFollowingCount(532);
             currentUser.setCountriesVisited(12);
         }
         return currentUser;
@@ -331,33 +323,37 @@ public class MockDataProvider {
 
     public static List<GeneratedItinerary> getGeneratedItineraries() {
         List<GeneratedItinerary> itineraries = new ArrayList<>();
-        itineraries.add(new GeneratedItinerary(
-            "Économique",
-            "Découverte des essentiels avec un budget limité",
-            "45€",
-            "6h30",
-            "Modéré",
-            "8 arrêts",
-            false
-        ));
-        itineraries.add(new GeneratedItinerary(
-            "Équilibré",
-            "Un mélange parfait de culture, gastronomie et détente",
-            "95€",
-            "8h",
-            "Modéré",
-            "10 arrêts",
-            false
-        ));
-        itineraries.add(new GeneratedItinerary(
-            "Confort",
-            "Expérience premium avec des pauses régulières",
-            "180€",
-            "7h30",
-            "Facile",
-            "7 arrêts",
-            false
-        ));
+
+        GeneratedItinerary eco = new GeneratedItinerary();
+        eco.setType("ECO");
+        eco.setDescription("Découverte des essentiels avec un budget limité");
+        eco.setTotalBudget(45);
+        eco.setEstimatedDurationHours(6.5f);
+        eco.setEffort("MEDIUM");
+        eco.setNumberOfSteps(8);
+        eco.setDestinations(new ArrayList<>());
+        itineraries.add(eco);
+
+        GeneratedItinerary balanced = new GeneratedItinerary();
+        balanced.setType("BALANCED");
+        balanced.setDescription("Un mélange parfait de culture, gastronomie et détente");
+        balanced.setTotalBudget(95);
+        balanced.setEstimatedDurationHours(8.0f);
+        balanced.setEffort("MEDIUM");
+        balanced.setNumberOfSteps(10);
+        balanced.setDestinations(new ArrayList<>());
+        itineraries.add(balanced);
+
+        GeneratedItinerary comfort = new GeneratedItinerary();
+        comfort.setType("COMFORT");
+        comfort.setDescription("Expérience premium avec des pauses régulières");
+        comfort.setTotalBudget(180);
+        comfort.setEstimatedDurationHours(7.5f);
+        comfort.setEffort("LOW");
+        comfort.setNumberOfSteps(7);
+        comfort.setDestinations(new ArrayList<>());
+        itineraries.add(comfort);
+
         return itineraries;
     }
 
@@ -500,5 +496,188 @@ public class MockDataProvider {
             }
         }
         return filtered;
+    }
+
+    // =========================================================================
+    // DataRepository Async Implementation
+    // These methods wrap the synchronous static methods to simulate a real backend API.
+    // =========================================================================
+
+    @Override
+    public void getCurrentUser(DataCallback<User> callback) {
+        callback.onSuccess(getCurrentUser());
+    }
+
+    @Override
+    public void getUserById(String id, DataCallback<User> callback) {
+        callback.onSuccess(getUserById(id));
+    }
+
+    @Override
+    public void getUserPhotos(DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getUserPhotos());
+    }
+
+    @Override
+    public void getFeedPhotos(DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getUserPhotos());
+    }
+
+    @Override
+    public void updateUser(User user, DataCallback<Void> callback) {
+        currentUser = user;
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void addPhoto(Photo photo, DataCallback<Void> callback) {
+        addPhoto(photo);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void toggleLike(String photoId, boolean liked, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void uploadAudio(String photoId, android.net.Uri audioUri, DataCallback<String> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getGatewayPhotos(DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getGatewayPhotos());
+    }
+
+    @Override
+    public void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback) {
+        callback.onSuccess(getPhotosByGroup(groupId));
+    }
+
+    @Override
+    public void getComments(String photoId, DataCallback<List<Comment>> callback) {
+        callback.onSuccess(getMockComments(photoId));
+    }
+
+    @Override
+    public void addComment(String photoId, Comment comment, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getMyGroups(DataCallback<List<Group>> callback) {
+        callback.onSuccess(getMyGroups());
+    }
+
+    @Override
+    public void getDiscoverGroups(DataCallback<List<Group>> callback) {
+        callback.onSuccess(getDiscoverGroups());
+    }
+
+    @Override
+    public void getGroupById(String id, DataCallback<Group> callback) {
+        callback.onSuccess(getGroupById(id));
+    }
+
+    @Override
+    public void findGroupByCode(String code, DataCallback<Group> callback) {
+        callback.onSuccess(findGroupByCode(code));
+    }
+
+    @Override
+    public void joinGroup(String groupId, DataCallback<Void> callback) {
+        joinGroup(groupId);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void addGroup(Group group, DataCallback<Void> callback) {
+        addGroup(group);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getGroupMembers(String groupId, DataCallback<List<com.paullouis.travel.model.GroupMember>> callback) {
+        callback.onSuccess(getGroupMembers(groupId));
+    }
+
+    @Override
+    public void getReportedPhotos(String groupId, DataCallback<List<com.paullouis.travel.model.ReportedPhoto>> callback) {
+        callback.onSuccess(getReportedPhotos(groupId));
+    }
+
+    @Override
+    public void getGroupStats(String groupId, DataCallback<java.util.Map<String, Integer>> callback) {
+        callback.onSuccess(getGroupStats(groupId));
+    }
+
+    @Override
+    public void updateGroup(Group group, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getNotifications(DataCallback<List<Notification>> callback) {
+        callback.onSuccess(getNotifications());
+    }
+
+    @Override
+    public void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback) {
+        callback.onSuccess(getNotificationSettings());
+    }
+
+    @Override
+    public void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback) {
+        callback.onSuccess(getGeneratedItineraries());
+    }
+
+    @Override
+    public void getItinerarySteps(DataCallback<List<ItineraryStep>> callback) {
+        callback.onSuccess(getItinerarySteps());
+    }
+
+    @Override
+    public void getProfileItineraries(DataCallback<List<ProfileItinerary>> callback) {
+        callback.onSuccess(getProfileItineraries());
+    }
+
+    @Override
+    public void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback) {
+        callback.onSuccess(getSearchNavigationOptions());
+    }
+
+    @Override
+    public void createNotification(com.paullouis.travel.model.Notification notification, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void markNotificationRead(String notificationId, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void reportPhoto(String photoId, String reason, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void searchPhotos(String query, DataCallback<List<Photo>> callback) {
+        List<Photo> results = new ArrayList<>();
+        String lower = query.toLowerCase();
+        for (Photo p : getMockPhotos()) {
+            if ((p.getTitle() != null && p.getTitle().toLowerCase().contains(lower))
+                    || (p.getLocationName() != null && p.getLocationName().toLowerCase().contains(lower))
+                    || (p.getAuthorName() != null && p.getAuthorName().toLowerCase().contains(lower))) {
+                results.add(p);
+            }
+        }
+        callback.onSuccess(results);
+    }
+
+    @Override
+    public void searchPhotosWithFilters(SearchFilters filters, DataCallback<List<Photo>> callback) {
+        callback.onSuccess(new ArrayList<>());
     }
 }

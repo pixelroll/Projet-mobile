@@ -57,16 +57,25 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             holder.flIconContainer.setVisibility(View.VISIBLE);
             int iconRes = R.drawable.ic_notifications;
             int colorRes = R.color.muted_foreground;
-            
-            switch (notification.getType()) {
-                case ITINERARY: 
-                    iconRes = R.drawable.ic_location_on;
-                    colorRes = R.color.primary;
-                    break;
-                case SUGGESTION:
-                    iconRes = R.drawable.ic_notifications;
-                    colorRes = R.color.secondary;
-                    break;
+
+            Notification.Type type = notification.getType();
+            if (type != null) {
+                switch (type) {
+                    case ITINERARY:
+                        iconRes = R.drawable.ic_location_on;
+                        colorRes = R.color.primary;
+                        break;
+                    case PHOTO_PUBLISHED:
+                        iconRes = R.drawable.ic_notifications;
+                        colorRes = R.color.primary;
+                        break;
+                    case SUGGESTION:
+                        iconRes = R.drawable.ic_notifications;
+                        colorRes = R.color.secondary;
+                        break;
+                    default:
+                        break;
+                }
             }
             holder.ivTypeIcon.setImageResource(iconRes);
             holder.ivTypeIcon.setColorFilter(holder.itemView.getContext().getColor(colorRes));

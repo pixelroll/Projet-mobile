@@ -17,6 +17,8 @@ public class ItineraryStep {
     private List<StepPhoto> photos;
     private double latitude;
     private double longitude;
+    private int travelDurationMinutes;
+    private String transportationMode;
 
     public ItineraryStep(String time, String title, String description, String hours, String status, String duration, String price, String period, String mediaInfo, int typeIconRes, int imageRes) {
         this.time = time;
@@ -54,4 +56,10 @@ public class ItineraryStep {
     public double getLongitude() { return longitude; }
 
     public void setPhotos(List<StepPhoto> photos) { this.photos = photos; }
+
+    public int getTravelDurationMinutes() { return travelDurationMinutes; }
+    public void setTravelDurationMinutes(int travelDurationMinutes) { this.travelDurationMinutes = travelDurationMinutes; }
+
+    public String getTransportationMode() { return transportationMode; }
+    public void setTransportationMode(String transportationMode) { this.transportationMode = transportationMode; }
 }

@@ -21,6 +21,36 @@ public class ProfilePhotoAdapter extends RecyclerView.Adapter<ProfilePhotoAdapte
         this.photos = photos;
     }
 
+    public void setPhotos(List<Photo> newPhotos) {
+        this.photos = newPhotos;
+        notifyDataSetChanged();
+    }
+
+    public void addPhoto(Photo photo) {
+        this.photos.add(0, photo);
+        notifyItemInserted(0);
+    }
+
+    public void removePhoto(String photoId) {
+        for (int i = 0; i < photos.size(); i++) {
+            if (photos.get(i).getId().equals(photoId)) {
+                photos.remove(i);
+                notifyItemRemoved(i);
+                return;
+            }
+        }
+    }
+
+    public void updatePhoto(Photo updatedPhoto) {
+        for (int i = 0; i < photos.size(); i++) {
+            if (photos.get(i).getId().equals(updatedPhoto.getId())) {
+                photos.set(i, updatedPhoto);
+                notifyItemChanged(i);
+                return;
+            }
+        }
+    }
+
     @NonNull
     @Override
     public PhotoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -35,6 +65,12 @@ public class ProfilePhotoAdapter extends RecyclerView.Adapter<ProfilePhotoAdapte
                 .load(photo.getImageUrl())
                 .centerCrop()
                 .into(holder.ivPhoto);
+
+        if (photo.isLoading()) {
+            holder.itemView.setAlpha(0.5f);
+        } else {
+            holder.itemView.setAlpha(1.0f);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), PhotoDetailActivity.class);
