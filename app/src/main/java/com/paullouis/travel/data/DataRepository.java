@@ -35,8 +35,7 @@ public interface DataRepository {
     void addPhoto(Photo photo, DataCallback<Void> callback);
     void toggleLike(String photoId, boolean liked, DataCallback<Void> callback);
     void uploadAudio(String photoId, android.net.Uri audioUri, DataCallback<String> callback);
-    void getGatewayPhotos(DataCallback<List<Photo>> callback);
-    void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
+void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
 
     // --- Comments ---
     void getComments(String photoId, DataCallback<List<Comment>> callback);

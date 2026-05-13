@@ -470,8 +470,6 @@ public class FirebaseRepository implements DataRepository {
     // DELEGATED TO MOCK DATA (TO BE IMPLEMENTED LATER)
     // =========================================================================
 
-    @Override
-    public void getGatewayPhotos(DataCallback<List<Photo>> callback) { mockDelegate.getGatewayPhotos(callback); }
 
     @Override
     public void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback) {
