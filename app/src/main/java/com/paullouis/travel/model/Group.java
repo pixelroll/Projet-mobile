@@ -24,6 +24,7 @@ public class Group {
     private UserRole role;
     private boolean approvalRequired;
     private java.util.List<String> memberIds; // For efficient Firestore queries
+    private String ownerId;
 
     public Group() {}
 
@@ -93,4 +94,6 @@ public class Group {
     public java.util.List<String> getMemberIds() { return memberIds; }
     public void setMemberIds(java.util.List<String> memberIds) { this.memberIds = memberIds; }
     public void setPhotosCount(int count) { this.photosCount = count; }
+    public String getOwnerId() { return ownerId; }
+    public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
 }

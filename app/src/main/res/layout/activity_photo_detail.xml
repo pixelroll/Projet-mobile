@@ -107,7 +107,7 @@
                 <!-- Location + date row — tapping opens maps when location exists -->
                 <LinearLayout
                     android:id="@+id/locationSection"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:gravity="center_vertical"
@@ -126,8 +126,9 @@
 
                     <TextView
                         android:id="@+id/tvLocationNameDetail"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="3dp"
                         android:ellipsize="end"
                         android:maxLines="1"

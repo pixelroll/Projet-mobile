@@ -97,6 +97,7 @@ public class GroupListFragment extends Fragment {
         progressGroups.setVisibility(View.GONE);
         tvEmptyGroups.setVisibility(View.GONE);
         rvGroups.setVisibility(View.VISIBLE);
-        rvGroups.setAdapter(new GroupAdapter(groups, getParentFragmentManager()));
+        String currentUserId = com.paullouis.travel.data.FirebaseRepository.getInstance().getCurrentUserId();
+        rvGroups.setAdapter(new GroupAdapter(groups, getParentFragmentManager(), currentUserId));
     }
 }

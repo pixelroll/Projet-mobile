@@ -35,8 +35,7 @@ public interface DataRepository {
     void addPhoto(Photo photo, DataCallback<Void> callback);
     void toggleLike(String photoId, boolean liked, DataCallback<Void> callback);
     void uploadAudio(String photoId, android.net.Uri audioUri, DataCallback<String> callback);
-    void getGatewayPhotos(DataCallback<List<Photo>> callback);
-    void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
+void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
 
     // --- Comments ---
     void getComments(String photoId, DataCallback<List<Comment>> callback);
@@ -59,6 +58,10 @@ public interface DataRepository {
     void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback);
     void createNotification(Notification notification, DataCallback<Void> callback);
     void markNotificationRead(String notificationId, DataCallback<Void> callback);
+    void saveNotificationSubscription(NotificationSettingItem item, DataCallback<String> callback);
+    void deleteNotificationSubscription(String subscriptionId, DataCallback<Void> callback);
+    void updateNotificationSubscription(String subscriptionId, boolean enabled, DataCallback<Void> callback);
+    void getMatchingSubscribers(Photo photo, DataCallback<List<String>> callback);
 
     // --- Photos (extended) ---
     void reportPhoto(String photoId, String reason, DataCallback<Void> callback);

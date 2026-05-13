@@ -253,9 +253,7 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
         // CTA button
         findViewById(R.id.btnCreatePathDetail).setOnClickListener(v -> {
             if (FirebaseRepository.getInstance().isUserLoggedIn()) {
-                Intent intent = new Intent(this, GatewayActivity.class);
-                intent.putExtra("location", photo.getLocationName());
-                startActivity(intent);
+                startActivity(new Intent(this, LikedPhotosSelectionActivity.class));
             } else {
                 LoginRequiredDialogFragment.newInstance().show(getSupportFragmentManager(), "login_required");
             }

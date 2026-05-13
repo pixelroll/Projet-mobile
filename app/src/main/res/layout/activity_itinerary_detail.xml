@@ -37,15 +37,6 @@
                 tools:text="Paris • 17 Mars 2026" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/ivLike"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="end|center_vertical"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_heart_lucide"
-            app:tint="#BDBDBD"
-            android:background="?attr/selectableItemBackgroundBorderless"/>
     </androidx.appcompat.widget.Toolbar>
 
     <View
@@ -99,17 +90,6 @@
                         android:textSize="13sp" />
                 </LinearLayout>
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fabNavigation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|end"
-                    android:layout_margin="16dp"
-                    android:backgroundTint="@color/white"
-                    app:elevation="4dp"
-                    app:fabCustomSize="40dp"
-                    app:srcCompat="@drawable/ic_navigation"
-                    app:tint="#0891b2" />
             </com.google.android.material.card.MaterialCardView>
 
 
@@ -241,7 +221,7 @@
                 android:clickable="true"
                 android:focusable="true">
                 <ImageView android:id="@+id/ivSaveIcon" android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_heart_lucide" app:tint="@color/white" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Sauvegarder" android:textColor="@color/white" android:textSize="14sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvBtnSaveLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Sauvegarder" android:textColor="@color/white" android:textSize="14sp" android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 

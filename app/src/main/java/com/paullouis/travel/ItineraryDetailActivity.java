@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.paullouis.travel.LoginRequiredDialogFragment;
 import com.paullouis.travel.adapter.ItineraryStepAdapter;
 import com.paullouis.travel.data.DataCallback;
 import com.paullouis.travel.data.FirebaseRepository;
@@ -40,7 +41,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_SAVED_ITINERARY_ID = "SAVED_ITINERARY_ID";
 
-    private boolean isLiked = false;
     private String savedItineraryId;
     private SavedItinerary savedItinerary;
     private boolean editMode = false;
@@ -144,14 +144,32 @@ public class ItineraryDetailActivity extends AppCompatActivity {
                 setupStepList();
                 loadStepPhotos();
 
-                // Hide generated-only footer, show edit FAB
-                View footerLayout = findViewById(R.id.footerActionsLayout);
-                footerLayout.setVisibility(View.GONE);
+                String currentUserId = FirebaseRepository.getInstance().getCurrentUserId();
+                boolean isOwner = currentUserId != null && currentUserId.equals(itinerary.getUserId());
 
+                View footerLayout = findViewById(R.id.footerActionsLayout);
                 FloatingActionButton fabEdit = findViewById(R.id.fabEdit);
-                if (fabEdit != null) {
-                    fabEdit.setVisibility(View.VISIBLE);
-                    fabEdit.setOnClickListener(v -> toggleEditMode());
+
+                if (isOwner) {
+                    footerLayout.setVisibility(View.GONE);
+                    if (fabEdit != null) {
+                        fabEdit.setVisibility(View.VISIBLE);
+                        fabEdit.setOnClickListener(v -> toggleEditMode());
+                    }
+                } else {
+                    if (fabEdit != null) fabEdit.setVisibility(View.GONE);
+                    findViewById(R.id.btnRegenerate).setVisibility(View.GONE);
+                    View btnSave = findViewById(R.id.btnSave);
+                    android.widget.LinearLayout.LayoutParams params =
+                            new android.widget.LinearLayout.LayoutParams(
+                                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                                    (int) (44 * getResources().getDisplayMetrics().density));
+                    params.weight = 2;
+                    btnSave.setLayoutParams(params);
+                    ((android.widget.TextView) findViewById(R.id.tvBtnSaveLabel)).setText("Sauvegarder ce parcours");
+                    footerLayout.setVisibility(View.VISIBLE);
+                    final SavedItinerary finalItinerary = itinerary;
+                    btnSave.setOnClickListener(v -> saveItineraryCopy(finalItinerary));
                 }
 
                 setupNavFabForSaved();
@@ -178,9 +196,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         TextView tvTitle = findViewById(R.id.tvTitle);
         if (tvTitle != null) tvTitle.setText("Parcours " + title);
-
-        ImageView ivLikeHeader = findViewById(R.id.ivLike);
-        if (ivLikeHeader != null) ivLikeHeader.setOnClickListener(v -> toggleLike(ivLikeHeader));
     }
 
     private void bindHeader(String title, String city, String date) {
@@ -197,16 +212,9 @@ public class ItineraryDetailActivity extends AppCompatActivity {
     }
 
     private void setupNavFab(GeneratedItinerary itinerary) {
-        double navLat = 48.8566, navLon = 2.3522;
-        if (itinerary.getDestinations() != null && !itinerary.getDestinations().isEmpty()) {
-            navLat = itinerary.getDestinations().get(0).getLatitude();
-            navLon = itinerary.getDestinations().get(0).getLongitude();
-        }
-        final double lat = navLat, lon = navLon;
         final String finalTitle = itinerary.getTitle();
         final String finalCity = city;
 
-        findViewById(R.id.fabNavigation).setOnClickListener(v -> openNav(lat, lon));
         findViewById(R.id.mapCard).setOnClickListener(v -> {
             Intent i = new Intent(this, TripMapActivity.class);
             i.putExtra("TRIP_TITLE", finalTitle);
@@ -216,17 +224,9 @@ public class ItineraryDetailActivity extends AppCompatActivity {
     }
 
     private void setupNavFabForSaved() {
-        double lat = 48.8566, lon = 2.3522;
-        if (savedItinerary != null && savedItinerary.getSteps() != null && !savedItinerary.getSteps().isEmpty()) {
-            lat = savedItinerary.getSteps().get(0).getLatitude();
-            lon = savedItinerary.getSteps().get(0).getLongitude();
-        }
-        final double finalLat = lat, finalLon = lon;
         final String finalTitle = savedItinerary != null ? savedItinerary.getTitle() : "";
         final String finalCity = city;
 
-        View fabNav = findViewById(R.id.fabNavigation);
-        if (fabNav != null) fabNav.setOnClickListener(v -> openNav(finalLat, finalLon));
         View mapCard = findViewById(R.id.mapCard);
         if (mapCard != null) mapCard.setOnClickListener(v -> {
             Intent i = new Intent(this, TripMapActivity.class);
@@ -236,15 +236,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void openNav(double lat, double lon) {
-        Intent i = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon));
-        if (i.resolveActivity(getPackageManager()) != null) {
-            startActivity(i);
-        } else {
-            Toast.makeText(this, "Aucune application de cartographie trouvée", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     private void setupStepList() {
         RecyclerView rv = findViewById(R.id.rvStepsTimeline);
@@ -396,6 +387,74 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         });
     }
 
+    private void saveItineraryCopy(SavedItinerary original) {
+        String currentUserId = FirebaseRepository.getInstance().getCurrentUserId();
+        if (currentUserId == null) {
+            LoginRequiredDialogFragment.newInstance().show(getSupportFragmentManager(), "login_required");
+            return;
+        }
+
+        EditText etName = new EditText(this);
+        etName.setText(original.getTitle());
+        etName.selectAll();
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        etName.setPadding(pad, pad / 2, pad, pad / 2);
+
+        final String fallbackName = original.getTitle();
+        new AlertDialog.Builder(this)
+                .setTitle("Nommer votre parcours")
+                .setView(etName)
+                .setPositiveButton("Sauvegarder", (dialog, which) -> {
+                    String name = etName.getText().toString().trim();
+                    if (name.isEmpty()) name = fallbackName;
+                    doSaveItineraryCopy(original, name, currentUserId);
+                })
+                .setNegativeButton("Annuler", null)
+                .show();
+
+        etName.post(() -> {
+            etName.requestFocus();
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(etName, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        });
+    }
+
+    private void doSaveItineraryCopy(SavedItinerary original, String name, String userId) {
+        View btnSave = findViewById(R.id.btnSave);
+        btnSave.setEnabled(false);
+
+        SavedItinerary copy = new SavedItinerary();
+        copy.setUserId(userId);
+        copy.setTitle(name);
+        copy.setLocationName(original.getLocationName());
+        copy.setDate(original.getDate());
+        copy.setType(original.getType());
+        copy.setDescription(original.getDescription());
+        copy.setTotalBudget(original.getTotalBudget());
+        copy.setEstimatedDurationHours(original.getEstimatedDurationHours());
+        copy.setEffort(original.getEffort());
+        copy.setCreatedAt(System.currentTimeMillis());
+        copy.setSteps(original.getSteps() != null ? new ArrayList<>(original.getSteps()) : new ArrayList<>());
+
+        FirebaseRepository.getInstance().saveItinerary(copy, new DataCallback<String>() {
+            @Override
+            public void onSuccess(String id) {
+                ImageView ivSaveIcon = findViewById(R.id.ivSaveIcon);
+                if (ivSaveIcon != null) ivSaveIcon.setImageResource(R.drawable.ic_check);
+                TextView tvLabel = findViewById(R.id.tvBtnSaveLabel);
+                if (tvLabel != null) tvLabel.setText("Parcours sauvegardé");
+                btnSave.setClickable(false);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                btnSave.setEnabled(true);
+                Toast.makeText(ItineraryDetailActivity.this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void doSaveItinerary(GeneratedItinerary itinerary, String name, String city, String date) {
         View btnSave = findViewById(R.id.btnSave);
         btnSave.setEnabled(false);
@@ -509,13 +568,4 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void toggleLike(ImageView ivLikeHeader) {
-        isLiked = !isLiked;
-        ivLikeHeader.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_lucide);
-        ivLikeHeader.setColorFilter(isLiked ? Color.parseColor("#EF4444") : Color.parseColor("#BDBDBD"));
-        ImageView ivSaveIcon = findViewById(R.id.ivSaveIcon);
-        if (ivSaveIcon != null) {
-            ivSaveIcon.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_lucide);
-        }
-    }
 }

@@ -44,12 +44,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Travel" />
 
-        <activity
-            android:name=".GatewayActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Travel"
-            android:windowLayoutInDisplayCutoutMode="shortEdges" />
 
         <activity
             android:name=".PublishPhotoActivity"

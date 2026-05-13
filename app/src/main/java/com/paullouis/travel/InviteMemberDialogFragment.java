@@ -45,18 +45,10 @@ public class InviteMemberDialogFragment extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         TextView tvCode = view.findViewById(R.id.tvInviteCode);
-        TextView tvLink = view.findViewById(R.id.tvInviteLink);
-        
         tvCode.setText(code);
-        String link = "traveling.app/groups/join/" + code;
-        tvLink.setText(link);
 
         view.findViewById(R.id.btnCopyCode).setOnClickListener(v -> {
             ClipboardHelper.copyToClipboard(getContext(), code, "Code");
-        });
-
-        view.findViewById(R.id.btnCopyLink).setOnClickListener(v -> {
-            ClipboardHelper.copyToClipboard(getContext(), link, "Lien");
         });
 
         view.findViewById(R.id.btnClose).setOnClickListener(v -> dismiss());

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="4dp">
+
+    <EditText
+        android:id="@+id/etSubscriptionValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_gray_rounded"
+        android:inputType="text"
+        android:padding="12dp"
+        android:textColor="@color/on_background"
+        android:textColorHint="@color/muted_foreground"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tvSubscriptionHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/muted_foreground"
+        android:textSize="12sp" />
+
+</LinearLayout>

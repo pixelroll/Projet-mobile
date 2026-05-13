@@ -280,47 +280,6 @@ public class MockDataProvider implements DataRepository {
         myGroups.add(0, group);
     }
 
-    public static List<Photo> getGatewayPhotos() {
-        List<Photo> photos = new ArrayList<>();
-        
-        String[] locations = {
-            "Tour Eiffel", "Musée du Louvre", "Jardin du Luxembourg", 
-            "Notre-Dame", "Arc de Triomphe", "Montmartre"
-        };
-        
-        int[] resIds = {
-            0, // Eiffel uses URL
-            R.drawable.louvre,
-            0, // Luxembourg uses URL
-            R.drawable.notre_dame,
-            R.drawable.arc_de_triomphe,
-            0 // Montmartre uses URL
-        };
-
-        String[] urls = {
-            "https://images.unsplash.com/photo-1431274172761-fca41d930114?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800", // Eiffel
-            null,
-            "https://images.unsplash.com/photo-1626946548234-a65fd193db41?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800", // Jardin Luxembourg
-            null,
-            null,
-            "https://images.unsplash.com/photo-1653677903266-1d814985b3cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" // Montmartre
-        };
-
-        for (int i = 0; i < locations.length; i++) {
-            Photo p = new Photo();
-            p.setId("gw_" + i);
-            p.setTitle(locations[i]);
-            p.setLocationName("Paris");
-            if (resIds[i] != 0) {
-                p.setImageResId(resIds[i]);
-            } else {
-                p.setImageUrl(urls[i]);
-            }
-            photos.add(p);
-        }
-        return photos;
-    }
-
     public static List<GeneratedItinerary> getGeneratedItineraries() {
         List<GeneratedItinerary> itineraries = new ArrayList<>();
 
@@ -546,11 +505,6 @@ public class MockDataProvider implements DataRepository {
     }
 
     @Override
-    public void getGatewayPhotos(DataCallback<List<Photo>> callback) {
-        callback.onSuccess(getGatewayPhotos());
-    }
-
-    @Override
     public void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback) {
         callback.onSuccess(getPhotosByGroup(groupId));
     }
@@ -655,6 +609,26 @@ public class MockDataProvider implements DataRepository {
     @Override
     public void markNotificationRead(String notificationId, DataCallback<Void> callback) {
         callback.onSuccess(null);
+    }
+
+    @Override
+    public void saveNotificationSubscription(com.paullouis.travel.model.NotificationSettingItem item, DataCallback<String> callback) {
+        callback.onSuccess("mock_" + System.currentTimeMillis());
+    }
+
+    @Override
+    public void deleteNotificationSubscription(String subscriptionId, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void updateNotificationSubscription(String subscriptionId, boolean enabled, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getMatchingSubscribers(com.paullouis.travel.model.Photo photo, DataCallback<java.util.List<String>> callback) {
+        callback.onSuccess(new java.util.ArrayList<>());
     }
 
     @Override
