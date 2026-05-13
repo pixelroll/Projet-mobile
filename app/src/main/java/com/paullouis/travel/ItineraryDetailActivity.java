@@ -40,7 +40,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_SAVED_ITINERARY_ID = "SAVED_ITINERARY_ID";
 
-    private boolean isLiked = false;
     private String savedItineraryId;
     private SavedItinerary savedItinerary;
     private boolean editMode = false;
@@ -178,9 +177,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         TextView tvTitle = findViewById(R.id.tvTitle);
         if (tvTitle != null) tvTitle.setText("Parcours " + title);
-
-        ImageView ivLikeHeader = findViewById(R.id.ivLike);
-        if (ivLikeHeader != null) ivLikeHeader.setOnClickListener(v -> toggleLike(ivLikeHeader));
     }
 
     private void bindHeader(String title, String city, String date) {
@@ -197,16 +193,9 @@ public class ItineraryDetailActivity extends AppCompatActivity {
     }
 
     private void setupNavFab(GeneratedItinerary itinerary) {
-        double navLat = 48.8566, navLon = 2.3522;
-        if (itinerary.getDestinations() != null && !itinerary.getDestinations().isEmpty()) {
-            navLat = itinerary.getDestinations().get(0).getLatitude();
-            navLon = itinerary.getDestinations().get(0).getLongitude();
-        }
-        final double lat = navLat, lon = navLon;
         final String finalTitle = itinerary.getTitle();
         final String finalCity = city;
 
-        findViewById(R.id.fabNavigation).setOnClickListener(v -> openNav(lat, lon));
         findViewById(R.id.mapCard).setOnClickListener(v -> {
             Intent i = new Intent(this, TripMapActivity.class);
             i.putExtra("TRIP_TITLE", finalTitle);
@@ -216,17 +205,9 @@ public class ItineraryDetailActivity extends AppCompatActivity {
     }
 
     private void setupNavFabForSaved() {
-        double lat = 48.8566, lon = 2.3522;
-        if (savedItinerary != null && savedItinerary.getSteps() != null && !savedItinerary.getSteps().isEmpty()) {
-            lat = savedItinerary.getSteps().get(0).getLatitude();
-            lon = savedItinerary.getSteps().get(0).getLongitude();
-        }
-        final double finalLat = lat, finalLon = lon;
         final String finalTitle = savedItinerary != null ? savedItinerary.getTitle() : "";
         final String finalCity = city;
 
-        View fabNav = findViewById(R.id.fabNavigation);
-        if (fabNav != null) fabNav.setOnClickListener(v -> openNav(finalLat, finalLon));
         View mapCard = findViewById(R.id.mapCard);
         if (mapCard != null) mapCard.setOnClickListener(v -> {
             Intent i = new Intent(this, TripMapActivity.class);
@@ -236,15 +217,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void openNav(double lat, double lon) {
-        Intent i = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon));
-        if (i.resolveActivity(getPackageManager()) != null) {
-            startActivity(i);
-        } else {
-            Toast.makeText(this, "Aucune application de cartographie trouvée", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     private void setupStepList() {
         RecyclerView rv = findViewById(R.id.rvStepsTimeline);
@@ -509,13 +481,4 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void toggleLike(ImageView ivLikeHeader) {
-        isLiked = !isLiked;
-        ivLikeHeader.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_lucide);
-        ivLikeHeader.setColorFilter(isLiked ? Color.parseColor("#EF4444") : Color.parseColor("#BDBDBD"));
-        ImageView ivSaveIcon = findViewById(R.id.ivSaveIcon);
-        if (ivSaveIcon != null) {
-            ivSaveIcon.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_lucide);
-        }
-    }
 }

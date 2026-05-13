@@ -59,6 +59,10 @@ public interface DataRepository {
     void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback);
     void createNotification(Notification notification, DataCallback<Void> callback);
     void markNotificationRead(String notificationId, DataCallback<Void> callback);
+    void saveNotificationSubscription(NotificationSettingItem item, DataCallback<String> callback);
+    void deleteNotificationSubscription(String subscriptionId, DataCallback<Void> callback);
+    void updateNotificationSubscription(String subscriptionId, boolean enabled, DataCallback<Void> callback);
+    void getMatchingSubscribers(Photo photo, DataCallback<List<String>> callback);
 
     // --- Photos (extended) ---
     void reportPhoto(String photoId, String reason, DataCallback<Void> callback);

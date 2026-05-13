@@ -404,6 +404,43 @@ public class PublishPhotoActivity extends AppCompatActivity {
         dialog.show(getSupportFragmentManager(), "location_picker");
     }
 
+    private void sendSubscriptionNotifications(Photo photo) {
+        FirebaseRepository.getInstance().getMatchingSubscribers(photo, new DataCallback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> userIds) {
+                for (String userId : userIds) {
+                    Notification notif = new Notification();
+                    notif.setUserId(userId);
+                    notif.setType(Notification.Type.PHOTO_PUBLISHED);
+                    notif.setUserName(photo.getAuthorName());
+                    notif.setPhotoUrl(photo.getImageUrl());
+                    notif.setTimestamp(System.currentTimeMillis());
+                    notif.setRead(false);
+
+                    String locationName = photo.getLocationName();
+                    String placeType = photo.getPlaceType();
+                    List<String> tags = photo.getTags();
+                    if (locationName != null && !locationName.isEmpty()) {
+                        notif.setContent("a publié une photo à " + locationName);
+                    } else if (placeType != null && !placeType.isEmpty()) {
+                        notif.setContent("a publié une photo de type " + placeType);
+                    } else if (tags != null && !tags.isEmpty()) {
+                        notif.setContent("a publié une photo avec le tag #" + tags.get(0));
+                    } else {
+                        notif.setContent("a publié une nouvelle photo");
+                    }
+
+                    FirebaseRepository.getInstance().createNotification(notif, new DataCallback<Void>() {
+                        @Override public void onSuccess(Void r) {}
+                        @Override public void onError(Exception e) {}
+                    });
+                }
+            }
+            @Override
+            public void onError(Exception e) {}
+        });
+    }
+
     private void sendGroupNotifications(Photo photo) {
         FirebaseRepository.getInstance().getGroupById(photo.getGroupId(), new DataCallback<Group>() {
             @Override
@@ -863,6 +900,7 @@ public class PublishPhotoActivity extends AppCompatActivity {
                         if (photo.getGroupId() != null) {
                             sendGroupNotifications(photo);
                         }
+                        sendSubscriptionNotifications(photo);
                     }
 
                     @Override

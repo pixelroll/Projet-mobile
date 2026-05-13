@@ -247,6 +247,14 @@ public class FirebaseRepository implements DataRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    public void invalidateFeedCache() {
+        cache.remove("photos:feed");
+    }
+
+    public void invalidateGroupPhotoCache(String groupId) {
+        if (groupId != null) cache.remove("photos:byGroup:" + groupId);
+    }
+
     @Override
     public void getFeedPhotos(DataCallback<List<Photo>> callback) {
         List<Photo> cached = (List<Photo>) cache.get("photos:feed");
@@ -699,6 +707,7 @@ public class FirebaseRepository implements DataRepository {
             group.setMemberIds(new ArrayList<>());
         }
         group.getMemberIds().add(currentUser.getUid());
+        group.setOwnerId(currentUser.getUid());
         group.setMembersCount(1);
         group.setPhotosCount(0);
 
@@ -885,15 +894,12 @@ public class FirebaseRepository implements DataRepository {
         }
         db.collection("notifications")
                 .whereEqualTo("userId", currentUser.getUid())
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(50)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<Notification> notifications = new ArrayList<>();
                     for (com.google.firebase.firestore.QueryDocumentSnapshot doc : querySnapshot) {
                         Notification n = doc.toObject(Notification.class);
                         n.setNotificationId(doc.getId());
-                        // Restore relative time from timestamp
                         if (n.getTime() == null || n.getTime().isEmpty()) {
                             long elapsed = System.currentTimeMillis() - n.getTimestamp();
                             long minutes = elapsed / 60000;
@@ -903,6 +909,8 @@ public class FirebaseRepository implements DataRepository {
                         }
                         notifications.add(n);
                     }
+                    notifications.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                    if (notifications.size() > 50) notifications = notifications.subList(0, 50);
                     callback.onSuccess(notifications);
                 })
                 .addOnFailureListener(callback::onError);
@@ -923,7 +931,7 @@ public class FirebaseRepository implements DataRepository {
             return;
         }
         db.collection("notifications").document(notificationId)
-                .update("isRead", true)
+                .update("read", true)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(callback::onError);
     }
@@ -1022,7 +1030,148 @@ public class FirebaseRepository implements DataRepository {
     }
 
     @Override
-    public void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback) { mockDelegate.getNotificationSettings(callback); }
+    public void getNotificationSettings(DataCallback<List<NotificationSettingItem>> callback) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null || currentUser.isAnonymous()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        db.collection("notification_subscriptions")
+                .whereEqualTo("userId", currentUser.getUid())
+                .get()
+                .addOnSuccessListener(snap -> {
+                    List<NotificationSettingItem> items = new ArrayList<>();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snap) {
+                        NotificationSettingItem item = new NotificationSettingItem();
+                        item.setSubscriptionId(doc.getId());
+                        item.setName(doc.getString("value"));
+                        Boolean enabled = doc.getBoolean("enabled");
+                        item.setEnabled(enabled != null && enabled);
+                        String typeStr = doc.getString("type");
+                        try { item.setType(NotificationSettingItem.Type.valueOf(typeStr)); } catch (Exception ignored) {}
+                        if (item.getType() != null && item.getName() != null) {
+                            items.add(item);
+                        }
+                    }
+                    callback.onSuccess(items);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void saveNotificationSubscription(NotificationSettingItem item, DataCallback<String> callback) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError(new Exception("Not authenticated"));
+            return;
+        }
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("userId", currentUser.getUid());
+        data.put("type", item.getType().name());
+        data.put("value", item.getName());
+        data.put("enabled", item.isEnabled());
+        data.put("createdAt", System.currentTimeMillis());
+        db.collection("notification_subscriptions")
+                .add(data)
+                .addOnSuccessListener(ref -> callback.onSuccess(ref.getId()))
+                .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void deleteNotificationSubscription(String subscriptionId, DataCallback<Void> callback) {
+        db.collection("notification_subscriptions").document(subscriptionId)
+                .delete()
+                .addOnSuccessListener(v -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void updateNotificationSubscription(String subscriptionId, boolean enabled, DataCallback<Void> callback) {
+        db.collection("notification_subscriptions").document(subscriptionId)
+                .update("enabled", enabled)
+                .addOnSuccessListener(v -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void getMatchingSubscribers(Photo photo, DataCallback<List<String>> callback) {
+        java.util.Set<String> userIds = new java.util.HashSet<>();
+        String publisherId = getCurrentUserId();
+        final int[] pending = {3};
+
+        Runnable checkDone = () -> {
+            pending[0]--;
+            if (pending[0] == 0) {
+                if (publisherId != null) userIds.remove(publisherId);
+                callback.onSuccess(new ArrayList<>(userIds));
+            }
+        };
+
+        List<String> photoTags = photo.getTags();
+        final List<String> lcTags = new ArrayList<>();
+        if (photoTags != null) {
+            for (String t : photoTags) lcTags.add(t.toLowerCase());
+        }
+
+        // Query 1: TAG subscriptions — filter by type only, match tags client-side
+        db.collection("notification_subscriptions")
+                .whereEqualTo("type", "TAG")
+                .get()
+                .addOnSuccessListener(snap -> {
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snap) {
+                        Boolean enabled = doc.getBoolean("enabled");
+                        if (enabled == null || !enabled) continue;
+                        String value = doc.getString("value");
+                        String uid = doc.getString("userId");
+                        if (value != null && uid != null && lcTags.contains(value.toLowerCase())) {
+                            userIds.add(uid);
+                        }
+                    }
+                    checkDone.run();
+                })
+                .addOnFailureListener(e -> checkDone.run());
+
+        // Query 2: TYPE subscriptions — filter by type only, match placeType client-side
+        db.collection("notification_subscriptions")
+                .whereEqualTo("type", "TYPE")
+                .get()
+                .addOnSuccessListener(snap -> {
+                    String placeType = photo.getPlaceType();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snap) {
+                        Boolean enabled = doc.getBoolean("enabled");
+                        if (enabled == null || !enabled) continue;
+                        String value = doc.getString("value");
+                        String uid = doc.getString("userId");
+                        if (value != null && uid != null && placeType != null
+                                && value.equalsIgnoreCase(placeType)) {
+                            userIds.add(uid);
+                        }
+                    }
+                    checkDone.run();
+                })
+                .addOnFailureListener(e -> checkDone.run());
+
+        // Query 3: PLACE subscriptions — substring match against locationName (client-side)
+        db.collection("notification_subscriptions")
+                .whereEqualTo("type", "PLACE")
+                .get()
+                .addOnSuccessListener(snap -> {
+                    String locationName = photo.getLocationName();
+                    String locationLower = locationName != null ? locationName.toLowerCase() : "";
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snap) {
+                        Boolean enabled = doc.getBoolean("enabled");
+                        if (enabled == null || !enabled) continue;
+                        String value = doc.getString("value");
+                        String uid = doc.getString("userId");
+                        if (value != null && uid != null && !locationLower.isEmpty()
+                                && locationLower.contains(value.toLowerCase())) {
+                            userIds.add(uid);
+                        }
+                    }
+                    checkDone.run();
+                })
+                .addOnFailureListener(e -> checkDone.run());
+    }
 
     @Override
     public void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback) { mockDelegate.getGeneratedItineraries(callback); }

@@ -658,6 +658,26 @@ public class MockDataProvider implements DataRepository {
     }
 
     @Override
+    public void saveNotificationSubscription(com.paullouis.travel.model.NotificationSettingItem item, DataCallback<String> callback) {
+        callback.onSuccess("mock_" + System.currentTimeMillis());
+    }
+
+    @Override
+    public void deleteNotificationSubscription(String subscriptionId, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void updateNotificationSubscription(String subscriptionId, boolean enabled, DataCallback<Void> callback) {
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void getMatchingSubscribers(com.paullouis.travel.model.Photo photo, DataCallback<java.util.List<String>> callback) {
+        callback.onSuccess(new java.util.ArrayList<>());
+    }
+
+    @Override
     public void reportPhoto(String photoId, String reason, DataCallback<Void> callback) {
         callback.onSuccess(null);
     }

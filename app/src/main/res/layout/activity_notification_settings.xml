@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
@@ -49,11 +48,21 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gérez vos préférences de notifications"
+                android:text="Gérez vos abonnements"
                 android:textColor="@color/muted_foreground"
                 android:textSize="13sp" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -133,37 +142,7 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Sections -->
-            <LinearLayout
-                android:id="@+id/sectionPerson"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="vertical">
-                <include layout="@layout/layout_setting_section_header" />
-                <LinearLayout
-                    android:id="@+id/containerPerson"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="8dp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/sectionGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="vertical">
-                <include layout="@layout/layout_setting_section_header" />
-                <LinearLayout
-                    android:id="@+id/containerGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="8dp"/>
-            </LinearLayout>
-
+            <!-- Place Section -->
             <LinearLayout
                 android:id="@+id/sectionPlace"
                 android:layout_width="match_parent"
@@ -179,8 +158,25 @@
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
 
+            <!-- Tag Section -->
             <LinearLayout
                 android:id="@+id/sectionTag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical">
+                <include layout="@layout/layout_setting_section_header" />
+                <LinearLayout
+                    android:id="@+id/containerTag"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- Type Section -->
+            <LinearLayout
+                android:id="@+id/sectionType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -188,7 +184,7 @@
                 android:paddingBottom="24dp">
                 <include layout="@layout/layout_setting_section_header" />
                 <LinearLayout
-                    android:id="@+id/containerTag"
+                    android:id="@+id/containerType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"

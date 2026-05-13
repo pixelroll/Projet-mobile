@@ -115,6 +115,7 @@ public class GroupFeedActivity extends AppCompatActivity implements EventBus.Pho
         });
 
         // Load group photos from Firebase
+        FirebaseRepository.getInstance().invalidateGroupPhotoCache(groupId);
         FirebaseRepository.getInstance().getPhotosByGroup(groupId, new DataCallback<List<Photo>>() {
             @Override
             public void onSuccess(List<Photo> photos) {

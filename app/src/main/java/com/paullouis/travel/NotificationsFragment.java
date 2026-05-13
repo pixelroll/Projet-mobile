@@ -77,7 +77,11 @@ public class NotificationsFragment extends Fragment {
 
         tabAll.setOnClickListener(v -> switchTab(true));
         tabUnread.setOnClickListener(v -> switchTab(false));
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
         loadNotifications();
     }
 

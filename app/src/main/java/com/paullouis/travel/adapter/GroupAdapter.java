@@ -20,10 +20,12 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     private List<Group> groups;
     private FragmentManager fragmentManager;
+    private String currentUserId;
 
-    public GroupAdapter(List<Group> groups, FragmentManager fragmentManager) {
+    public GroupAdapter(List<Group> groups, FragmentManager fragmentManager, String currentUserId) {
         this.groups = groups;
         this.fragmentManager = fragmentManager;
+        this.currentUserId = currentUserId;
     }
 
     @NonNull
@@ -42,7 +44,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.tvMembers.setText(String.valueOf(group.getMembersCount()));
         holder.tvPhotos.setText(String.valueOf(group.getPhotosCount()));
         
-        holder.ivCrown.setVisibility((group.getRole() == Group.UserRole.OWNER || group.getRole() == Group.UserRole.ADMIN) ? View.VISIBLE : View.GONE);
+        holder.ivCrown.setVisibility(currentUserId != null && currentUserId.equals(group.getOwnerId()) ? View.VISIBLE : View.GONE);
 
         // Badge
         if (group.isPrivate()) {
