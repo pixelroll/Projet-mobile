@@ -24,6 +24,7 @@ public class HomeFragment extends Fragment implements EventBus.PhotoListener, Ev
     private PhotoAdapter photoAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private boolean isDataLoaded = false;
+    private List<Photo> cachedPhotos = new ArrayList<>();
 
     @Nullable
     @Override
@@ -33,7 +34,7 @@ public class HomeFragment extends Fragment implements EventBus.PhotoListener, Ev
         rvPhotos = view.findViewById(R.id.rvPhotos);
         rvPhotos.setLayoutManager(new LinearLayoutManager(getContext()));
         
-        photoAdapter = new PhotoAdapter(new ArrayList<>());
+        photoAdapter = new PhotoAdapter(new ArrayList<>(cachedPhotos));
         rvPhotos.setAdapter(photoAdapter);
 
         // Pull-to-refresh
@@ -41,8 +42,8 @@ public class HomeFragment extends Fragment implements EventBus.PhotoListener, Ev
         swipeRefreshLayout.setColorSchemeResources(R.color.primary);
         swipeRefreshLayout.setOnRefreshListener(this::loadPhotosFromServer);
 
-        // Load data only once (not on every tab switch)
-        if (!isDataLoaded) {
+        // Charge la première fois si on a pas encore de données
+        if (!isDataLoaded && cachedPhotos.isEmpty()) {
             loadPhotosFromServer();
         }
         
@@ -81,7 +82,8 @@ public class HomeFragment extends Fragment implements EventBus.PhotoListener, Ev
             @Override
             public void onSuccess(List<Photo> result) {
                 if (!isAdded() || getView() == null) return;
-                photoAdapter.setPhotos(result);
+                cachedPhotos = new ArrayList<>(result);
+                photoAdapter.setPhotos(cachedPhotos);
                 isDataLoaded = true;
                 swipeRefreshLayout.setRefreshing(false);
             }
@@ -100,6 +102,13 @@ public class HomeFragment extends Fragment implements EventBus.PhotoListener, Ev
         super.onCreate(savedInstanceState);
         EventBus.registerPhotoListener(this);
         EventBus.registerPhotoLikeListener(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Optionnel : on pourrait recharger silencieusement ici,
+        // mais on a déjà restauré cachedPhotos dans onCreateView.
     }
 
     @Override

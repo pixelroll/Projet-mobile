@@ -293,9 +293,9 @@ public class FirebaseRepository implements DataRepository {
                             savePhotoToFirestore(photo, new DataCallback<Void>() {
                                 @Override
                                 public void onSuccess(Void result) {
-                                    // Photo saved: update loading state and propagate remote URL
+                                    // Photo saved: notify feed to add the new photo
                                     photo.setLoading(false);
-                                    EventBus.notifyPhotoUpdated(photo);
+                                    EventBus.notifyPhotoAdded(photo);
                                     callback.onSuccess(null);
                                 }
 
@@ -321,7 +321,7 @@ public class FirebaseRepository implements DataRepository {
                 @Override
                 public void onSuccess(Void result) {
                     photo.setLoading(false);
-                    EventBus.notifyPhotoUpdated(photo);
+                    EventBus.notifyPhotoAdded(photo);
                     callback.onSuccess(null);
                 }
 
