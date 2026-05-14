@@ -5,7 +5,7 @@ on:
   workflow_dispatch: 
   push:
     branches:
-      - main # (Change par 'master' si besoin)
+      - main
 
 jobs:
   build:
@@ -20,17 +20,26 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17' 
+          java-version: '17'
 
       - name: Rendre gradlew exécutable
         run: chmod +x ./gradlew
 
-      - name: Compiler l'APK
+      - name: Décoder le keystore depuis les secrets
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > travel-release.jks
+
+      - name: Créer keystore.properties
+        run: |
+          echo "storeFile=../travel-release.jks" > app/../keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+
+      - name: Compiler l'APK (signé avec le keystore partagé)
         run: ./gradlew assembleDebug
 
       - name: Sauvegarder l'APK en Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Traveling-APK # Le fichier téléchargé s'appellera Traveling-APK.zip
-          path: app/build/outputs/apk/debug/app-debug.apk 
-          
+          name: Traveling-APK
+          path: app/build/outputs/apk/debug/app-debug.apk

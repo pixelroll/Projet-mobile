@@ -5,10 +5,11 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
-// Chargement du keystore partagé
+// Chargement du keystore partagé (ignoré si absent, ex: GitHub Actions)
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps = Properties()
-if (keystorePropsFile.exists()) {
+val hasKeystore = keystorePropsFile.exists()
+if (hasKeystore) {
     keystoreProps.load(keystorePropsFile.inputStream())
 }
 
@@ -26,27 +27,30 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = rootProject.file(keystoreProps["storeFile"] as String)
-            storePassword = keystoreProps["storePassword"] as String
-            keyAlias = keystoreProps["keyAlias"] as String
-            keyPassword = keystoreProps["keyPassword"] as String
+    if (hasKeystore) {
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps["storeFile"] as String)
+                storePassword = keystoreProps["storePassword"] as String
+                keyAlias = keystoreProps["keyAlias"] as String
+                keyPassword = keystoreProps["keyPassword"] as String
+            }
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
         debug {
-            // Utilise le même keystore que release → même SHA-1 pour tous
-            signingConfig = signingConfigs.getByName("release")
+            // Keystore partagé en local → même SHA-1 pour tous
+            // GitHub Actions → debug signing par défaut (pas de keystore.properties)
+            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
