@@ -30,3 +30,9 @@ build_output.txt
 install_output.txt
 install_log.txt
 compile_error.txt
+
+# Design assets
+Figma/
+
+# Editor
+.vscode/
