@@ -18,14 +18,20 @@ import java.util.List;
 
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
 
+    public interface OnGroupChangedListener {
+        void onGroupChanged();
+    }
+
     private List<Group> groups;
     private FragmentManager fragmentManager;
     private String currentUserId;
+    private OnGroupChangedListener changeListener;
 
-    public GroupAdapter(List<Group> groups, FragmentManager fragmentManager, String currentUserId) {
+    public GroupAdapter(List<Group> groups, FragmentManager fragmentManager, String currentUserId, OnGroupChangedListener changeListener) {
         this.groups = groups;
         this.fragmentManager = fragmentManager;
         this.currentUserId = currentUserId;
+        this.changeListener = changeListener;
     }
 
     @NonNull
@@ -95,6 +101,10 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
                         return true;
                     case 2:
                         GroupDetailDialogFragment dialog = GroupDetailDialogFragment.newInstance(group.getId());
+                        dialog.setOnGroupJoinedListener(groupId -> {
+                            // "onGroupJoined" est utilisé pour les changements (rejoint/quitté)
+                            if (changeListener != null) changeListener.onGroupChanged();
+                        });
                         dialog.show(fragmentManager, "GroupDetailDialog");
                         return true;
                     case 3:

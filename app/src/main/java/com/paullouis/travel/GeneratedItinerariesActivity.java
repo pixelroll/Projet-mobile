@@ -21,7 +21,6 @@ import com.google.firebase.ai.type.Content;
 import com.google.firebase.ai.type.GenerateContentResponse;
 import com.paullouis.travel.adapter.GeneratedItineraryAdapter;
 import com.paullouis.travel.data.ItineraryCache;
-import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.TravelDestination;
 

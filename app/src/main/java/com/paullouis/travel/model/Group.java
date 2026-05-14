@@ -87,7 +87,10 @@ public class Group {
     public void setCode(String code) { this.code = code; }
     public void setJoined(boolean joined) { this.isJoined = joined; }
     public void setMembersCount(int count) { this.membersCount = count; }
+    @com.google.firebase.firestore.Exclude
     public UserRole getRole() { return role; }
+    
+    @com.google.firebase.firestore.Exclude
     public void setRole(UserRole role) { this.role = role; }
     public boolean isApprovalRequired() { return approvalRequired; }
     public void setApprovalRequired(boolean approvalRequired) { this.approvalRequired = approvalRequired; }

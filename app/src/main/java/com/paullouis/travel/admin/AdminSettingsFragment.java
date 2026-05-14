@@ -181,5 +181,20 @@ public class AdminSettingsFragment extends Fragment {
                 }
             });
         });
+
+        // Delete group button (only visible to owner)
+        com.google.android.material.button.MaterialButton btnDelete = view.findViewById(R.id.btnDeleteGroup);
+        if (com.paullouis.travel.util.GroupPermissionHelper.isOwner(group)) {
+            btnDelete.setVisibility(View.VISIBLE);
+            btnDelete.setOnClickListener(v -> {
+                com.paullouis.travel.DeleteGroupDialogFragment dialog = com.paullouis.travel.DeleteGroupDialogFragment.newInstance(group.getName());
+                // Set the groupId into the dialog arguments using a workaround or just update the dialog
+                Bundle args = dialog.getArguments();
+                if (args != null) args.putString("group_id", group.getId());
+                dialog.show(getParentFragmentManager(), "DeleteGroupDialog");
+            });
+        } else {
+            btnDelete.setVisibility(View.GONE);
+        }
     }
 }

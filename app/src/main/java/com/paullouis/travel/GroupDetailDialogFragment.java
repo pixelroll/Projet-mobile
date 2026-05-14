@@ -105,6 +105,7 @@ public class GroupDetailDialogFragment extends DialogFragment {
         TextView tvInviteCode = view.findViewById(R.id.tvInviteCode);
         LinearLayout llMembersList = view.findViewById(R.id.llMembersList);
         Button btnManage = view.findViewById(R.id.btnManage);
+        Button btnLeave = view.findViewById(R.id.btnLeave);
         Button btnViewPhotos = view.findViewById(R.id.btnViewPhotos);
         Button btnJoin = view.findViewById(R.id.btnJoin);
 
@@ -125,6 +126,7 @@ public class GroupDetailDialogFragment extends DialogFragment {
         if (fromDiscover) {
             clInvitationCode.setVisibility(View.GONE);
             btnManage.setVisibility(View.GONE);
+            btnLeave.setVisibility(View.GONE);
             btnViewPhotos.setVisibility(View.GONE);
             btnJoin.setVisibility(View.VISIBLE);
 
@@ -150,18 +152,16 @@ public class GroupDetailDialogFragment extends DialogFragment {
                 });
             });
         } else {
-            Group.UserRole role = group.getRole();
-            if (role == Group.UserRole.ADMIN || role == Group.UserRole.OWNER) {
+            if (com.paullouis.travel.util.GroupPermissionHelper.isOwner(group)) {
                 clInvitationCode.setVisibility(View.VISIBLE);
                 btnManage.setVisibility(View.VISIBLE);
-                tvInviteCode.setText(group.getCode());
-            } else if (role == Group.UserRole.MEMBER_WITH_CODE) {
-                clInvitationCode.setVisibility(View.VISIBLE);
-                btnManage.setVisibility(View.GONE);
+                btnLeave.setVisibility(View.GONE);
                 tvInviteCode.setText(group.getCode());
             } else {
-                clInvitationCode.setVisibility(View.GONE);
+                clInvitationCode.setVisibility(group.getCode() != null && !group.getCode().isEmpty() ? View.VISIBLE : View.GONE);
                 btnManage.setVisibility(View.GONE);
+                btnLeave.setVisibility(View.VISIBLE);
+                tvInviteCode.setText(group.getCode() != null ? group.getCode() : "");
             }
 
             view.findViewById(R.id.btnCopy).setOnClickListener(v -> {
@@ -176,6 +176,28 @@ public class GroupDetailDialogFragment extends DialogFragment {
                 intent.putExtra(GroupAdminActivity.EXTRA_GROUP_ID, group.getId());
                 startActivity(intent);
                 dismiss();
+            });
+
+            btnLeave.setOnClickListener(v -> {
+                btnLeave.setEnabled(false);
+                btnLeave.setText("...");
+                FirebaseRepository.getInstance().leaveGroup(group.getId(), new DataCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        if (!isAdded()) return;
+                        Toast.makeText(getContext(), "Vous avez quitté le groupe.", Toast.LENGTH_SHORT).show();
+                        if (joinListener != null) joinListener.onGroupJoined(group.getId()); // On réutilise l'event pour refresh la liste
+                        dismiss();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        if (!isAdded()) return;
+                        btnLeave.setEnabled(true);
+                        btnLeave.setText("Quitter");
+                        Toast.makeText(getContext(), "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
 
             btnViewPhotos.setOnClickListener(v -> {

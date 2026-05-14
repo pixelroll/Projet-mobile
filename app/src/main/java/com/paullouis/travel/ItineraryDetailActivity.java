@@ -26,7 +26,6 @@ import com.paullouis.travel.adapter.ItineraryStepAdapter;
 import com.paullouis.travel.data.DataCallback;
 import com.paullouis.travel.data.FirebaseRepository;
 import com.paullouis.travel.data.ItineraryCache;
-import com.paullouis.travel.data.MockDataProvider;
 import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.ItineraryStep;
 import com.paullouis.travel.model.Photo;
@@ -89,7 +88,7 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         if (itinerary.getDestinations() != null && !itinerary.getDestinations().isEmpty()) {
             currentSteps = destinationsToSteps(itinerary.getDestinations());
         } else {
-            currentSteps = new ArrayList<>(MockDataProvider.getItinerarySteps());
+            currentSteps = new ArrayList<>();
         }
         setupStepList();
 

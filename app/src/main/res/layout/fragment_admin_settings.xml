@@ -279,11 +279,25 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="40dp"
-            android:layout_marginBottom="24dp"
             android:text="Enregistrer les modifications"
             android:textAllCaps="false"
             app:backgroundTint="#0891B2"
             app:cornerRadius="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteGroup"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:text="Supprimer le groupe"
+            android:textAllCaps="false"
+            android:textColor="@color/error"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_trash"
+            app:iconTint="@color/error"
+            app:strokeColor="@color/error" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

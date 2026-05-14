@@ -6,24 +6,22 @@ public class GroupPermissionHelper {
 
     public static boolean canManageMembers(Group group) {
         if (group == null) return false;
-        Group.UserRole role = group.getRole();
-        return role == Group.UserRole.OWNER || role == Group.UserRole.ADMIN;
+        return isOwner(group);
     }
 
     public static boolean canModerateContent(Group group) {
         if (group == null) return false;
-        Group.UserRole role = group.getRole();
-        return role == Group.UserRole.OWNER || role == Group.UserRole.ADMIN || role == Group.UserRole.MODERATOR;
+        return isOwner(group);
     }
 
     public static boolean canEditSettings(Group group) {
         if (group == null) return false;
-        Group.UserRole role = group.getRole();
-        return role == Group.UserRole.OWNER || role == Group.UserRole.ADMIN;
+        return isOwner(group);
     }
 
     public static boolean isOwner(Group group) {
         if (group == null) return false;
-        return group.getRole() == Group.UserRole.OWNER;
+        String currentUserId = com.paullouis.travel.data.FirebaseRepository.getInstance().getCurrentUserId();
+        return currentUserId != null && currentUserId.equals(group.getOwnerId());
     }
 }

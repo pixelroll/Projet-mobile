@@ -66,11 +66,34 @@ public class DeleteGroupDialogFragment extends BottomSheetDialogFragment {
 
         view.findViewById(R.id.btnCancel).setOnClickListener(v -> dismiss());
         btnDelete.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Groupe '" + groupName + "' supprimé", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(getContext(), MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-            dismiss();
+            btnDelete.setEnabled(false);
+            btnDelete.setText("Suppression...");
+            String groupId = getArguments() != null ? getArguments().getString("group_id") : null;
+            if (groupId == null) {
+                Toast.makeText(getContext(), "Erreur : ID du groupe manquant", Toast.LENGTH_SHORT).show();
+                dismiss();
+                return;
+            }
+
+            com.paullouis.travel.data.FirebaseRepository.getInstance().deleteGroup(groupId, new com.paullouis.travel.data.DataCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    if (!isAdded()) return;
+                    Toast.makeText(getContext(), "Groupe '" + groupName + "' supprimé", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getContext(), MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    dismiss();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    if (!isAdded()) return;
+                    btnDelete.setEnabled(true);
+                    btnDelete.setText("Supprimer");
+                    Toast.makeText(getContext(), "Erreur : " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 

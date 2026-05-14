@@ -54,7 +54,18 @@ public class GroupListFragment extends Fragment {
 
         int type = getArguments().getInt(ARG_TYPE);
         showLoading();
+        // Le premier chargement se fera dans onResume()
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadData();
+    }
+
+    private void loadData() {
+        int type = getArguments().getInt(ARG_TYPE);
+        
         DataCallback<List<Group>> callback = new DataCallback<List<Group>>() {
             @Override
             public void onSuccess(List<Group> groups) {
@@ -98,6 +109,22 @@ public class GroupListFragment extends Fragment {
         tvEmptyGroups.setVisibility(View.GONE);
         rvGroups.setVisibility(View.VISIBLE);
         String currentUserId = com.paullouis.travel.data.FirebaseRepository.getInstance().getCurrentUserId();
-        rvGroups.setAdapter(new GroupAdapter(groups, getParentFragmentManager(), currentUserId));
+        rvGroups.setAdapter(new GroupAdapter(groups, getParentFragmentManager(), currentUserId, () -> {
+            // Recharge la liste quand un groupe est quitté
+            showLoading();
+            FirebaseRepository.getInstance().getMyGroups(new DataCallback<List<Group>>() {
+                @Override
+                public void onSuccess(List<Group> result) {
+                    if (!isAdded()) return;
+                    if (result == null || result.isEmpty()) showEmpty();
+                    else showList(result);
+                }
+                @Override
+                public void onError(Exception e) {
+                    if (!isAdded()) return;
+                    showEmpty();
+                }
+            });
+        }));
     }
 }

@@ -1,17 +1,13 @@
 package com.paullouis.travel.data;
 
 import com.paullouis.travel.model.Comment;
-import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.Group;
 import com.paullouis.travel.model.GroupMember;
-import com.paullouis.travel.model.ItineraryStep;
 import com.paullouis.travel.model.Notification;
 import com.paullouis.travel.model.NotificationSettingItem;
 import com.paullouis.travel.model.Photo;
-import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.ReportedPhoto;
 import com.paullouis.travel.model.SearchFilters;
-import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.model.User;
 
 import java.util.List;
@@ -47,7 +43,9 @@ void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
     void getGroupById(String id, DataCallback<Group> callback);
     void findGroupByCode(String code, DataCallback<Group> callback);
     void joinGroup(String groupId, DataCallback<Void> callback);
+    void leaveGroup(String groupId, DataCallback<Void> callback);
     void addGroup(Group group, DataCallback<Void> callback);
+    void deleteGroup(String groupId, DataCallback<Void> callback);
     void getGroupMembers(String groupId, DataCallback<List<GroupMember>> callback);
     void getReportedPhotos(String groupId, DataCallback<List<ReportedPhoto>> callback);
     void getGroupStats(String groupId, DataCallback<Map<String, Integer>> callback);
@@ -70,10 +68,4 @@ void getPhotosByGroup(String groupId, DataCallback<List<Photo>> callback);
     void searchPhotos(String query, DataCallback<List<Photo>> callback);
     void searchPhotosWithFilters(SearchFilters filters, DataCallback<List<Photo>> callback);
 
-    // --- Itineraries ---
-    void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback);
-    void getItinerarySteps(DataCallback<List<ItineraryStep>> callback);
-    void getProfileItineraries(DataCallback<List<ProfileItinerary>> callback);
-
-    void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback);
 }

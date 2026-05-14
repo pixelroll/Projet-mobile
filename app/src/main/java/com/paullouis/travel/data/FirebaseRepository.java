@@ -7,17 +7,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.paullouis.travel.model.Comment;
-import com.paullouis.travel.model.GeneratedItinerary;
 import com.paullouis.travel.model.Group;
 import com.paullouis.travel.model.GroupMember;
-import com.paullouis.travel.model.ItineraryStep;
 import com.paullouis.travel.model.Notification;
 import com.paullouis.travel.model.NotificationSettingItem;
 import com.paullouis.travel.model.Photo;
-import com.paullouis.travel.model.ProfileItinerary;
 import com.paullouis.travel.model.ReportedPhoto;
 import com.paullouis.travel.model.SearchFilters;
-import com.paullouis.travel.model.SearchNavigationOption;
 import com.paullouis.travel.model.User;
 
 import java.util.ArrayList;
@@ -28,8 +24,6 @@ import java.util.Map;
 
 /**
  * Real implementation of DataRepository using Firebase.
- * For Phase 1, only Auth and User data are implemented here.
- * The rest delegates to MockDataProvider so the app doesn't break.
  */
 public class FirebaseRepository implements DataRepository {
 
@@ -37,14 +31,12 @@ public class FirebaseRepository implements DataRepository {
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
     private final FirebaseStorage storage;
-    private final DataRepository mockDelegate;
     private static final java.util.Map<String, Object> cache = new java.util.HashMap<>();
 
     private FirebaseRepository() {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
-        mockDelegate = MockDataProvider.getInstance();
     }
 
     public static FirebaseRepository getInstance() {
@@ -167,8 +159,7 @@ public class FirebaseRepository implements DataRepository {
     
     public void logout() {
         auth.signOut();
-        // Clear mock state if necessary
-        com.paullouis.travel.data.MockDataProvider.setUserLoggedIn(false);
+        cache.clear();
     }
 
     /**
@@ -350,7 +341,7 @@ public class FirebaseRepository implements DataRepository {
     @Override
     public void getComments(String photoId, DataCallback<List<Comment>> callback) {
         if (photoId == null) {
-            mockDelegate.getComments(photoId, callback);
+            callback.onError(new Exception("Invalid photo ID"));
             return;
         }
 
@@ -686,6 +677,56 @@ public class FirebaseRepository implements DataRepository {
                 callback.onError(e);
             }
         });
+    }
+
+    @Override
+    public void leaveGroup(String groupId, DataCallback<Void> callback) {
+        if (groupId == null) {
+            callback.onError(new Exception("Invalid group ID"));
+            return;
+        }
+
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError(new Exception("User not authenticated"));
+            return;
+        }
+
+        String uid = currentUser.getUid();
+
+        com.google.firebase.firestore.WriteBatch batch = db.batch();
+        com.google.firebase.firestore.DocumentReference groupRef = db.collection("groups").document(groupId);
+        com.google.firebase.firestore.DocumentReference memberRef = groupRef.collection("members").document(uid);
+
+        batch.delete(memberRef);
+        batch.update(groupRef, "memberIds", com.google.firebase.firestore.FieldValue.arrayRemove(uid));
+        batch.update(groupRef, "membersCount", com.google.firebase.firestore.FieldValue.increment(-1));
+
+        batch.commit()
+                .addOnSuccessListener(aVoid -> {
+                    cache.remove("groups:my");
+                    cache.remove("groups:discover");
+                    cache.remove("groups:" + groupId + ":" + uid);
+                    callback.onSuccess(null);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    @Override
+    public void deleteGroup(String groupId, DataCallback<Void> callback) {
+        if (groupId == null) {
+            callback.onError(new Exception("Invalid group ID"));
+            return;
+        }
+
+        db.collection("groups").document(groupId)
+            .delete()
+            .addOnSuccessListener(aVoid -> {
+                cache.remove("groups:my");
+                cache.remove("groups:discover");
+                callback.onSuccess(null);
+            })
+            .addOnFailureListener(callback::onError);
     }
 
     @Override
@@ -1170,18 +1211,6 @@ public class FirebaseRepository implements DataRepository {
                 })
                 .addOnFailureListener(e -> checkDone.run());
     }
-
-    @Override
-    public void getGeneratedItineraries(DataCallback<List<GeneratedItinerary>> callback) { mockDelegate.getGeneratedItineraries(callback); }
-
-    @Override
-    public void getItinerarySteps(DataCallback<List<ItineraryStep>> callback) { mockDelegate.getItinerarySteps(callback); }
-
-    @Override
-    public void getProfileItineraries(DataCallback<List<ProfileItinerary>> callback) { mockDelegate.getProfileItineraries(callback); }
-
-    @Override
-    public void getSearchNavigationOptions(DataCallback<List<SearchNavigationOption>> callback) { mockDelegate.getSearchNavigationOptions(callback); }
 
     @Override
     public void searchPhotosWithFilters(SearchFilters filters, DataCallback<List<Photo>> callback) {
