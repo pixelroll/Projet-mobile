@@ -267,6 +267,10 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
         updateLikeUI(ivLike, tvLikes);
 
         ivLike.setOnClickListener(v -> {
+            if (!FirebaseRepository.getInstance().isUserLoggedIn()) {
+                LoginRequiredDialogFragment.newInstance().show(getSupportFragmentManager(), "login_required");
+                return;
+            }
             boolean wasLiked = isLiked;
             int prevLikes = likesCount;
 

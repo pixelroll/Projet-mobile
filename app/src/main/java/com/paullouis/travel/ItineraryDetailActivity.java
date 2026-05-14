@@ -77,8 +77,14 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         city = getIntent().getStringExtra("LOCATION_NAME");
         date = getIntent().getStringExtra("LOCATION_DATE");
-        if (city == null) city = "Paris, France";
-        if (date == null) date = "17 Mars 2026";
+        if (city == null || city.trim().isEmpty()) {
+            city = (itinerary.getDestinationCity() != null && !itinerary.getDestinationCity().trim().isEmpty()) 
+                ? itinerary.getDestinationCity().trim() 
+                : "";
+        }
+        if (date == null || date.trim().isEmpty()) {
+            date = new java.text.SimpleDateFormat("d MMMM yyyy", new java.util.Locale("fr", "FR")).format(new java.util.Date());
+        }
 
         setupToolbar(itinerary.getTitle());
         bindHeader(itinerary.getTitle(), city, date);
@@ -195,6 +201,11 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         TextView tvTitle = findViewById(R.id.tvTitle);
         if (tvTitle != null) tvTitle.setText("Parcours " + title);
+
+        ImageView ivExportPdf = findViewById(R.id.ivExportPdf);
+        if (ivExportPdf != null) {
+            ivExportPdf.setOnClickListener(v -> exportCompiledPdf());
+        }
     }
 
     private void bindHeader(String title, String city, String date) {
@@ -565,6 +576,241 @@ public class ItineraryDetailActivity extends AppCompatActivity {
             finish();
             return true;
         });
+    }
+
+    private void exportCompiledPdf() {
+        String title = savedItinerary != null ? savedItinerary.getTitle() : (ItineraryCache.getSelected() != null ? ItineraryCache.getSelected().getTitle() : "Parcours");
+        String budget = savedItinerary != null ? savedItinerary.getBudgetFormatted() : (ItineraryCache.getSelected() != null ? ItineraryCache.getSelected().getBudget() : "");
+        String duration = savedItinerary != null ? savedItinerary.getDurationFormatted() : (ItineraryCache.getSelected() != null ? ItineraryCache.getSelected().getDuration() : "");
+
+        android.graphics.pdf.PdfDocument pdfDocument = new android.graphics.pdf.PdfDocument();
+        int pageWidth = 595; // A4 width in points
+        int pageHeight = 842; // A4 height in points
+        int margin = 54; // 0.75 inch margin
+        int contentWidth = pageWidth - 2 * margin;
+
+        android.graphics.pdf.PdfDocument.PageInfo pageInfo = new android.graphics.pdf.PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
+        android.graphics.pdf.PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        android.graphics.Canvas canvas = page.getCanvas();
+
+        android.text.TextPaint titlePaint = new android.text.TextPaint();
+        titlePaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.BOLD));
+        titlePaint.setTextSize(24f);
+        titlePaint.setColor(android.graphics.Color.parseColor("#0891B2"));
+        titlePaint.setAntiAlias(true);
+
+        android.text.TextPaint subtitlePaint = new android.text.TextPaint();
+        subtitlePaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.NORMAL));
+        subtitlePaint.setTextSize(14f);
+        subtitlePaint.setColor(android.graphics.Color.parseColor("#616161"));
+        subtitlePaint.setAntiAlias(true);
+
+        android.text.TextPaint sectionPaint = new android.text.TextPaint();
+        sectionPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.BOLD));
+        sectionPaint.setTextSize(16f);
+        sectionPaint.setColor(android.graphics.Color.parseColor("#212121"));
+        sectionPaint.setAntiAlias(true);
+
+        android.text.TextPaint boldPaint = new android.text.TextPaint();
+        boldPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.BOLD));
+        boldPaint.setTextSize(13f);
+        boldPaint.setColor(android.graphics.Color.parseColor("#212121"));
+        boldPaint.setAntiAlias(true);
+
+        android.text.TextPaint metaPaint = new android.text.TextPaint();
+        metaPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.ITALIC));
+        metaPaint.setTextSize(11f);
+        metaPaint.setColor(android.graphics.Color.parseColor("#0891B2"));
+        metaPaint.setAntiAlias(true);
+
+        android.text.TextPaint normalPaint = new android.text.TextPaint();
+        normalPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.NORMAL));
+        normalPaint.setTextSize(12f);
+        normalPaint.setColor(android.graphics.Color.parseColor("#424242"));
+        normalPaint.setAntiAlias(true);
+
+        android.text.TextPaint connectorPaint = new android.text.TextPaint();
+        connectorPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.SERIF, android.graphics.Typeface.ITALIC));
+        connectorPaint.setTextSize(11f);
+        connectorPaint.setColor(android.graphics.Color.parseColor("#9E9E9E"));
+        connectorPaint.setAntiAlias(true);
+
+        android.graphics.Paint linePaint = new android.graphics.Paint();
+        linePaint.setColor(android.graphics.Color.parseColor("#E2E8F0"));
+        linePaint.setStrokeWidth(1f);
+
+        int currentY = margin;
+
+        // Title Block
+        String docHeader = "CARNET DE VOYAGE";
+        canvas.drawText(docHeader, margin, currentY + 20, titlePaint);
+        currentY += 32;
+
+        canvas.drawText(title != null ? title : "", margin, currentY + 16, sectionPaint);
+        currentY += 24;
+
+        String displayCity = (city != null && !city.trim().isEmpty()) ? city.trim() : "Choisie par l'IA (Itinéraire surprise)";
+        String displayDate = (date != null && !date.trim().isEmpty()) ? date.trim() : "Date flexible";
+
+        String subtitle = displayCity + " • " + displayDate;
+        canvas.drawText(subtitle, margin, currentY + 14, subtitlePaint);
+        currentY += 24;
+
+        canvas.drawLine(margin, currentY, pageWidth - margin, currentY, linePaint);
+        currentY += 20;
+
+        // Informations Générales
+        canvas.drawText("Informations Générales", margin, currentY + 16, sectionPaint);
+        currentY += 28;
+
+        String destStr = "• Destination : " + displayCity;
+        canvas.drawText(destStr, margin + 10, currentY + 12, normalPaint);
+        currentY += 20;
+
+        String durStr = "• Durée totale estimée : " + (duration != null ? duration : "");
+        canvas.drawText(durStr, margin + 10, currentY + 12, normalPaint);
+        currentY += 20;
+
+        String budStr = "• Budget estimé : " + (budget != null ? budget : "");
+        canvas.drawText(budStr, margin + 10, currentY + 12, normalPaint);
+        currentY += 20;
+
+        String stepsStr = "• Nombre d'étapes : " + (currentSteps != null ? currentSteps.size() : 0);
+        canvas.drawText(stepsStr, margin + 10, currentY + 12, normalPaint);
+        currentY += 28;
+
+        canvas.drawLine(margin, currentY, pageWidth - margin, currentY, linePaint);
+        currentY += 24;
+
+        // Itinéraire Détaillé
+        canvas.drawText("Itinéraire Détaillé", margin, currentY + 16, sectionPaint);
+        currentY += 28;
+
+        int pageCount = 1;
+        if (currentSteps != null) {
+            for (int i = 0; i < currentSteps.size(); i++) {
+                com.paullouis.travel.model.ItineraryStep step = currentSteps.get(i);
+                
+                String stepTime = step.getTime() != null ? step.getTime() : "";
+                String stepTitleStr = (i + 1) + ". " + (step.getTitle() != null ? step.getTitle() : "");
+                if (!stepTime.isEmpty()) {
+                    stepTitleStr += " (" + stepTime + ")";
+                }
+
+                // Compile step metadata
+                StringBuilder metaBuilder = new StringBuilder();
+                if (step.getDuration() != null && !step.getDuration().isEmpty()) {
+                    metaBuilder.append("Durée : ").append(step.getDuration());
+                }
+                if (step.getPrice() != null && !step.getPrice().isEmpty()) {
+                    if (metaBuilder.length() > 0) metaBuilder.append("  •  ");
+                    metaBuilder.append("Tarif : ").append(step.getPrice());
+                }
+                if (step.getPeriod() != null && !step.getPeriod().isEmpty()) {
+                    if (metaBuilder.length() > 0) metaBuilder.append("  •  ");
+                    metaBuilder.append("Période : ").append(step.getPeriod());
+                }
+                String stepMeta = metaBuilder.toString();
+
+                String stepDesc = step.getDescription() != null ? step.getDescription() : "";
+
+                // Measure description layout
+                android.text.StaticLayout descLayout = null;
+                int descHeight = 0;
+                if (!stepDesc.isEmpty()) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        descLayout = android.text.StaticLayout.Builder.obtain(stepDesc, 0, stepDesc.length(), normalPaint, contentWidth - 16)
+                                .setAlignment(android.text.Layout.Alignment.ALIGN_NORMAL)
+                                .setLineSpacing(0f, 1.2f)
+                                .setIncludePad(false).build();
+                    } else {
+                        descLayout = new android.text.StaticLayout(stepDesc, normalPaint, contentWidth - 16, android.text.Layout.Alignment.ALIGN_NORMAL, 1.2f, 0f, false);
+                    }
+                    descHeight = descLayout.getHeight();
+                }
+
+                // Check travel connector
+                boolean hasConnector = i < currentSteps.size() - 1 && 
+                    (step.getTravelDurationMinutes() > 0 || (step.getTransportationMode() != null && !step.getTransportationMode().isEmpty()));
+                String travelText = "";
+                if (hasConnector) {
+                    travelText = "➔ Trajet vers l'étape suivante : " + step.getTravelDurationMinutes() + " min";
+                    if (step.getTransportationMode() != null && !step.getTransportationMode().isEmpty()) {
+                        travelText += " en " + step.getTransportationMode();
+                    }
+                }
+
+                int neededHeight = 24 + (!stepMeta.isEmpty() ? 18 : 0) + (descHeight > 0 ? descHeight + 8 : 0) + (hasConnector ? 20 : 0) + 16;
+                if (currentY + neededHeight > pageHeight - margin) {
+                    normalPaint.setTextAlign(android.graphics.Paint.Align.CENTER);
+                    canvas.drawText("- " + pageCount + " -", pageWidth / 2f, pageHeight - 30, normalPaint);
+                    normalPaint.setTextAlign(android.graphics.Paint.Align.LEFT);
+
+                    pdfDocument.finishPage(page);
+                    pageCount++;
+                    pageInfo = new android.graphics.pdf.PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageCount).create();
+                    page = pdfDocument.startPage(pageInfo);
+                    canvas = page.getCanvas();
+                    currentY = margin;
+                }
+
+                // Draw Step Title
+                canvas.drawText(stepTitleStr, margin, currentY + 14, boldPaint);
+                currentY += 20;
+
+                // Draw Step Metadata
+                if (!stepMeta.isEmpty()) {
+                    canvas.drawText(stepMeta, margin + 16, currentY + 12, metaPaint);
+                    currentY += 18;
+                }
+
+                // Draw Step Description
+                if (descLayout != null) {
+                    canvas.save();
+                    canvas.translate(margin + 16, currentY);
+                    descLayout.draw(canvas);
+                    canvas.restore();
+                    currentY += descHeight + 8;
+                }
+
+                // Draw Travel Connector
+                if (hasConnector) {
+                    canvas.drawText(travelText, margin + 16, currentY + 12, connectorPaint);
+                    currentY += 18;
+                }
+
+                currentY += 12; // extra space between steps
+            }
+        }
+
+        normalPaint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        canvas.drawText("- " + pageCount + " -", pageWidth / 2f, pageHeight - 30, normalPaint);
+        normalPaint.setTextAlign(android.graphics.Paint.Align.LEFT);
+
+        pdfDocument.finishPage(page);
+
+        try {
+            java.io.File cachePath = new java.io.File(getCacheDir(), "itineraries");
+            if (!cachePath.exists()) cachePath.mkdirs();
+            java.io.File pdfFile = new java.io.File(cachePath, "Carnet_de_Voyage.pdf");
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(pdfFile);
+            pdfDocument.writeTo(fos);
+            pdfDocument.close();
+            fos.close();
+
+            android.net.Uri pdfUri = androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", pdfFile);
+
+            android.content.Intent viewIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+            viewIntent.setDataAndType(pdfUri, "application/pdf");
+            viewIntent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            android.content.Intent chooserIntent = android.content.Intent.createChooser(viewIntent, "Ouvrir le PDF compilé");
+            startActivity(chooserIntent);
+
+        } catch (Exception e) {
+            android.widget.Toast.makeText(this, "Erreur de génération du PDF", android.widget.Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
     }
 
 }

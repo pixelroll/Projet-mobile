@@ -162,6 +162,15 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         // Like button — optimistic with Firebase persistence
         updateLikeIcon(holder.ivLike, photo.isLiked());
         holder.ivLike.setOnClickListener(v -> {
+            if (!com.paullouis.travel.data.FirebaseRepository.getInstance().isUserLoggedIn()) {
+                android.content.Context context = holder.itemView.getContext();
+                if (context instanceof androidx.fragment.app.FragmentActivity) {
+                    com.paullouis.travel.LoginRequiredDialogFragment.newInstance()
+                        .show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "login_required");
+                }
+                return;
+            }
+
             if (photo.isLoading()) return; // Prevent double-tap
 
             boolean wasLiked = photo.isLiked();

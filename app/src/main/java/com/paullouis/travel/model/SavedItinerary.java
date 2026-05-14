@@ -22,9 +22,11 @@ public class SavedItinerary {
     public static SavedItinerary from(GeneratedItinerary itinerary, String userId, String locationName, String date) {
         SavedItinerary saved = new SavedItinerary();
         saved.userId = userId;
-        String loc = (locationName != null && !locationName.isEmpty()) ? locationName : "";
-        saved.title = "Parcours " + itinerary.getTitle() + (loc.isEmpty() ? "" : " - " + loc);
-        saved.locationName = locationName;
+        String effectiveLocation = (locationName != null && !locationName.trim().isEmpty()) 
+            ? locationName.trim() 
+            : (itinerary.getDestinationCity() != null ? itinerary.getDestinationCity() : "");
+        saved.title = "Parcours " + itinerary.getTitle() + (effectiveLocation.isEmpty() ? "" : " - " + effectiveLocation);
+        saved.locationName = effectiveLocation;
         saved.date = date;
         saved.type = itinerary.getType();
         saved.description = itinerary.getDescription();

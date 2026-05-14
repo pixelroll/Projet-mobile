@@ -214,6 +214,7 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
             "  \"itineraries\": [\n" +
             "    {\n" +
             "      \"type\": \"ECO\",\n" +
+            "      \"destinationCity\": \"Ville et Pays (ex: Barcelone, Espagne)\",\n" +
             "      \"description\": \"...\",\n" +
             "      \"totalBudget\": 45,\n" +
             "      \"estimatedDurationHours\": 6.5,\n" +
@@ -268,6 +269,7 @@ public class GeneratedItinerariesActivity extends AppCompatActivity {
                 itin.setEstimatedDurationHours((float) itinJson.optDouble("estimatedDurationHours", 0));
                 itin.setEffort(itinJson.optString("effort", "MEDIUM"));
                 itin.setNumberOfSteps(itinJson.optInt("numberOfSteps", 0));
+                itin.setDestinationCity(itinJson.optString("destinationCity", ""));
 
                 // Parse destinations
                 List<TravelDestination> destinations = new ArrayList<>();

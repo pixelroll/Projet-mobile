@@ -11,6 +11,7 @@ public class GeneratedItinerary {
     private int numberOfSteps;
     private List<TravelDestination> destinations;
     private boolean isLiked;
+    private String destinationCity;
 
     public GeneratedItinerary() {}
 
@@ -91,6 +92,7 @@ public class GeneratedItinerary {
     public void setEffort(String effort) { this.effort = effort; }
     public void setNumberOfSteps(int numberOfSteps) { this.numberOfSteps = numberOfSteps; }
     public void setDestinations(List<TravelDestination> destinations) { this.destinations = destinations; }
+    public void setDestinationCity(String destinationCity) { this.destinationCity = destinationCity; }
 
     // Getters for raw fields
     public String getType() { return type; }
@@ -99,4 +101,5 @@ public class GeneratedItinerary {
     public String getEffortRaw() { return effort; }
     public int getNumberOfSteps() { return numberOfSteps; }
     public List<TravelDestination> getDestinations() { return destinations; }
+    public String getDestinationCity() { return destinationCity; }
 }

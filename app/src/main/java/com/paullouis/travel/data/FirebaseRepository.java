@@ -52,7 +52,8 @@ public class FirebaseRepository implements DataRepository {
 
     @Override
     public boolean isUserLoggedIn() {
-        return auth.getCurrentUser() != null;
+        FirebaseUser user = auth.getCurrentUser();
+        return user != null && !user.isAnonymous();
     }
 
     public String getCurrentUserId() {

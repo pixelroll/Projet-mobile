@@ -91,7 +91,10 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
         holder.btnDetail.setOnClickListener(v -> {
             ItineraryCache.setSelectedIndex(holder.getAdapterPosition());
             Intent intent = new Intent(context, ItineraryDetailActivity.class);
-            intent.putExtra("LOCATION_NAME", locationName);
+            String targetLocation = (locationName != null && !locationName.trim().isEmpty()) 
+                ? locationName.trim() 
+                : (item.getDestinationCity() != null ? item.getDestinationCity() : "");
+            intent.putExtra("LOCATION_NAME", targetLocation);
             intent.putExtra("LOCATION_DATE", locationDate);
             ((Activity) context).startActivityForResult(intent, 1);
         });
