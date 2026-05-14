@@ -1352,6 +1352,16 @@ public class FirebaseRepository implements DataRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    public void deleteItinerary(String id, DataCallback<Void> callback) {
+        FirebaseUser fUser = auth.getCurrentUser();
+        db.collection("itineraries").document(id).delete()
+                .addOnSuccessListener(aVoid -> {
+                    if (fUser != null) cache.remove("itineraries:user:" + fUser.getUid());
+                    callback.onSuccess(null);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
     public void getLikedPhotos(DataCallback<List<Photo>> callback) {
         FirebaseUser fUser = auth.getCurrentUser();
         if (fUser == null) {

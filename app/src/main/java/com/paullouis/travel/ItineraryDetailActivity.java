@@ -239,6 +239,23 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         View mapCard = findViewById(R.id.mapCard);
         if (mapCard != null) mapCard.setOnClickListener(v -> {
+            List<TravelDestination> dests = savedItinerary != null && savedItinerary.getSteps() != null ?
+                    savedItinerary.getSteps() : stepsToDestinations(currentSteps);
+
+            String budgetStr = ((TextView) findViewById(R.id.tvStatBudget)).getText().toString();
+            int budgetVal = 0;
+            try {
+                String cleanB = budgetStr.replace("€", "").trim();
+                budgetVal = Integer.parseInt(cleanB);
+            } catch (Exception e) {}
+
+            GeneratedItinerary fallback = new GeneratedItinerary(
+                    "BALANCED", savedItinerary != null ? savedItinerary.getDescription() : "",
+                    budgetVal, 4.0f, "MEDIUM", dests.size(), dests, true
+            );
+            fallback.setDestinationCity(finalCity);
+            ItineraryCache.setSelectedFallback(fallback);
+
             Intent i = new Intent(this, TripMapActivity.class);
             i.putExtra("TRIP_TITLE", finalTitle);
             i.putExtra("TRIP_DESTINATION", finalCity);
@@ -255,7 +272,6 @@ public class ItineraryDetailActivity extends AppCompatActivity {
 
         View btnAddStep = findViewById(R.id.btnAddStep);
         if (btnAddStep != null) {
-            btnAddStep.setVisibility(View.GONE);
             btnAddStep.setOnClickListener(v -> showAddStepDialog());
         }
     }
@@ -286,6 +302,19 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         }
     }
 
+    private static class DeleteAction {
+        int originalPosition;
+        ItineraryStep uiStep;
+        TravelDestination destination;
+
+        DeleteAction(int pos, ItineraryStep uiStep, TravelDestination destination) {
+            this.originalPosition = pos;
+            this.uiStep = uiStep;
+            this.destination = destination;
+        }
+    }
+    private final java.util.Stack<DeleteAction> undoStack = new java.util.Stack<>();
+
     private void toggleEditMode() {
         editMode = !editMode;
         FloatingActionButton fabEdit = findViewById(R.id.fabEdit);
@@ -293,8 +322,45 @@ public class ItineraryDetailActivity extends AppCompatActivity {
             fabEdit.setImageResource(editMode ? R.drawable.ic_check : R.drawable.ic_edit);
         }
 
-        View btnAddStep = findViewById(R.id.btnAddStep);
-        if (btnAddStep != null) btnAddStep.setVisibility(editMode ? View.VISIBLE : View.GONE);
+        View llEditModeActions = findViewById(R.id.llEditModeActions);
+        if (llEditModeActions != null) llEditModeActions.setVisibility(editMode ? View.VISIBLE : View.GONE);
+
+        if (!editMode) {
+            undoStack.clear();
+        }
+
+        View btnUndoDelete = findViewById(R.id.btnUndoDelete);
+        if (btnUndoDelete != null) {
+            btnUndoDelete.setOnClickListener(v -> {
+                if (!undoStack.isEmpty()) {
+                    DeleteAction action = undoStack.pop();
+                    if (action.destination != null) action.destination.setEnabled(true);
+
+                    int insertPos = Math.min(action.originalPosition, currentSteps.size());
+                    insertPos = Math.max(0, insertPos);
+
+                    currentSteps.add(insertPos, action.uiStep);
+                    if (savedItinerary != null && savedItinerary.getSteps() != null && action.destination != null) {
+                        int destInsertPos = Math.min(action.originalPosition, savedItinerary.getSteps().size());
+                        destInsertPos = Math.max(0, destInsertPos);
+                        savedItinerary.getSteps().add(destInsertPos, action.destination);
+                    }
+
+                    for (int i = insertPos; i < currentSteps.size(); i++) {
+                        currentSteps.get(i).setTime(String.valueOf(i + 1));
+                        if (savedItinerary != null && savedItinerary.getSteps() != null
+                                && i < savedItinerary.getSteps().size()) {
+                            savedItinerary.getSteps().get(i).setOrder(i + 1);
+                        }
+                    }
+                    recomputeTravelConnectors();
+                    stepAdapter.notifyDataSetChanged();
+                    ((TextView) findViewById(R.id.tvStatSteps)).setText(String.valueOf(currentSteps.size()));
+                } else {
+                    Toast.makeText(ItineraryDetailActivity.this, "Aucune suppression à annuler", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
         if (!editMode && savedItinerary != null) {
             // Rebuild step list from currentSteps back to TravelDestinations
@@ -314,16 +380,82 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         } else {
             stepAdapter.setEditMode(true, position -> {
                 if (position >= 0 && position < currentSteps.size()) {
+                    final ItineraryStep removedUiStep = currentSteps.get(position);
+                    final TravelDestination removedDest = (savedItinerary != null && savedItinerary.getSteps() != null
+                            && position < savedItinerary.getSteps().size()) ? savedItinerary.getSteps().get(position) : null;
+
+                    if (removedDest != null) {
+                        removedDest.setEnabled(false);
+                    }
+
+                    undoStack.push(new DeleteAction(position, removedUiStep, removedDest));
+
                     currentSteps.remove(position);
-                    if (savedItinerary != null && savedItinerary.getSteps() != null
-                            && position < savedItinerary.getSteps().size()) {
+                    if (savedItinerary != null && savedItinerary.getSteps() != null && removedDest != null) {
                         savedItinerary.getSteps().remove(position);
                     }
-                    stepAdapter.notifyItemRemoved(position);
-                    stepAdapter.notifyItemRangeChanged(position, currentSteps.size());
+                    // Re-index remaining steps
+                    for (int i = position; i < currentSteps.size(); i++) {
+                        currentSteps.get(i).setTime(String.valueOf(i + 1));
+                        if (savedItinerary != null && savedItinerary.getSteps() != null
+                                && i < savedItinerary.getSteps().size()) {
+                            savedItinerary.getSteps().get(i).setOrder(i + 1);
+                        }
+                    }
+                    recomputeTravelConnectors();
+                    stepAdapter.notifyDataSetChanged();
                     ((TextView) findViewById(R.id.tvStatSteps)).setText(String.valueOf(currentSteps.size()));
                 }
             });
+        }
+    }
+
+    private int calculateWalkingTimeMinutes(double lat1, double lon1, double lat2, double lon2) {
+        if (lat1 == 0 && lon1 == 0 && lat2 == 0 && lon2 == 0) {
+            return 15;
+        }
+        double r = 6371.0; // Earth radius in km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distKm = r * c;
+
+        // Walking speed ~ 5 km/h -> 12 minutes per km
+        int minutes = (int) Math.round(distKm * 12.0);
+        return Math.max(1, minutes);
+    }
+
+    private void recomputeTravelConnectors() {
+        if (currentSteps == null) return;
+        int total = currentSteps.size();
+        for (int i = 0; i < total; i++) {
+            ItineraryStep step = currentSteps.get(i);
+            if (i + 1 < total) {
+                ItineraryStep nextStep = currentSteps.get(i + 1);
+                int travelMin = calculateWalkingTimeMinutes(
+                        step.getLatitude(), step.getLongitude(),
+                        nextStep.getLatitude(), nextStep.getLongitude()
+                );
+                String mode = "marche";
+
+                if (savedItinerary != null && savedItinerary.getSteps() != null && i + 1 < savedItinerary.getSteps().size()) {
+                    TravelDestination nextDest = savedItinerary.getSteps().get(i + 1);
+                    if (nextDest.getTransportationMode() != null && !nextDest.getTransportationMode().isEmpty()) {
+                        mode = nextDest.getTransportationMode();
+                        if (!"marche".equalsIgnoreCase(mode) && nextDest.getTravelDurationMinutes() > 0) {
+                            travelMin = nextDest.getTravelDurationMinutes();
+                        }
+                    }
+                }
+                step.setTravelDurationMinutes(travelMin);
+                step.setTransportationMode(mode);
+            } else {
+                step.setTravelDurationMinutes(0);
+                step.setTransportationMode("");
+            }
         }
     }
 
@@ -341,6 +473,42 @@ public class ItineraryDetailActivity extends AppCompatActivity {
         etDesc.setHint("Description (optionnel)");
         layout.addView(etDesc);
 
+        EditText etPrice = new EditText(this);
+        etPrice.setHint("Prix estimé (€)");
+        etPrice.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        layout.addView(etPrice);
+
+        EditText etDuration = new EditText(this);
+        etDuration.setHint("Durée estimée (minutes)");
+        etDuration.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        layout.addView(etDuration);
+
+        double defaultLat = 48.8566;
+        double defaultLon = 2.3522;
+        if (!currentSteps.isEmpty()) {
+            defaultLat = currentSteps.get(0).getLatitude();
+            defaultLon = currentSteps.get(0).getLongitude();
+            if (defaultLat == 0 && defaultLon == 0 && savedItinerary != null && savedItinerary.getSteps() != null && !savedItinerary.getSteps().isEmpty()) {
+                defaultLat = savedItinerary.getSteps().get(0).getLatitude();
+                defaultLon = savedItinerary.getSteps().get(0).getLongitude();
+            }
+        }
+
+        EditText etLat = new EditText(this);
+        etLat.setHint("Latitude");
+        etLat.setText(String.valueOf(defaultLat));
+        etLat.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        layout.addView(etLat);
+
+        EditText etLon = new EditText(this);
+        etLon.setHint("Longitude");
+        etLon.setText(String.valueOf(defaultLon));
+        etLon.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        layout.addView(etLon);
+
+        final double finalDefaultLat = defaultLat;
+        final double finalDefaultLon = defaultLon;
+
         new AlertDialog.Builder(this)
                 .setTitle("Ajouter une étape")
                 .setView(layout)
@@ -348,23 +516,36 @@ public class ItineraryDetailActivity extends AppCompatActivity {
                     String name = etName.getText().toString().trim();
                     if (name.isEmpty()) return;
                     String desc = etDesc.getText().toString().trim();
+
+                    int priceVal = 0;
+                    try { priceVal = Integer.parseInt(etPrice.getText().toString().trim()); } catch(Exception e){}
+
+                    int durationVal = 60;
+                    try { durationVal = Integer.parseInt(etDuration.getText().toString().trim()); } catch(Exception e){}
+
+                    double latVal = finalDefaultLat;
+                    try { latVal = Double.parseDouble(etLat.getText().toString().trim()); } catch(Exception e){}
+
+                    double lonVal = finalDefaultLon;
+                    try { lonVal = Double.parseDouble(etLon.getText().toString().trim()); } catch(Exception e){}
+
                     int order = currentSteps.size() + 1;
 
                     ItineraryStep newStep = new ItineraryStep(
-                            String.valueOf(order), name, desc, "?", "", "?", "?€", "Soir", "",
-                            R.drawable.ic_map_pin, 0
+                            String.valueOf(order), name, desc, "?", "", durationVal + " min", priceVal + "€", "Journée", "",
+                            R.drawable.ic_map_pin, 0, latVal, lonVal
                     );
                     currentSteps.add(newStep);
-                    stepAdapter.notifyItemInserted(currentSteps.size() - 1);
-                    ((TextView) findViewById(R.id.tvStatSteps)).setText(String.valueOf(currentSteps.size()));
-
                     if (savedItinerary != null) {
                         TravelDestination newDest = new TravelDestination(
-                                order, name, desc, "", 0, 0, 0, 0, "Découverte"
+                                order, name, desc, "", latVal, lonVal, priceVal, durationVal, "Découverte"
                         );
                         if (savedItinerary.getSteps() == null) savedItinerary.setSteps(new ArrayList<>());
                         savedItinerary.getSteps().add(newDest);
                     }
+                    recomputeTravelConnectors();
+                    stepAdapter.notifyDataSetChanged();
+                    ((TextView) findViewById(R.id.tvStatSteps)).setText(String.valueOf(currentSteps.size()));
                 })
                 .setNegativeButton("Annuler", null)
                 .show();
@@ -511,8 +692,15 @@ public class ItineraryDetailActivity extends AppCompatActivity {
             );
             if (i + 1 < total) {
                 TravelDestination next = destinations.get(i + 1);
-                step.setTravelDurationMinutes(next.getTravelDurationMinutes());
-                step.setTransportationMode(next.getTransportationMode());
+                int tMin = next.getTravelDurationMinutes();
+                String mode = next.getTransportationMode();
+                if (mode == null || mode.isEmpty()) mode = "marche";
+                if ("marche".equalsIgnoreCase(mode) || tMin <= 0) {
+                    tMin = calculateWalkingTimeMinutes(dest.getLatitude(), dest.getLongitude(), next.getLatitude(), next.getLongitude());
+                    mode = "marche";
+                }
+                step.setTravelDurationMinutes(tMin);
+                step.setTransportationMode(mode);
             }
             steps.add(step);
         }

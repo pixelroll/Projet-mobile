@@ -12,6 +12,7 @@ public class TravelDestination {
     private String type;
     private int travelDurationMinutes;
     private String transportationMode;
+    private boolean enabled = true;
 
     public TravelDestination() {}
 
@@ -61,4 +62,7 @@ public class TravelDestination {
 
     public String getTransportationMode() { return transportationMode; }
     public void setTransportationMode(String transportationMode) { this.transportationMode = transportationMode; }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 }

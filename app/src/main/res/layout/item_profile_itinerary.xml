@@ -24,7 +24,8 @@
             android:gravity="center_vertical">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
                 
@@ -79,6 +80,15 @@
                         tools:text="Paris, France" />
                 </LinearLayout>
             </LinearLayout>
+
+            <ImageView
+                android:id="@+id/btnUnlike"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_heart_filled"
+                app:tint="#EF4444" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

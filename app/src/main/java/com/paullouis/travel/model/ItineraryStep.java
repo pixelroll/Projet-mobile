@@ -41,6 +41,7 @@ public class ItineraryStep {
     }
 
     public String getTime() { return time; }
+    public void setTime(String time) { this.time = time; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public String getHours() { return hours; }

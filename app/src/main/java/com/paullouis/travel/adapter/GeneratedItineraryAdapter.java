@@ -78,15 +78,6 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
         }
         holder.tvEffort.setBackground(bg);
 
-        // Like button
-        updateLikeIcon(holder.ivLikeBottom, item.isLiked());
-
-        View.OnClickListener toggleLike = v -> {
-            item.setLiked(!item.isLiked());
-            updateLikeIcon(holder.ivLikeBottom, item.isLiked());
-        };
-        holder.btnLikeBottom.setOnClickListener(toggleLike);
-
         // Detail button
         holder.btnDetail.setOnClickListener(v -> {
             ItineraryCache.setSelectedIndex(holder.getAdapterPosition());
@@ -100,13 +91,6 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
         });
     }
 
-    private void updateLikeIcon(ImageView ivBottom, boolean isLiked) {
-        int color = isLiked ? Color.parseColor("#EF4444") : Color.parseColor("#BDBDBD");
-        int resId = isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_lucide;
-        
-        ivBottom.setImageResource(resId);
-        ivBottom.setColorFilter(color);
-    }
 
     @Override
     public int getItemCount() {
@@ -115,8 +99,7 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvDescription, tvBudget, tvDuration, tvEffort, tvStops;
-        ImageView ivLikeBottom;
-        View btnDetail, btnLikeBottom;
+        View btnDetail;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -126,9 +109,7 @@ public class GeneratedItineraryAdapter extends RecyclerView.Adapter<GeneratedIti
             tvDuration = itemView.findViewById(R.id.tvDuration);
             tvEffort = itemView.findViewById(R.id.tvEffort);
             tvStops = itemView.findViewById(R.id.tvStops);
-            ivLikeBottom = itemView.findViewById(R.id.ivLikeBottom);
             btnDetail = itemView.findViewById(R.id.btnDetail);
-            btnLikeBottom = itemView.findViewById(R.id.btnLikeBottom);
         }
     }
 }
