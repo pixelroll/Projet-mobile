@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "813322940670-p9aedp6rrne7lfht4p5rnobmvu86dqcn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.paullouis.travel",
+            "certificate_hash": "406d4493dc943e70edf61b22da7479bf443aca44"
+          }
+        },
+        {
           "client_id": "813322940670-o3qpe7bkmkndh2f6f7f117174trm7ioa.apps.googleusercontent.com",
           "client_type": 3
         }

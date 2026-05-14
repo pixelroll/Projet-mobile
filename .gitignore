@@ -36,3 +36,8 @@ Figma/
 
 # Editor
 .vscode/
+
+# Keystore — JAMAIS commiter sur repo public !
+keystore.properties
+*.jks
+*.b64

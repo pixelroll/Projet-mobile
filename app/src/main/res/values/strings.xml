@@ -7,4 +7,6 @@
     <string name="nav_path">Parcours</string>
     <string name="nav_search">Recherche</string>
     <string name="nav_profile">Profil</string>
+    <!-- Google Sign-In Web Client ID (depuis google-services.json oauth_client type 3) -->
+    <string name="default_web_client_id">813322940670-o3qpe7bkmkndh2f6f7f117174trm7ioa.apps.googleusercontent.com</string>
 </resources>
