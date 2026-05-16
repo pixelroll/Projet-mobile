@@ -471,7 +471,7 @@ public class AdvancedSearchFragment extends Fragment {
     }
 
     private void handleRandomSearch() {
-        FirebaseRepository.getInstance().getUserPhotos(new DataCallback<List<Photo>>() {
+        FirebaseRepository.getInstance().getFeedPhotos(new DataCallback<List<Photo>>() {
             @Override
             public void onSuccess(List<Photo> photos) {
                 Collections.shuffle(photos);
@@ -546,7 +546,7 @@ public class AdvancedSearchFragment extends Fragment {
             return;
         }
 
-        FirebaseRepository.getInstance().getUserPhotos(new DataCallback<List<Photo>>() {
+        FirebaseRepository.getInstance().getFeedPhotos(new DataCallback<List<Photo>>() {
             @Override
             public void onSuccess(List<Photo> photos) {
                 Map<String, Integer> scoreMap = new HashMap<>();
