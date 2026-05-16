@@ -66,14 +66,41 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
             return;
         }
 
-        isLiked = photo.isLiked();
-        likesCount = photo.getLikes();
-        commentsCount = photo.getComments();
+        Runnable initContent = () -> {
+            isLiked = photo.isLiked();
+            likesCount = photo.getLikes();
+            commentsCount = photo.getComments();
+            initViews();
+            setupComments();
+            EventBus.registerCommentListener(this);
+            EventBus.registerPhotoLikeListener(this);
+        };
 
-        initViews();
-        setupComments();
-        EventBus.registerCommentListener(this);
-        EventBus.registerPhotoLikeListener(this);
+        if (photo.getGroupId() != null && !photo.getGroupId().isEmpty() 
+            && !photo.getUserId().equals(FirebaseRepository.getInstance().getCurrentUserId())) {
+            
+            rootLayout.setVisibility(View.INVISIBLE);
+            FirebaseRepository.getInstance().getGroupById(photo.getGroupId(), new DataCallback<com.paullouis.travel.model.Group>() {
+                @Override
+                public void onSuccess(com.paullouis.travel.model.Group group) {
+                    if (group != null && group.isJoined()) {
+                        rootLayout.setVisibility(View.VISIBLE);
+                        initContent.run();
+                    } else {
+                        Toast.makeText(PhotoDetailActivity.this, "Cette publication est privée. Vous devez rejoindre le groupe.", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Toast.makeText(PhotoDetailActivity.this, "Publication introuvable ou accès refusé", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
+        } else {
+            initContent.run();
+        }
     }
 
     @Override
@@ -94,6 +121,34 @@ public class PhotoDetailActivity extends AppCompatActivity implements EventBus.C
 
     private void initViews() {
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+
+        View btnDeletePhoto = findViewById(R.id.btnDeletePhoto);
+        if (photo.getUserId() != null && photo.getUserId().equals(FirebaseRepository.getInstance().getCurrentUserId())) {
+            btnDeletePhoto.setVisibility(View.VISIBLE);
+            btnDeletePhoto.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("Supprimer la publication")
+                        .setMessage("Êtes-vous sûr de vouloir supprimer cette publication ? Cette action est irréversible.")
+                        .setPositiveButton("Supprimer", (dialog, which) -> {
+                            FirebaseRepository.getInstance().deletePhoto(photo.getId(), new DataCallback<Void>() {
+                                @Override
+                                public void onSuccess(Void result) {
+                                    EventBus.notifyPhotoRemoved(photo.getId());
+                                    Toast.makeText(PhotoDetailActivity.this, "Publication supprimée", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                }
+                                @Override
+                                public void onError(Exception e) {
+                                    Toast.makeText(PhotoDetailActivity.this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        })
+                        .setNegativeButton("Annuler", null)
+                        .show();
+            });
+        } else {
+            btnDeletePhoto.setVisibility(View.GONE);
+        }
 
         // Photo
         ImageView ivPhoto = findViewById(R.id.ivPhotoDetail);

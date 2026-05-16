@@ -258,17 +258,25 @@ public class FirebaseRepository implements DataRepository {
         db.collection("photos")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Photo> photos = queryDocumentSnapshots.toObjects(Photo.class);
+                    List<Photo> allPhotos = queryDocumentSnapshots.toObjects(Photo.class);
+                    List<Photo> publicPhotos = new ArrayList<>();
                     FirebaseUser currentUser = auth.getCurrentUser();
                     String currentUserId = currentUser != null ? currentUser.getUid() : null;
-                    for (Photo p : photos) {
+                    
+                    for (Photo p : allPhotos) {
+                        // Exclure les photos de groupe du fil public
+                        if (p.getGroupId() != null && !p.getGroupId().isEmpty()) {
+                            continue;
+                        }
+                        
                         if (currentUserId != null && p.getLikedBy() != null) {
                             p.setLiked(p.getLikedBy().contains(currentUserId));
                         }
+                        publicPhotos.add(p);
                     }
-                    photos.sort((p1, p2) -> Long.compare(p2.getTimestamp(), p1.getTimestamp()));
-                    cache.put("photos:feed", photos);
-                    callback.onSuccess(photos);
+                    publicPhotos.sort((p1, p2) -> Long.compare(p2.getTimestamp(), p1.getTimestamp()));
+                    cache.put("photos:feed", publicPhotos);
+                    callback.onSuccess(publicPhotos);
                 })
                 .addOnFailureListener(callback::onError);
     }
@@ -1393,6 +1401,16 @@ public class FirebaseRepository implements DataRepository {
                 })
                 .addOnFailureListener(callback::onError);
     }
+
+    public void deletePhoto(String photoId, DataCallback<Void> callback) {
+        db.collection("photos").document(photoId).delete()
+                .addOnSuccessListener(aVoid -> {
+                    cache.remove("photos_feed");
+                    callback.onSuccess(null);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
 
     private long computePeriodCutoff(String period) {
         Calendar cal = Calendar.getInstance();
